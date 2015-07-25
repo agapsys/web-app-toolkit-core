@@ -16,7 +16,6 @@ Web Core Framework project requires Java 7 compatible runtime and depends on the
 * Agapsys Java Logging Framework
 * Agapsys SMTP Sender
 * GSON
-
 * Agapsys Servlet Testing Framework (TESTING)
 * H2 Database (TESTING)
 * JUnit (TESTING)
