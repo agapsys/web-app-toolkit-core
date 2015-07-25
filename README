@@ -22,7 +22,6 @@ depends on the following external libraries:
 * Agapsys Java Logging Framework
 * Agapsys SMTP Sender
 * GSON
-
 * Agapsys Servlet Testing Framework (TESTING)
 * H2 Database (TESTING)
 * JUnit (TESTING)
