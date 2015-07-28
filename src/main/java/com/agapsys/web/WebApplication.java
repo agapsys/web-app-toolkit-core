@@ -38,24 +38,21 @@ public abstract class WebApplication implements ServletContextListener {
 	}
 	
 	public static final String DEFAULT_ENVIRONMENT = "production";
+	public static final String DEFAULT_PERSISTENCE_UNIT_NAME = "default";
 		
 	// State -------------------------------------------------------------------
-	private static boolean       running       = false;
-	private static String        environment   = null;
-	private static String        appName       = null;
-	private static File          appFolder     = null;
-	private static String        appVersion    = null;
-	private static DbInitializer dbInitializer = null;
+	private static boolean       running             = false;
+	private static String        environment         = null;
+	private static String        appName             = null;
+	private static File          appFolder           = null;
+	private static String        appVersion          = null;
+	private static String        persistenceUnitName = null;
+	private static DbInitializer dbInitializer       = null;
 	// -------------------------------------------------------------------------
 	
 	private static void throwIfRunning() throws IllegalStateException {
 		if (isRunning())
 			throw new IllegalStateException("Application is running");
-	}
-	
-	private static void throwIfNotRunning() throws IllegalStateException {
-		if (!isRunning())
-			throw new IllegalStateException("Application is not running");
 	}
 	
 	// Application management methods ------------------------------------------
@@ -93,24 +90,42 @@ public abstract class WebApplication implements ServletContextListener {
 	
 	// State management methods ------------------------------------------------
 	public static String getName() throws IllegalStateException{
-		throwIfNotRunning();
 		return appName;
 	}
-	public static void setName(String appName) throws IllegalStateException {
+	public static void setName(String appName) throws IllegalArgumentException, IllegalStateException {
 		throwIfRunning();
+		
+		if (appName == null || appName.isEmpty())
+			throw new IllegalArgumentException("Null/Empty name");
+		
 		WebApplication.appName = appName;
 	}
 	
 	public static String getVersion() throws IllegalStateException {
-		throwIfNotRunning();
 		return appVersion;
 	}
-	public static void setVersion(String appVersion) throws IllegalStateException {
-		throwIfRunning();		
+	public static void setVersion(String appVersion) throws IllegalArgumentException, IllegalStateException {
+		throwIfRunning();
+		
+		if (appVersion == null || appVersion.isEmpty())
+			throw new IllegalArgumentException("Null/Empty version");
+		
 		WebApplication.appVersion = appVersion;
 	}
 	
-	/** @return the db initializer set for the application. */
+	public static String getPersistenceUnitName() throws IllegalStateException {
+		return persistenceUnitName;
+	}
+	public static void setPersistenceUnitName(String peristenceUnitName) throws IllegalArgumentException, IllegalStateException {
+		throwIfRunning();
+		
+		if (peristenceUnitName == null || peristenceUnitName.isEmpty()) 
+			throw new IllegalArgumentException("Null/Empty peristenceUnitName");
+		
+		WebApplication.persistenceUnitName = peristenceUnitName;
+	}
+	
+	/** @return the db initializer for the application. */
 	public static DbInitializer getDbInitializer() {
 		return dbInitializer;
 	}
@@ -122,20 +137,18 @@ public abstract class WebApplication implements ServletContextListener {
 	 */
 	public static void setDbInitializer(DbInitializer dbInitializer) throws IllegalStateException {
 		throwIfRunning();
+		
 		WebApplication.dbInitializer = dbInitializer;
 	}
 	
 	/**
-	 * @return the folder where application store external resources.
-	 * @throws IllegalStateException if application is not running
+	 * Returns the folder where application stores external resources.
+	 * @return the folder where application stores external resources.
+	 * @throws IllegalStateException if application name is not set
 	 */
 	public static File getAppFolder() throws IllegalStateException {
-		return getAppFolder(false);
-	}
-	
-	static File getAppFolder(boolean ignoreState) throws IllegalStateException {
-		if (!ignoreState)
-			throwIfNotRunning();
+		if (appName == null)
+			throw new IllegalStateException("Missing application name");
 		
 		if (appFolder == null) {
 			appFolder = FileUtils.getOrCreateFolder(new File(FileUtils.USER_HOME, "." + appName).getAbsolutePath());
@@ -150,18 +163,17 @@ public abstract class WebApplication implements ServletContextListener {
 	}
 	
 	/** 
-	 * Sets the environment used by application. This method is intended to be
-	 * used for testing purposes
-	 * 
+	 * Sets the environment used by application.
 	 * @param environment environment name
 	 * @throws IllegalArgumentException if (environment == null || environment.isEmpty())
 	 * @throws IllegalStateException if application is running
 	 */
 	public static void setEnvironment(String environment) throws IllegalArgumentException, IllegalStateException {
+		throwIfRunning();
+
 		if (environment == null || environment.isEmpty())
 			throw new IllegalArgumentException("Null/Empty environment");
 		
-		throwIfRunning();
 		WebApplication.environment = environment;
 	}
 	// -------------------------------------------------------------------------
@@ -201,12 +213,17 @@ public abstract class WebApplication implements ServletContextListener {
 		return DEFAULT_ENVIRONMENT;
 	}
 	
+	protected String getDefaultPersistenceUnitName() {
+		return DEFAULT_PERSISTENCE_UNIT_NAME;
+	}
+	
 	/** 
-	 * @return the database initializer for the application. 
+	 * Returns the database initializer used by application.
+	 * @return the database initializer used by application. 
 	 * If an initialization is not required returns null. 
 	 * Default implementation returns null.
 	 */
-	protected DbInitializer getAppDbInitializer() {
+	protected DbInitializer getDefaultDbInitializer() {
 		return null;
 	}
 	
@@ -214,7 +231,8 @@ public abstract class WebApplication implements ServletContextListener {
 	public final void contextInitialized(ServletContextEvent sce) {
 		setName(getAppName());
 		setVersion(getAppVersion());
-		setDbInitializer(getAppDbInitializer());
+		setPersistenceUnitName(getDefaultPersistenceUnitName());
+		setDbInitializer(getDefaultDbInitializer());
 		setEnvironment(getDefaultEnvironment());
 		start();
 	}

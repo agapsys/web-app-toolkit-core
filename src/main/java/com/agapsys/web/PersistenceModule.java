@@ -26,20 +26,18 @@ import javax.persistence.EntityManager;
  */
 class PersistenceModule {
 	// CLASS SCOPE =============================================================
-	public static String DEFAULT_JDBC_DRIVER    = "org.h2.Driver";
-	public static String DEFAULT_JDBC_URL       = "jdbc:h2:mem:";
-	public static String DEFAULT_JDBC_USER      = "sa";
-	public static String DEFAULT_JDBC_PASSWORD  = "sa";
-	public static String DEFAULT_DDL_GENERATION = "update";
-	public static String DEFAULT_FLUSH_MODE     = "COMMIT";
+	public static String DEFAULT_JDBC_DRIVER       = "org.h2.Driver";
+	public static String DEFAULT_JDBC_URL          = "jdbc:h2:mem:";
+	public static String DEFAULT_JDBC_USER         = "sa";
+	public static String DEFAULT_JDBC_PASSWORD     = "sa";
+	public static String DEFAULT_SCHEMA_GENERATION = "create";
 	
 	static void loadDefaults(Properties properties, boolean keepExisting) {
-		properties.setProperty("javax.persistence.jdbc.driver",   DEFAULT_JDBC_DRIVER,    keepExisting);
-		properties.setProperty("javax.persistence.jdbc.url",      DEFAULT_JDBC_URL,       keepExisting);
-		properties.setProperty("javax.persistence.jdbc.user",     DEFAULT_JDBC_USER,      keepExisting);
-		properties.setProperty("javax.persistence.jdbc.password", DEFAULT_JDBC_PASSWORD,  keepExisting);
-		properties.setProperty("hibernate.hbm2ddl.auto",          DEFAULT_DDL_GENERATION, keepExisting);
-		properties.setProperty("org.hibernate.flushMode",         DEFAULT_FLUSH_MODE,     keepExisting);
+		properties.setProperty("javax.persistence.jdbc.driver",                       DEFAULT_JDBC_DRIVER,       keepExisting);
+		properties.setProperty("javax.persistence.jdbc.url",                          DEFAULT_JDBC_URL,          keepExisting);
+		properties.setProperty("javax.persistence.jdbc.user",                         DEFAULT_JDBC_USER,         keepExisting);
+		properties.setProperty("javax.persistence.jdbc.password",                     DEFAULT_JDBC_PASSWORD,     keepExisting);
+		properties.setProperty("javax.persistence.schema-generation.database.action", DEFAULT_SCHEMA_GENERATION, keepExisting);
 	}
 		
 	private static PersistenceUnit persistenceUnit = null;
