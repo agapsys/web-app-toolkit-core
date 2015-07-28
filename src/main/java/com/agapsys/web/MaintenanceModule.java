@@ -21,12 +21,10 @@ import com.agapsys.mail.Message;
 import com.agapsys.mail.SecurityType;
 import com.agapsys.mail.SmtpSender;
 import com.agapsys.mail.SmtpSettings;
-import com.agapsys.web.utils.CustomProperties;
+import com.agapsys.web.utils.Properties;
 import com.agapsys.web.utils.RequestUtils;
 import com.agapsys.web.utils.Utils;
 import java.io.IOException;
-import java.util.Date;
-import java.util.Properties;
 import javax.mail.MessagingException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -48,7 +46,7 @@ class MaintenanceModule {
 	private static final String ATTR_REQUEST_URI    = "javax.servlet.error.request_uri";
 	private static final String ATTR_EXCEPTION      = "javax.servlet.error.exception";
 	
-	public static final String HEADER_STATUS             =  "com.agapsys.web.status";
+	public static final String HEADER_STATUS             = "com.agapsys.web.status";
 	public static final String HEADER_STATUS_VALUE_OK    = "ok";
 	public static final String HEADER_STATUS_VALUE_ERROR = "error";
 		
@@ -78,7 +76,7 @@ class MaintenanceModule {
 	private static String     msgSender;
 	private static String     msgSubject;
 	
-	static void loadDefaults(CustomProperties properties, boolean keepExisting) {
+	static void loadDefaults(Properties properties, boolean keepExisting) {
 		properties.setProperty(KEY_NODE_NAME, DEFAULT_NODE_NAME, keepExisting);
 		
 		properties.setProperty(KEY_ERR_MAIL_RECIPIENTS, DEFAULT_ERR_RECIPIENTS, keepExisting);

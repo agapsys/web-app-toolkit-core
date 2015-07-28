@@ -18,9 +18,9 @@ package com.agapsys.web;
 
 import com.agapsys.web.PersistenceUnit.DbInitializer;
 import com.agapsys.web.utils.FileUtils;
+import com.agapsys.web.utils.Properties;
 import java.io.File;
 import java.io.IOException;
-import java.util.Properties;
 import javax.persistence.EntityManager;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;

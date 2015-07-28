@@ -24,10 +24,9 @@ import java.io.Writer;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
 
-public class CustomProperties extends Properties {
+public class Properties extends java.util.Properties {
 	// CLASS SCOPE =============================================================
 	private static class Comment {
 		public String comment;
@@ -46,7 +45,7 @@ public class CustomProperties extends Properties {
 		public String key;
 		public String value;
 		
-		public Entry (String key, String value) {
+		public Entry(String key, String value) {
 			this.key = key;
 			this.value = value;
 		}
@@ -64,10 +63,10 @@ public class CustomProperties extends Properties {
 	// INSTANCE SCOPE ==========================================================
 	private final List<Object> items = new LinkedList<>();
 
-	public CustomProperties() {
+	public Properties() {
 	}
 
-	public CustomProperties(Properties defaults) {
+	public Properties(Properties defaults) {
 		super(defaults);
 	}
 	

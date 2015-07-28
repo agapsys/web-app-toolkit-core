@@ -17,8 +17,11 @@
 package com.agapsys.web;
 
 import com.agapsys.web.PersistenceUnit.DbInitializer;
-import com.agapsys.web.utils.CustomProperties;
+import com.agapsys.web.utils.Properties;
 import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.Persistence;
+import org.hibernate.Session;
 
 /**
  * Persistence module
@@ -30,18 +33,18 @@ class PersistenceModule {
 	public static String DEFAULT_JDBC_URL       = "jdbc:h2:mem:";
 	public static String DEFAULT_JDBC_USER      = "sa";
 	public static String DEFAULT_JDBC_PASSWORD  = "sa";
-	public static String DEFAULT_DDL_GENERATION = "create-or-extend-tables";
-	public static String DEFAULT_LOGGING_LEVEL  = "OFF";
+	public static String DEFAULT_DDL_GENERATION = "update";
+	public static String DEFAULT_FLUSH_MODE     = "COMMIT";
 	
-	static void loadDefaults(CustomProperties properties, boolean keepExisting) {
+	static void loadDefaults(Properties properties, boolean keepExisting) {
 		properties.setProperty("javax.persistence.jdbc.driver",   DEFAULT_JDBC_DRIVER,    keepExisting);
 		properties.setProperty("javax.persistence.jdbc.url",      DEFAULT_JDBC_URL,       keepExisting);
 		properties.setProperty("javax.persistence.jdbc.user",     DEFAULT_JDBC_USER,      keepExisting);
 		properties.setProperty("javax.persistence.jdbc.password", DEFAULT_JDBC_PASSWORD,  keepExisting);
-		properties.setProperty("eclipselink.logging.level",       DEFAULT_LOGGING_LEVEL,  keepExisting);
-		properties.setProperty("eclipselink.ddl-generation",      DEFAULT_DDL_GENERATION, keepExisting);
+		properties.setProperty("hibernate.hbm2ddl.auto",          DEFAULT_DDL_GENERATION, keepExisting);
+		properties.setProperty("org.hibernate.flushMode",         DEFAULT_FLUSH_MODE,     keepExisting);
 	}
-	
+		
 	private static PersistenceUnit persistenceUnit = null;
 
 	/** @return boolean indicating if module is running. */

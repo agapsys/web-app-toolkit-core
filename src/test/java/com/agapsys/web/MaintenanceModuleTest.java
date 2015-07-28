@@ -76,6 +76,9 @@ public class MaintenanceModuleTest {
 	@Test
 	public void testErrorPage() {
 		HttpResponse resp = sendErrorRequest();
+		if (!resp.getFirstHeader(MaintenanceModule.HEADER_STATUS).getValue().equals(MaintenanceModule.HEADER_STATUS_VALUE_OK)) {
+			System.out.println(String.format("Check smtp settings in '%s'", SettingsModule.getSettingsFile()));
+		}
 		assertEquals(MaintenanceModule.HEADER_STATUS_VALUE_OK, resp.getFirstHeader(MaintenanceModule.HEADER_STATUS).getValue());
 	}
 	// =========================================================================

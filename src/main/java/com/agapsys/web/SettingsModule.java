@@ -16,13 +16,12 @@
 
 package com.agapsys.web;
 
-import com.agapsys.web.utils.CustomProperties;
+import com.agapsys.web.utils.Properties;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
-import java.util.Properties;
 
 public class SettingsModule {
 	// CLASS SCOPE =============================================================
@@ -30,10 +29,10 @@ public class SettingsModule {
 	private static final String SETTINGS_FILENAME_SUFFIX    = ".conf";
 	private static final String SETTINGS_FILENAME_DELIMITER = "-";
 	
-	private static File             settingsFile = null;
-	private static CustomProperties properties = null;
+	private static File       settingsFile = null;
+	private static Properties properties = null;
 	
-	private static File getSettingsFile() {
+	public static File getSettingsFile() {
 		if (settingsFile == null)
 			settingsFile = new File(WebApplication.getAppFolder(true), SETTINGS_FILENAME_PREFIX + SETTINGS_FILENAME_DELIMITER + WebApplication.getEnvironment() + SETTINGS_FILENAME_SUFFIX);
 		
@@ -60,7 +59,7 @@ public class SettingsModule {
 			} 
 			
 			try {
-				properties = new CustomProperties();
+				properties = new Properties();
 				properties.load(getSettingsFile());
 				PersistenceModule.loadDefaults(properties, true);
 				MaintenanceModule.loadDefaults(properties, true);
@@ -83,7 +82,7 @@ public class SettingsModule {
 	}
 	
 	private static void createDefaultSettings() throws IOException {
-		CustomProperties props = new CustomProperties();
+		Properties props = new Properties();
 		
 		try (Writer writer = new OutputStreamWriter(new FileOutputStream(getSettingsFile()))) {
 			props.addComment("Persistence settings==========================================================");
