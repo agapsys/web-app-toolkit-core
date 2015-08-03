@@ -34,7 +34,7 @@ public class SettingsModule {
 	
 	public static File getSettingsFile() {
 		if (settingsFile == null)
-			settingsFile = new File(WebApplication.getAppFolder(true), SETTINGS_FILENAME_PREFIX + SETTINGS_FILENAME_DELIMITER + WebApplication.getEnvironment() + SETTINGS_FILENAME_SUFFIX);
+			settingsFile = new File(WebApplication.getAppFolder(), SETTINGS_FILENAME_PREFIX + SETTINGS_FILENAME_DELIMITER + WebApplication.getEnvironment() + SETTINGS_FILENAME_SUFFIX);
 		
 		return settingsFile;
 	}

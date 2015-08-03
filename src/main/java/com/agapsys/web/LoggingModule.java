@@ -66,7 +66,7 @@ class LoggingModule {
 
 	private static File getLogFile() {
 		if (logFile == null)
-			logFile = new File(WebApplication.getAppFolder(true), LOG_FILENAME_PREFIX + LOG_FILENAME_DELIMITER + WebApplication.getEnvironment() + LOG_FILENAME_SUFFIX);
+			logFile = new File(WebApplication.getAppFolder(), LOG_FILENAME_PREFIX + LOG_FILENAME_DELIMITER + WebApplication.getEnvironment() + LOG_FILENAME_SUFFIX);
 		
 		return logFile;
 	}
