@@ -16,7 +16,7 @@
 
 package com.agapsys.web;
 
-import com.agapsys.web.PersistenceUnit.DbInitializer;
+import com.agapsys.logger.Logger;
 import com.agapsys.web.utils.FileUtils;
 import com.agapsys.web.utils.Properties;
 import java.io.File;
@@ -27,181 +27,110 @@ import javax.servlet.ServletContextListener;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import com.agapsys.web.utils.Utils;
 
 public abstract class WebApplication implements ServletContextListener {
 	// CLASS SCOPE =============================================================
-	public static enum LogType {
-		INFO,
-		WARNING,
-		ERROR
-	}
-	
 	public static final String DEFAULT_ENVIRONMENT = "production";
-	public static final String DEFAULT_PERSISTENCE_UNIT_NAME = "default";
-		
+	
+	private static final String SETTINGS_FILENAME_PREFIX    = "settings";
+	private static final String SETTINGS_FILENAME_SUFFIX    = ".conf";
+	private static final String SETTINGS_FILENAME_DELIMITER = "-";
+	
+	public static final String LOG_TYPE_ERROR   = Logger.ERROR;
+	public static final String LOG_TYPE_WARNING = Logger.WARNING;
+	public static final String LOG_TYPE_INFO    = Logger.INFO;
+	
 	// State -------------------------------------------------------------------
-	private static boolean       running             = false;
-	private static String        environment         = null;
-	private static String        appName             = null;
-	private static File          appFolder           = null;
-	private static String        appVersion          = null;
-	private static String        persistenceUnitName = null;
-	private static DbInitializer dbInitializer       = null;
+	private static boolean           running           = false;
+	
+	private static String            appName           = null;
+	private static String            appVersion        = null;
+	private static File              appFolder         = null;
+	private static String            environment       = null;
+	
+	private static final Properties properties = new Properties();
+	private static Properties readOnlyProperties = null;
+	
+	private static PersistenceModule persistenceModule = null;
+	private static CrashReporter     crashReporter     = null;
+	private static LoggingModule     loggingModule         = null;
 	// -------------------------------------------------------------------------
 	
-	private static void throwIfRunning() throws IllegalStateException {
-		if (isRunning())
-			throw new IllegalStateException("Application is running");
-	}
-	
 	// Application management methods ------------------------------------------
-	/** @return a boolean indicating if environment is running. */
 	public static boolean isRunning() {
 		return running;
 	}
 	
-	/** Starts the application. If application is already running, nothing happens. */
-	public static void start() {
-		if (!isRunning()) {
-			Utils.printConsoleLog(String.format("========== Environment set: '%s' ==========", environment));
-			Utils.printConsoleLog("Starting settings module...");
-			SettingsModule.start();
-			Utils.printConsoleLog("Starting logging module...");
-			LoggingModule.start();
-			Utils.printConsoleLog("Starting persistence module...");
-			PersistenceModule.start(dbInitializer);
-			Utils.printConsoleLog("Starting maintenance module...");
-			MaintenanceModule.start();
-			running = true;
-		}
+	private static void throwIfNotRunning() throws IllegalStateException {
+		if (!isRunning())
+			throw new IllegalStateException("Application is not running");
 	}
 	
-	/** Stops the application. If application is not running, nothing happens. */
-	public static void stop() {
-		if (isRunning()) {
-			Utils.printConsoleLog("Stopping logging module...");
-			LoggingModule.stop();
-			Utils.printConsoleLog("Stopping persistence module...");
-			PersistenceModule.stop();
-		}
+	private static void printToConsole(String msg, Object...args) {
+		System.out.println(String.format(msg, args));
 	}
 	// -------------------------------------------------------------------------
 	
 	// State management methods ------------------------------------------------
-	public static String getName() throws IllegalStateException{
+	public static String getName() throws IllegalStateException {
+		throwIfNotRunning();
 		return appName;
-	}
-	public static void setName(String appName) throws IllegalArgumentException, IllegalStateException {
-		throwIfRunning();
-		
-		if (appName == null || appName.isEmpty())
-			throw new IllegalArgumentException("Null/Empty name");
-		
-		WebApplication.appName = appName;
 	}
 	
 	public static String getVersion() throws IllegalStateException {
+		throwIfNotRunning();
+		
 		return appVersion;
 	}
-	public static void setVersion(String appVersion) throws IllegalArgumentException, IllegalStateException {
-		throwIfRunning();
-		
-		if (appVersion == null || appVersion.isEmpty())
-			throw new IllegalArgumentException("Null/Empty version");
-		
-		WebApplication.appVersion = appVersion;
-	}
 	
-	public static String getPersistenceUnitName() throws IllegalStateException {
-		return persistenceUnitName;
-	}
-	public static void setPersistenceUnitName(String peristenceUnitName) throws IllegalArgumentException, IllegalStateException {
-		throwIfRunning();
-		
-		if (peristenceUnitName == null || peristenceUnitName.isEmpty()) 
-			throw new IllegalArgumentException("Null/Empty peristenceUnitName");
-		
-		WebApplication.persistenceUnitName = peristenceUnitName;
-	}
-	
-	/** @return the db initializer for the application. */
-	public static DbInitializer getDbInitializer() {
-		return dbInitializer;
-	}
-	
-	/**
-	 * Sets the db initializer for the application 
-	 * @param dbInitializer db initializer or null if initialization is not required
-	 * @throws IllegalStateException if application is running
-	 */
-	public static void setDbInitializer(DbInitializer dbInitializer) throws IllegalStateException {
-		throwIfRunning();
-		
-		WebApplication.dbInitializer = dbInitializer;
-	}
-	
-	/**
-	 * Returns the folder where application stores external resources.
-	 * @return the folder where application stores external resources.
-	 * @throws IllegalStateException if application name is not set
-	 */
 	public static File getAppFolder() throws IllegalStateException {
-		if (appName == null)
-			throw new IllegalStateException("Missing application name");
-		
-		if (appFolder == null) {
-			appFolder = FileUtils.getOrCreateFolder(new File(FileUtils.USER_HOME, "." + appName).getAbsolutePath());
-		}
+		throwIfNotRunning();
 		
 		return appFolder;
 	}
 	
-	/** @return the environment set to the application. */
-	public static String getEnvironment() {
-		return environment;
-	}
-	
-	/** 
-	 * Sets the environment used by application.
-	 * @param environment environment name
-	 * @throws IllegalArgumentException if (environment == null || environment.isEmpty())
-	 * @throws IllegalStateException if application is running
-	 */
-	public static void setEnvironment(String environment) throws IllegalArgumentException, IllegalStateException {
-		throwIfRunning();
-
-		if (environment == null || environment.isEmpty())
-			throw new IllegalArgumentException("Null/Empty environment");
+	public static String getEnvironment() throws IllegalStateException {
+		throwIfNotRunning();
 		
-		WebApplication.environment = environment;
+		return environment;
 	}
 	// -------------------------------------------------------------------------
 	
-	// Global application methods --------------------------------------------------
-	public static void log(LogType type, String message) {
-		LoggingModule.log(type, message);
+	// Global application methods ----------------------------------------------
+	public static Properties getProperties() {
+		if (readOnlyProperties == null)
+			readOnlyProperties = properties.getUnmodifiableProperties();
+		
+		return readOnlyProperties;
+	}
+		
+	public static EntityManager getEntityManager() throws IllegalStateException {
+		throwIfNotRunning();
+		
+		if (persistenceModule != null)
+			return persistenceModule.getEntityManager();
+		else
+			return null;
 	}
 	
-	public static void log (LogType type, HttpServletRequest request, String message) {
-		LoggingModule.log(type, request, message);
+	public static void reportError(HttpServletRequest req, HttpServletResponse resp) throws IllegalStateException, ServletException, IOException {
+		throwIfNotRunning();
+		
+		if (crashReporter != null)
+			crashReporter.reportError(req, resp);
 	}
 	
-	public static void handleErrorRequest(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-		MaintenanceModule.handleErrorRequest(req, resp);
-	}
-	
-	public static EntityManager getEntityManager() {
-		return PersistenceModule.getEntityManager();
-	}
-	
-	static Properties getProperties() {
-		return SettingsModule.getProperties();
+	public static void log(String logType, String message) throws IllegalStateException {
+		throwIfNotRunning();
+		
+		if (loggingModule != null)
+			loggingModule.writeLog(logType, message);
 	}
 	// -------------------------------------------------------------------------
 	// =========================================================================
 	
 	// INSTANCE SCOPE ==========================================================
+
 	/** @return the application name */
 	protected abstract String getAppName();
 	
@@ -213,27 +142,169 @@ public abstract class WebApplication implements ServletContextListener {
 		return DEFAULT_ENVIRONMENT;
 	}
 	
-	protected String getDefaultPersistenceUnitName() {
-		return DEFAULT_PERSISTENCE_UNIT_NAME;
+	
+	// Persistence module ------------------------------------------------------
+	protected PersistenceModule getPersistenceModule() {
+		return null;
 	}
 	
-	/** 
-	 * Returns the database initializer used by application.
-	 * @return the database initializer used by application. 
-	 * If an initialization is not required returns null. 
-	 * Default implementation returns null.
-	 */
-	protected DbInitializer getDefaultDbInitializer() {
+	protected void startPersistenceModule() {}
+	
+	protected void stopPersistenceModule() {}
+	// -------------------------------------------------------------------------
+	
+	// Crash reporter ----------------------------------------------------------
+	protected CrashReporter getCrashReporter() {
 		return null;
+	}
+	
+	protected void startCrashReporter() {}
+	
+	protected void stopCrashReporter() {}
+	// -------------------------------------------------------------------------
+	
+	// Logging module --------------------------------------------------------------
+	protected LoggingModule getLoggingModule() {
+		return null;
+	}
+	
+	protected void startLoggingModule() {}
+	
+	protected void stopLoggingModule() {}
+	// -------------------------------------------------------------------------
+	
+	private void loadSettings() throws IOException {
+		File settingsFile = new File(appFolder, SETTINGS_FILENAME_PREFIX + SETTINGS_FILENAME_DELIMITER + environment + SETTINGS_FILENAME_SUFFIX);
+		Properties tmpProperties;
+
+		if (settingsFile.exists()) {
+			printToConsole("Loading settings file...");
+
+			// Load settings from file...
+			properties.load(settingsFile);
+
+			// Persistence: put default settings when there is no definition...
+			if (persistenceModule != null) {
+				tmpProperties = persistenceModule.getDefaultSettings();
+
+				if (tmpProperties != null)
+					properties.append(tmpProperties, true);
+			}
+
+			// Crash reporter: put default settings when there is no definition...
+			if (crashReporter != null) {
+				tmpProperties = crashReporter.getDefaultSettings();
+
+				if (tmpProperties != null)
+					properties.append(tmpProperties, true);
+			}
+
+		} else {
+			printToConsole("Creating default settings file...");
+
+			// Persistence: Loading defaults...
+			if (persistenceModule != null) {
+				tmpProperties = persistenceModule.getDefaultSettings();
+
+				if (tmpProperties != null) {
+					properties.addComment("Persistence settings==========================================================");
+					properties.append(tmpProperties);
+					properties.addComment("==============================================================================");
+				}
+			}
+
+			// Crash reporter: Loading defaults...
+			if (crashReporter != null) {
+				tmpProperties = crashReporter.getDefaultSettings();
+
+				if (tmpProperties != null) {
+					properties.addComment("Crash reporter settings ======================================================");
+					properties.append(tmpProperties);
+					properties.addComment("==============================================================================");
+				}
+			}
+
+			// Storing in settings file...
+			if (!properties.isEmpty()) {
+				properties.store(settingsFile);
+			}
+		}
+	}
+	
+	public final void start() {
+		if (!isRunning()) {
+			printToConsole("====== AGAPSYS WEB CORE FRAMEWORK INITIALIZATION ======");
+			appName = getAppName();
+			if (appName == null || appName.trim().isEmpty())
+				throw new IllegalStateException("Missing application name");
+			
+			appVersion = getAppVersion();
+			if (appVersion == null || appVersion.trim().isEmpty())
+				throw new IllegalStateException("Missing application version");
+			
+			environment = getDefaultEnvironment();
+			if (environment == null || environment.trim().isEmpty())
+				throw new IllegalStateException("Missing environment");
+			
+			printToConsole("Environment set: %s", environment);
+			
+			appFolder = FileUtils.getOrCreateFolder(new File(FileUtils.USER_HOME, "." + appName).getAbsolutePath());
+
+			persistenceModule = getPersistenceModule();
+			crashReporter     = getCrashReporter();
+			loggingModule     = getLoggingModule();
+			
+			try {
+				loadSettings();
+			} catch (IOException ex) {
+				throw new RuntimeException(ex);
+			}
+
+			if (persistenceModule != null) {
+				printToConsole("Starting persistence module...");
+				startPersistenceModule();
+			}
+			
+			if (crashReporter != null) {
+				printToConsole("Starting crash reporter...");
+				startCrashReporter();
+			}
+			
+			if (loggingModule != null) {
+				printToConsole("Starting logging module...");
+				startLoggingModule();
+			}
+			
+			running = true;
+			printToConsole("====== AGAPSYS WEB CORE FRAMEWORK IS READY! ======");
+		}
+	}
+	
+	public final void stop() {
+		if (isRunning()) {
+			printToConsole("====== AGAPSYS WEB CORE FRAMEWORK SHUTDOWN ======");
+			if (loggingModule != null) {
+				printToConsole("Shutting down logging module...");
+				stopLoggingModule();
+			}
+			
+			if (crashReporter != null) {
+				printToConsole("Shutting down crash reporter...");
+				stopCrashReporter();
+			}
+			
+			if (persistenceModule != null) {
+				printToConsole("Shutting down persistence module...");
+				stopPersistenceModule();
+			}
+
+			running = false;
+			printToConsole("====== AGAPSYS WEB CORE FRAMEWORK WAS SHUTTED DOWN! ======");
+		}
 	}
 	
 	@Override
 	public final void contextInitialized(ServletContextEvent sce) {
-		setName(getAppName());
-		setVersion(getAppVersion());
-		setPersistenceUnitName(getDefaultPersistenceUnitName());
-		setDbInitializer(getDefaultDbInitializer());
-		setEnvironment(getDefaultEnvironment());
 		start();
 	}
 

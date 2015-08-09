@@ -13,24 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.agapsys.web;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
+import com.agapsys.web.utils.Properties;
+import java.io.IOException;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
-public class PersistenceUnit {
-	private final EntityManagerFactory emf;
+public interface CrashReporter {
+	public Properties getDefaultSettings();
 	
-	public PersistenceUnit(EntityManagerFactory emf) {
-		this.emf = emf;
-	}
-	
-	public EntityManager getEntityManager() {
-		return emf.createEntityManager();
-	}
-	
-	public void close() {
-		emf.close();
-	}
+	public void reportError(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException ;
 }

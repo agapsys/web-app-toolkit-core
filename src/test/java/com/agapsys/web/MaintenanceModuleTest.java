@@ -16,11 +16,12 @@
 
 package com.agapsys.web;
 
-import com.agapsys.sevlet.test.AppContext;
+import com.agapsys.sevlet.test.ApplicationContext;
 import com.agapsys.sevlet.test.HttpResponse;
-import com.agapsys.sevlet.test.ServletContainter;
+import com.agapsys.sevlet.test.ServletContainer;
 import java.io.IOException;
 import javax.servlet.ServletException;
+import javax.servlet.annotation.WebListener;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -42,17 +43,34 @@ public class MaintenanceModuleTest {
 		}
 	}
 	
-	private static ServletContainter sc;
+	@WebListener
+	public static class TestApplication extends WebApplication {
+
+		@Override
+		protected String getAppName() {
+			return Defs.APP_NAME;
+		}
+
+		@Override
+		protected String getAppVersion() {
+			return Defs.APP_VERSION;
+		}
+
+		@Override
+		protected String getDefaultEnvironment() {
+			return Defs.ENVIRONMENT;
+		}
+	}
+	
+	private static ServletContainer sc;
 	
 	@BeforeClass
 	public static void beforeClass() {
-		WebApplication.setName(Defs.APP_NAME);
-		WebApplication.setEnvironment(Defs.ENVIRONMENT);
-		WebApplication.start();
 		
-		sc = new ServletContainter();
+		sc = new ServletContainer();
 		
-		AppContext context = new AppContext();
+		ApplicationContext context = new ApplicationContext();
+		context.registerEventListener(new TestApplication());
 		context.registerServlet(ErrorServlet.class);
 		context.registerServlet(ExceptionServlet.class);
 		
@@ -76,10 +94,10 @@ public class MaintenanceModuleTest {
 	@Test
 	public void testErrorPage() {
 		HttpResponse resp = sendErrorRequest();
-		if (!resp.getFirstHeader(MaintenanceModule.HEADER_STATUS).getValue().equals(MaintenanceModule.HEADER_STATUS_VALUE_OK)) {
-			System.out.println(String.format("Check smtp settings in '%s'", SettingsModule.getSettingsFile()));
+		if (!resp.getFirstHeader(DefaultCrashReporter.HEADER_STATUS).getValue().equals(DefaultCrashReporter.HEADER_STATUS_VALUE_OK)) {
+			System.out.println(String.format("Check smtp settings"));
 		}
-		assertEquals(MaintenanceModule.HEADER_STATUS_VALUE_OK, resp.getFirstHeader(MaintenanceModule.HEADER_STATUS).getValue());
+		assertEquals(DefaultCrashReporter.HEADER_STATUS_VALUE_OK, resp.getFirstHeader(DefaultCrashReporter.HEADER_STATUS).getValue());
 	}
 	// =========================================================================
 }

@@ -18,15 +18,18 @@ package com.agapsys.web.utils;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class Properties extends java.util.Properties {
+public class Properties {
 	// CLASS SCOPE =============================================================
 	private static class Comment {
 		public String comment;
@@ -61,14 +64,10 @@ public class Properties extends java.util.Properties {
 	// =========================================================================
 
 	// INSTANCE SCOPE ==========================================================
-	private final List<Object> items = new LinkedList<>();
+	private List<Object> items = new LinkedList<>();
+	private Map<String, String> entries = new LinkedHashMap<>();
 
-	public Properties() {
-	}
-
-	public Properties(Properties defaults) {
-		super(defaults);
-	}
+	public Properties() {}
 	
 	public synchronized void addComment(String comment) {
 		if(comment == null || comment.trim().isEmpty())
@@ -81,43 +80,57 @@ public class Properties extends java.util.Properties {
 	public synchronized void addEmptyLine() {
 		items.add(null);
 	}
-	
-	@Override
-	public synchronized Object put(Object key, Object value) {
-		Object obj = super.put(key, value);
-		items.add(new Entry((String)key, (String)value));
-		return obj;
+
+	public synchronized String getProperty(String key, String value) {
+		return entries.get(key);
 	}
 	
-	@Override
-	public synchronized Object setProperty(String key, String value) {
-		return setProperty(key, value, false);
+	public synchronized void setProperty(String key, String value) {
+		setProperty(key, value, false);
 	}
 	
-	public synchronized Object setProperty(String key, String value, boolean keepExisting) {
-		Object obj = null;
+	public synchronized void setProperty(String key, String value, boolean keepExisting) {
+		if (key == null || key.trim().isEmpty())
+			throw new IllegalArgumentException("Null/Empty key");
 		
-		if (!super.containsKey(key) || !keepExisting) {
-			obj = super.setProperty(key, value);
+		if (!entries.containsKey(key) || !keepExisting) {
+			entries.put(key, value);
+			items.add(new Entry(key, value));
 		}
-		return obj;
 	}
 	
-	public void load(File file) throws IOException {
+	public synchronized void append(Properties other) {
+		append(other, false);
+	}
+	
+	public synchronized void append(Properties other, boolean keepExisting) {
+		if (other == null)
+			throw new IllegalArgumentException("Given properties is null");
+		
+		for (Map.Entry<String, String> entry : other.entries.entrySet()) {
+			setProperty(entry.getKey(), entry.getValue(), keepExisting);
+		}
+	}
+	
+	public synchronized void load(File file) throws IOException {
+		clear();
+		
 		try (FileInputStream fis = new FileInputStream(file)) {
-			load(fis);
-			Set<Map.Entry<Object, Object>> entries = entrySet();
+			java.util.Properties props = new java.util.Properties();
+			props.load(fis);
 			
-			for (Map.Entry entry: entries) {
+			Set<Map.Entry<Object, Object>> entrySet = props.entrySet();
+			
+			for (Map.Entry entry: entrySet) {
 				items.add(new Entry((String)entry.getKey(), (String)entry.getValue()));
 			}
 		}
 	}
 	
-	public void store(Writer writer) throws IOException {
+	public synchronized void store(File file) throws IOException {
+		Writer writer = new OutputStreamWriter(new FileOutputStream(file));
+		
 		StringBuilder sb = new StringBuilder();
-		
-		
 		
 		for (Object item : items) {
 			if (item == null) {
@@ -130,18 +143,27 @@ public class Properties extends java.util.Properties {
 		writer.write(sb.toString());
 	}
 
-	// Unsupported methods -----------------------------------------------------
-	/** DO NOT USE THIS METHOD! */
-	@Override
-	public void store(Writer writer, String comments) throws IOException {
-		throw new UnsupportedOperationException();
+	public synchronized void clear() {
+		items.clear();
+		entries.clear();
 	}
 	
-	/** DO NOT USE THIS METHOD! */
-	@Override
-	public void store(OutputStream out, String comments) throws IOException {
-		throw new UnsupportedOperationException();
+	public synchronized boolean isEmpty() {
+		return items.isEmpty();
 	}
-	// -------------------------------------------------------------------------
+	
+	public Map<String, String> getEntries() {
+		return Collections.unmodifiableMap(entries);
+	}
+	
+	public Properties getUnmodifiableProperties() {
+		List<Object> tmpItems = Collections.unmodifiableList(items);
+		Map<String, String> tmpEntries = getEntries();
+		Properties clone = new Properties();
+		clone.entries = tmpEntries;
+		clone.items = tmpItems;
+		return clone;
+	}
+	
 	// =========================================================================
 }

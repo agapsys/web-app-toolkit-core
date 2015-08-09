@@ -16,7 +16,6 @@
 
 package com.agapsys.web;
 
-import com.agapsys.web.WebApplication.LogType;
 import com.agapsys.mail.Message;
 import com.agapsys.mail.SecurityType;
 import com.agapsys.mail.SmtpSender;
@@ -30,15 +29,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-/**
- * Maintenance module.
- * This is module is responsible by:
- *     1) Sending email for developers when errors happens in the application
- *     2) Shutdown application when error count reaches a limit
- * 
- * @author Leandro Oliveira (leandro@agapsys.com)
- */
-class MaintenanceModule {
+public class DefaultCrashReporter implements CrashReporter {
 	// CLASS SCOPE =============================================================
 	private static final String ATTR_STATUS_CODE    = "javax.servlet.error.status_code";
 	private static final String ATTR_EXCEPTION_TYPE = "javax.servlet.error.exception_type";
@@ -70,54 +61,61 @@ class MaintenanceModule {
 	public static final String DEFAULT_ERR_RECIPIENTS = "user@email.com";
 	public static final String DEFAULT_ERR_SENDER     = "no-reply@email.com";
 	
-	private static String     nodeName;
-	private static SmtpSender smtpSender;
-	private static String[]   msgRecipients;
-	private static String     msgSender;
-	private static String     msgSubject;
+	private static final Properties DEFAULT_PROPERTIES;
 	
-	static void loadDefaults(Properties properties, boolean keepExisting) {
-		properties.setProperty(KEY_NODE_NAME, DEFAULT_NODE_NAME, keepExisting);
+	static {
+		DEFAULT_PROPERTIES = new Properties();
+		DEFAULT_PROPERTIES.setProperty(KEY_NODE_NAME, DEFAULT_NODE_NAME);
 		
-		properties.setProperty(KEY_ERR_MAIL_RECIPIENTS, DEFAULT_ERR_RECIPIENTS, keepExisting);
-		properties.setProperty(KEY_ERR_MAIL_SENDER,     DEFAULT_ERR_SENDER,     keepExisting);
-		properties.setProperty(KEY_ERR_MAIL_SUBJECT,    DEFAULT_ERR_SUBJECT,    keepExisting);
+		DEFAULT_PROPERTIES.setProperty(KEY_ERR_MAIL_RECIPIENTS, DEFAULT_ERR_RECIPIENTS);
+		DEFAULT_PROPERTIES.setProperty(KEY_ERR_MAIL_SENDER,     DEFAULT_ERR_SENDER);
+		DEFAULT_PROPERTIES.setProperty(KEY_ERR_MAIL_SUBJECT,    DEFAULT_ERR_SUBJECT);
 		
-		properties.addEmptyLine();
-		
-		properties.setProperty(SmtpSettings.KEY_SERVER,   DEFAULT_SMTP_SERVER,   keepExisting);
-		properties.setProperty(SmtpSettings.KEY_AUTH,     DEFAULT_SMTP_AUTH,     keepExisting);
-		properties.setProperty(SmtpSettings.KEY_USERNAME, DEFAULT_SMTP_USERNAME, keepExisting);
-		properties.setProperty(SmtpSettings.KEY_PASSWORD, DEFAULT_SMTP_PASSWORD, keepExisting);
-		properties.setProperty(SmtpSettings.KEY_SECURITY, DEFAULT_SMTP_SECURITY, keepExisting);
-		properties.setProperty(SmtpSettings.KEY_PORT,     DEFAULT_SMTP_PORT,     keepExisting);
+		DEFAULT_PROPERTIES.setProperty(SmtpSettings.KEY_SERVER,   DEFAULT_SMTP_SERVER);
+		DEFAULT_PROPERTIES.setProperty(SmtpSettings.KEY_AUTH,     DEFAULT_SMTP_AUTH);
+		DEFAULT_PROPERTIES.setProperty(SmtpSettings.KEY_USERNAME, DEFAULT_SMTP_USERNAME);
+		DEFAULT_PROPERTIES.setProperty(SmtpSettings.KEY_PASSWORD, DEFAULT_SMTP_PASSWORD);
+		DEFAULT_PROPERTIES.setProperty(SmtpSettings.KEY_SECURITY, DEFAULT_SMTP_SECURITY);
+		DEFAULT_PROPERTIES.setProperty(SmtpSettings.KEY_PORT,     DEFAULT_SMTP_PORT);
 	}
 	
-	public static boolean isRunning() {
-		return smtpSender != null;
-	}
+	// =========================================================================
+
+	// INSTANCE SCOPE ==========================================================
+	private final String     nodeName;
+	private final SmtpSender smtpSender;
+	private final String[]   msgRecipients;
+	private final String     msgSender;
+	private final String     msgSubject;
 	
-	public static void start() {	
-		Properties properties = WebApplication.getProperties();
+	public DefaultCrashReporter() {
+		java.util.Properties props = new java.util.Properties();
+		props.putAll(WebApplication.getProperties().getEntries());
 		
-		SmtpSettings settings = new SmtpSettings(properties);
+		SmtpSettings settings = new SmtpSettings(props);
 		smtpSender = new SmtpSender(settings);
 		
-		nodeName = properties.getProperty(KEY_NODE_NAME, DEFAULT_NODE_NAME);
-		msgRecipients = properties.getProperty(KEY_ERR_MAIL_RECIPIENTS, DEFAULT_ERR_RECIPIENTS).split(RECIPIENT_DELIMITER);
-		msgSender = properties.getProperty(KEY_ERR_MAIL_SENDER, DEFAULT_ERR_SENDER);
-		msgSubject = properties.getProperty(KEY_ERR_MAIL_SUBJECT, DEFAULT_ERR_SUBJECT);
+		nodeName      = props.getProperty(KEY_NODE_NAME,           DEFAULT_NODE_NAME);
+		msgRecipients = props.getProperty(KEY_ERR_MAIL_RECIPIENTS, DEFAULT_ERR_RECIPIENTS).split(RECIPIENT_DELIMITER);
+		msgSender     = props.getProperty(KEY_ERR_MAIL_SENDER,     DEFAULT_ERR_SENDER);
+		msgSubject    = props.getProperty(KEY_ERR_MAIL_SUBJECT,    DEFAULT_ERR_SUBJECT);
 
 		for (int i = 0; i < msgRecipients.length; i++)
 			msgRecipients[i] = msgRecipients[i].trim();
 	}
 	
+	@Override
+	public Properties getDefaultSettings() {
+		return DEFAULT_PROPERTIES;
+	}
+
 	/** This method is used for test-only */
-	private static void addStatusHeader(HttpServletResponse resp, String status) {
+	private void addStatusHeader(HttpServletResponse resp, String status) {
 		resp.addHeader(HEADER_STATUS, status);
 	}
 	
-	public static void handleErrorRequest(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+	@Override
+	public void reportError(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		try {
 			Integer statusCode = (Integer) req.getAttribute(ATTR_STATUS_CODE);
 			Class exceptionType = (Class) req.getAttribute(ATTR_EXCEPTION_TYPE);
@@ -152,7 +150,7 @@ class MaintenanceModule {
 					+ "Stacktrace:\n" + stacktrace
 				);
 				
-				WebApplication.log(LogType.ERROR, String.format("Application error:\n----\n%s\n----", msg.getText()));
+				WebApplication.log(WebApplication.LOG_TYPE_ERROR, String.format("Application error:\n----\n%s\n----", msg.getText()));
 				
 				smtpSender.sendMessage(msg);
 				addStatusHeader(resp, HEADER_STATUS_VALUE_OK);
@@ -161,20 +159,16 @@ class MaintenanceModule {
 					"User-agent: " + userAgent + "\n"
 					+ "Client id: " + clientId;
 				
-				WebApplication.log(LogType.ERROR, String.format("Bad request for maintenance module:\n----\n%s\n----", extraInfo));
+				WebApplication.log(WebApplication.LOG_TYPE_ERROR, String.format("Bad request for maintenance module:\n----\n%s\n----", extraInfo));
 				addStatusHeader(resp, HEADER_STATUS_VALUE_ERROR);
 				resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 				
 			}
 		} catch (MessagingException ex) {
-			WebApplication.log(LogType.ERROR, String.format("Error sending error report:\n----\n%s\n----", Utils.getStackTrace(ex)));
+			WebApplication.log(WebApplication.LOG_TYPE_ERROR, String.format("Error sending error report:\n----\n%s\n----", Utils.getStackTrace(ex)));
 			addStatusHeader(resp, HEADER_STATUS_VALUE_ERROR);
 			throw new RuntimeException(ex);
 		}
 	}
-	// =========================================================================
-
-	// INSTANCE SCOPE ==========================================================
-	private MaintenanceModule() {}
 	// =========================================================================
 }
