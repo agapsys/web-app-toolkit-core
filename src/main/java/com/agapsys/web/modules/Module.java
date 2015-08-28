@@ -13,28 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.agapsys.web.modules;
 
-package com.agapsys.web;
-
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
+import com.agapsys.web.utils.Properties;
 
 /**
- * Represents a persistence unit in application
+ * Basic module interface
  * @author Leandro Oliveira (leandro@agapsys.com)
  */
-public class PersistenceUnit {
-	private final EntityManagerFactory emf;
-	
-	public PersistenceUnit(EntityManagerFactory emf) {
-		this.emf = emf;
-	}
-	
-	public EntityManager getEntityManager() {
-		return emf.createEntityManager();
-	}
-	
-	public void close() {
-		emf.close();
-	}
+public interface Module {
+	/** @return default settings for this module. */
+	public Properties getDefaultSettings();
 }

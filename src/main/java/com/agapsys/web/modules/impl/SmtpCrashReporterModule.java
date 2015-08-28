@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package com.agapsys.web;
+package com.agapsys.web.modules.impl;
 
 import com.agapsys.mail.Message;
 import com.agapsys.mail.SecurityType;
 import com.agapsys.mail.SmtpSender;
 import com.agapsys.mail.SmtpSettings;
+import com.agapsys.web.WebApplication;
 import com.agapsys.web.utils.Properties;
-import com.agapsys.web.utils.RequestUtils;
 import com.agapsys.web.utils.Utils;
 import java.io.IOException;
 import javax.mail.MessagingException;
@@ -29,27 +29,22 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-public class DefaultCrashReporter implements CrashReporter {
+/**
+ * Default crash reporter module with SMTP sending capabilities
+ * @author Leandro Oliveira (leandro@agapsys.com)
+ */
+public class SmtpCrashReporterModule extends DefaultCrashReporterModule {
 	// CLASS SCOPE =============================================================
-	private static final String ATTR_STATUS_CODE    = "javax.servlet.error.status_code";
-	private static final String ATTR_EXCEPTION_TYPE = "javax.servlet.error.exception_type";
-	private static final String ATTR_MESSAGE        = "javax.servlet.error.message";
-	private static final String ATTR_REQUEST_URI    = "javax.servlet.error.request_uri";
-	private static final String ATTR_EXCEPTION      = "javax.servlet.error.exception";
-	
 	public static final String HEADER_STATUS             = "com.agapsys.web.status";
 	public static final String HEADER_STATUS_VALUE_OK    = "ok";
 	public static final String HEADER_STATUS_VALUE_ERROR = "error";
 		
-	public static final String KEY_NODE_NAME  = "com.agapsys.web.nodeName";
-	
 	public static final String KEY_ERR_MAIL_RECIPIENTS   = "com.agapsys.web.errMailRecipients";
 	public static final String KEY_ERR_MAIL_SENDER       = "com.agapsys.web.errMailSender";
 	public static final String KEY_ERR_MAIL_SUBJECT      = "com.agapsys.web.errSubject";
 	
 	public static final String RECIPIENT_DELIMITER = ",";
 	
-	public static final String DEFAULT_NODE_NAME     = "node-01";
 	public static final String DEFAULT_SMTP_SERVER   = "smtp.server.com";
 	public static final String DEFAULT_SMTP_AUTH     = "true";
 	public static final String DEFAULT_SMTP_USERNAME = "user";
@@ -82,20 +77,18 @@ public class DefaultCrashReporter implements CrashReporter {
 	// =========================================================================
 
 	// INSTANCE SCOPE ==========================================================
-	private final String     nodeName;
 	private final SmtpSender smtpSender;
 	private final String[]   msgRecipients;
 	private final String     msgSender;
 	private final String     msgSubject;
 	
-	public DefaultCrashReporter() {
+	public SmtpCrashReporterModule() {
 		java.util.Properties props = new java.util.Properties();
 		props.putAll(WebApplication.getProperties().getEntries());
 		
 		SmtpSettings settings = new SmtpSettings(props);
 		smtpSender = new SmtpSender(settings);
 		
-		nodeName      = props.getProperty(KEY_NODE_NAME,           DEFAULT_NODE_NAME);
 		msgRecipients = props.getProperty(KEY_ERR_MAIL_RECIPIENTS, DEFAULT_ERR_RECIPIENTS).split(RECIPIENT_DELIMITER);
 		msgSender     = props.getProperty(KEY_ERR_MAIL_SENDER,     DEFAULT_ERR_SENDER);
 		msgSubject    = props.getProperty(KEY_ERR_MAIL_SUBJECT,    DEFAULT_ERR_SUBJECT);
@@ -109,6 +102,23 @@ public class DefaultCrashReporter implements CrashReporter {
 		return DEFAULT_PROPERTIES;
 	}
 
+	@Override
+	protected void logError(String message) {
+		super.logError(message);
+		
+		try {
+			Message msg = new Message();
+			msg.setSenderAddress(msgSender);
+			msg.setRecipients(msgRecipients);
+			msg.setSubject(msgSubject);
+			msg.setText(message);
+			smtpSender.sendMessage(msg);
+		} catch (MessagingException ex) {
+			WebApplication.log(WebApplication.LOG_TYPE_ERROR, String.format("Error sending error report:\n----\n%s\n----", Utils.getStackTrace(ex)));
+			throw new RuntimeException(ex);
+		}
+	}
+
 	/** This method is used for test-only */
 	private void addStatusHeader(HttpServletResponse resp, String status) {
 		resp.addHeader(HEADER_STATUS, status);
@@ -117,57 +127,11 @@ public class DefaultCrashReporter implements CrashReporter {
 	@Override
 	public void reportError(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		try {
-			Integer statusCode = (Integer) req.getAttribute(ATTR_STATUS_CODE);
-			Class exceptionType = (Class) req.getAttribute(ATTR_EXCEPTION_TYPE);
-			String errorMessage = (String) req.getAttribute(ATTR_MESSAGE);
-			String requestUri = (String) req.getAttribute(ATTR_REQUEST_URI);
-			String userAgent = RequestUtils.getClientUserAgent(req);
-
-			String clientId = RequestUtils.getClientIp(req);
-
-			Throwable throwable = (Throwable) req.getAttribute(ATTR_EXCEPTION);
-
-			if (throwable != null) {
-				String stacktrace = Utils.getStackTrace(throwable);
-
-				Message msg = new Message();
-				msg.setSenderAddress(msgSender);
-				msg.setRecipients(msgRecipients);
-				msg.setSubject(msgSubject);
-				msg.setText(
-					"An error was detected"
-					+ "\n\n"
-					+ "Application: " + WebApplication.getName() + "\n"
-					+ "Application version: " + WebApplication.getVersion() + "\n"
-					+ "Node name: " + nodeName  + "\n\n"
-					+ "Server timestamp: " + Utils.getLocalTimestamp() + "\n"
-					+ "Status code: " + statusCode + "\n"
-					+ "Exception type: " +(exceptionType != null ? exceptionType.getName() : "null") + "\n"
-					+ "Error message: " + errorMessage + "\n"
-					+ "Request URI: " + requestUri + "\n"
-					+ "User-agent: " + userAgent + "\n"
-					+ "Client id: " + clientId + "\n"
-					+ "Stacktrace:\n" + stacktrace
-				);
-				
-				WebApplication.log(WebApplication.LOG_TYPE_ERROR, String.format("Application error:\n----\n%s\n----", msg.getText()));
-				
-				smtpSender.sendMessage(msg);
-				addStatusHeader(resp, HEADER_STATUS_VALUE_OK);
-			} else {
-				String extraInfo =
-					"User-agent: " + userAgent + "\n"
-					+ "Client id: " + clientId;
-				
-				WebApplication.log(WebApplication.LOG_TYPE_ERROR, String.format("Bad request for maintenance module:\n----\n%s\n----", extraInfo));
-				addStatusHeader(resp, HEADER_STATUS_VALUE_ERROR);
-				resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-				
-			}
-		} catch (MessagingException ex) {
-			WebApplication.log(WebApplication.LOG_TYPE_ERROR, String.format("Error sending error report:\n----\n%s\n----", Utils.getStackTrace(ex)));
+			super.reportError(req, resp);
+			addStatusHeader(resp, HEADER_STATUS_VALUE_OK);
+		} catch (RuntimeException ex) {
 			addStatusHeader(resp, HEADER_STATUS_VALUE_ERROR);
-			throw new RuntimeException(ex);
+			throw ex;
 		}
 	}
 	// =========================================================================

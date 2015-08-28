@@ -13,16 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.agapsys.web;
 
+package com.agapsys.web.modules.impl;
+
+import com.agapsys.web.modules.LoggingModule;
 import com.agapsys.web.utils.Properties;
-import java.io.IOException;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import com.agapsys.web.utils.Utils;
 
-public interface CrashReporter {
-	public Properties getDefaultSettings();
-	
-	public void reportError(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException ;
+/**
+ * Default logging module implementation.
+ * 
+ * All logs messages will be printed to console
+ * 
+ * @author Leandro Oliveira (leandro@agapsys.com)
+ */
+public class DefaultLoggingModule implements LoggingModule {
+
+	@Override
+	public void writeLog(String logType, String message) {
+		System.out.println(String.format("[%s] [%s] %s", Utils.getLocalTimestamp(), logType, message));
+	}
+
+	@Override
+	public Properties getDefaultSettings() {
+		return null;
+	}
 }

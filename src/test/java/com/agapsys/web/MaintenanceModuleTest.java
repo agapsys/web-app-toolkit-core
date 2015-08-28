@@ -16,9 +16,12 @@
 
 package com.agapsys.web;
 
+import com.agapsys.web.modules.impl.DefaultCrashReporterModule;
 import com.agapsys.sevlet.test.ApplicationContext;
 import com.agapsys.sevlet.test.HttpResponse;
 import com.agapsys.sevlet.test.ServletContainer;
+import com.agapsys.web.modules.CrashReporterModule;
+import com.agapsys.web.modules.impl.SmtpCrashReporterModule;
 import java.io.IOException;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebListener;
@@ -45,7 +48,8 @@ public class MaintenanceModuleTest {
 	
 	@WebListener
 	public static class TestApplication extends WebApplication {
-
+		private CrashReporterModule crm = null;
+		
 		@Override
 		protected String getAppName() {
 			return Defs.APP_NAME;
@@ -60,6 +64,14 @@ public class MaintenanceModuleTest {
 		protected String getDefaultEnvironment() {
 			return Defs.ENVIRONMENT;
 		}
+
+		@Override
+		protected CrashReporterModule getCrashReporterModule() {
+			if (crm == null)
+				crm = new SmtpCrashReporterModule();
+			
+			return crm;
+		}		
 	}
 	
 	private static ServletContainer sc;
@@ -94,10 +106,10 @@ public class MaintenanceModuleTest {
 	@Test
 	public void testErrorPage() {
 		HttpResponse resp = sendErrorRequest();
-		if (!resp.getFirstHeader(DefaultCrashReporter.HEADER_STATUS).getValue().equals(DefaultCrashReporter.HEADER_STATUS_VALUE_OK)) {
+		if (!resp.getFirstHeader(SmtpCrashReporterModule.HEADER_STATUS).getValue().equals(SmtpCrashReporterModule.HEADER_STATUS_VALUE_OK)) {
 			System.out.println(String.format("Check smtp settings"));
 		}
-		assertEquals(DefaultCrashReporter.HEADER_STATUS_VALUE_OK, resp.getFirstHeader(DefaultCrashReporter.HEADER_STATUS).getValue());
+		assertEquals(SmtpCrashReporterModule.HEADER_STATUS_VALUE_OK, resp.getFirstHeader(SmtpCrashReporterModule.HEADER_STATUS).getValue());
 	}
 	// =========================================================================
 }

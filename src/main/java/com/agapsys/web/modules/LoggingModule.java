@@ -13,13 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.agapsys.web;
+package com.agapsys.web.modules;
 
-import com.agapsys.web.utils.Properties;
-import javax.persistence.EntityManager;
-
-public interface PersistenceModule {
-	public Properties getDefaultSettings();
-	
-	public EntityManager getEntityManager();
+/**
+ *  Represents a logging module in the application
+ * @author Leandro Oliveira (leandro@agapsys.com)
+ */
+public interface LoggingModule extends Module {
+	/**
+	 *  Logs a message
+	 * @param logType message type
+	 * @param message message to be logged
+	 */
+	public void writeLog(String logType, String message);
 }

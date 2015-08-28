@@ -68,7 +68,7 @@ public class Utils {
 	}
 
 	/** 
-	 * @return A string representation of a stacktrace for given error
+	 * @return A string representation of a stack trace for given error
 	 * @param throwable error
 	 */
 	public static String getStackTrace(Throwable throwable) {

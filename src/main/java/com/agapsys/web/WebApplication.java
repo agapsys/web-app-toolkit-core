@@ -16,7 +16,9 @@
 
 package com.agapsys.web;
 
-import com.agapsys.logger.Logger;
+import com.agapsys.web.modules.LoggingModule;
+import com.agapsys.web.modules.CrashReporterModule;
+import com.agapsys.web.modules.PersistenceModule;
 import com.agapsys.web.utils.FileUtils;
 import com.agapsys.web.utils.Properties;
 import java.io.File;
@@ -28,6 +30,10 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+/** 
+ * Default application listener
+ * @author Leandro Oliveira (leandro@agapsys.com)
+ */
 public abstract class WebApplication implements ServletContextListener {
 	// CLASS SCOPE =============================================================
 	public static final String DEFAULT_ENVIRONMENT = "production";
@@ -36,9 +42,9 @@ public abstract class WebApplication implements ServletContextListener {
 	private static final String SETTINGS_FILENAME_SUFFIX    = ".conf";
 	private static final String SETTINGS_FILENAME_DELIMITER = "-";
 	
-	public static final String LOG_TYPE_ERROR   = Logger.ERROR;
-	public static final String LOG_TYPE_WARNING = Logger.WARNING;
-	public static final String LOG_TYPE_INFO    = Logger.INFO;
+	public static final String LOG_TYPE_ERROR   = "ERROR";
+	public static final String LOG_TYPE_WARNING = "WARNING";
+	public static final String LOG_TYPE_INFO    = "INFO";
 	
 	// State -------------------------------------------------------------------
 	private static boolean           running           = false;
@@ -51,12 +57,14 @@ public abstract class WebApplication implements ServletContextListener {
 	private static final Properties properties = new Properties();
 	private static Properties readOnlyProperties = null;
 	
-	private static PersistenceModule persistenceModule = null;
-	private static CrashReporter     crashReporter     = null;
-	private static LoggingModule     loggingModule         = null;
+	private static PersistenceModule   persistenceModule = null;
+	private static CrashReporterModule crashReporter     = null;
+	private static LoggingModule       loggingModule     = null;
 	// -------------------------------------------------------------------------
 	
 	// Application management methods ------------------------------------------
+	
+	/** @return  a boolean indicating if application is running. */
 	public static boolean isRunning() {
 		return running;
 	}
@@ -72,23 +80,43 @@ public abstract class WebApplication implements ServletContextListener {
 	// -------------------------------------------------------------------------
 	
 	// State management methods ------------------------------------------------
+	
+	/**
+	 * @return application name. 
+	 * @see WebApplication#getAppName() 
+	 * @throws IllegalStateException if application is not running
+	 */
 	public static String getName() throws IllegalStateException {
 		throwIfNotRunning();
 		return appName;
 	}
 	
+	/**
+	 * @return application version.
+	 * @see WebApplication#getAppVersion() 
+	 * @throws IllegalStateException if application is not running.
+	 */
 	public static String getVersion() throws IllegalStateException {
 		throwIfNotRunning();
 		
 		return appVersion;
 	}
 	
+	/** 
+	 * @return the folder where application stores resources outside application context in servlet container. 
+	 * @throws IllegalStateException if application is not running.
+	 */
 	public static File getAppFolder() throws IllegalStateException {
 		throwIfNotRunning();
 		
 		return appFolder;
 	}
 	
+	/**
+	 * @return the name of the currently running environment.
+	 * @throws IllegalStateException if application is not running.
+	 * @see WebApplication#getDefaultEnvironment() 
+	 */
 	public static String getEnvironment() throws IllegalStateException {
 		throwIfNotRunning();
 		
@@ -97,13 +125,19 @@ public abstract class WebApplication implements ServletContextListener {
 	// -------------------------------------------------------------------------
 	
 	// Global application methods ----------------------------------------------
+	/** @return application properties */
 	public static Properties getProperties() {
 		if (readOnlyProperties == null)
 			readOnlyProperties = properties.getUnmodifiableProperties();
 		
 		return readOnlyProperties;
 	}
-		
+	
+	/**
+	 * @return an entity manger to be used by application. If there is no persistence module, returns null
+	 * @throws IllegalStateException if application is not running.
+	 * @see WebApplication#getPersistenceModule() 
+	 */
 	public static EntityManager getEntityManager() throws IllegalStateException {
 		throwIfNotRunning();
 		
@@ -113,6 +147,15 @@ public abstract class WebApplication implements ServletContextListener {
 			return null;
 	}
 	
+	/**
+	 * Reports an error in the application. If there is no crash report module, nothing happens;
+	 * @param req erroneous HTTP request
+	 * @param resp HTTP response
+	 * @throws IllegalStateException if application is not running.
+	 * @throws ServletException if there is an error processing the request
+	 * @throws IOException  if there is an I/O error processing the request
+	 * @see WebApplication#getCrashReporterModule() 
+	 */
 	public static void reportError(HttpServletRequest req, HttpServletResponse resp) throws IllegalStateException, ServletException, IOException {
 		throwIfNotRunning();
 		
@@ -120,6 +163,13 @@ public abstract class WebApplication implements ServletContextListener {
 			crashReporter.reportError(req, resp);
 	}
 	
+	/**
+	 * Logs a message in the application. If there is no logging module, nothing happens.
+	 * @param logType message type
+	 * @param message message to be logged
+	 * @throws IllegalStateException if application is not running.
+	 * @see WebApplication#getLoggingModule() 
+	 */
 	public static void log(String logType, String message) throws IllegalStateException {
 		throwIfNotRunning();
 		
@@ -143,33 +193,42 @@ public abstract class WebApplication implements ServletContextListener {
 	}
 	
 	
-	// Persistence module ------------------------------------------------------
+	// Persistence module ----------------------------------------------------------
+	/** @return the persistence module used by application. Default implementation just returns null (there is no persistence module). */
 	protected PersistenceModule getPersistenceModule() {
 		return null;
 	}
 	
+	/** Performs persistence module initialization. Default implementation does nothing. */
 	protected void startPersistenceModule() {}
 	
+	/** Performs persistence module shutdown. Default implementation does nothing. */
 	protected void stopPersistenceModule() {}
 	// -------------------------------------------------------------------------
 	
 	// Crash reporter ----------------------------------------------------------
-	protected CrashReporter getCrashReporter() {
+	/** @return the crash report module used by application. Default implementation just returns null (there is no crash report module). */
+	protected CrashReporterModule getCrashReporterModule() {
 		return null;
 	}
 	
+	/** Performs crash report module initialization. Default implementation does nothing. */
 	protected void startCrashReporter() {}
 	
+	/** Performs crash report module shutdown. Default implementation does nothing. */
 	protected void stopCrashReporter() {}
 	// -------------------------------------------------------------------------
 	
-	// Logging module --------------------------------------------------------------
+	// Logging module ----------------------------------------------------------
+	/** @return the logging module used by application. Default implementation just returns null (there is no logging module). */
 	protected LoggingModule getLoggingModule() {
 		return null;
 	}
 	
+	/** Performs logging module initialization. Default implementation does nothing. */
 	protected void startLoggingModule() {}
 	
+	/** Performs logging module shutdown. Default implementation does nothing. */
 	protected void stopLoggingModule() {}
 	// -------------------------------------------------------------------------
 	
@@ -231,18 +290,19 @@ public abstract class WebApplication implements ServletContextListener {
 		}
 	}
 	
+	/** Forces application initialization. This method is intended to be used for testing purposes. */
 	public final void start() {
 		if (!isRunning()) {
 			printToConsole("====== AGAPSYS WEB CORE FRAMEWORK INITIALIZATION ======");
-			appName = getAppName();
+			appName = getAppName().trim();
 			if (appName == null || appName.trim().isEmpty())
 				throw new IllegalStateException("Missing application name");
 			
-			appVersion = getAppVersion();
+			appVersion = getAppVersion().trim();
 			if (appVersion == null || appVersion.trim().isEmpty())
 				throw new IllegalStateException("Missing application version");
 			
-			environment = getDefaultEnvironment();
+			environment = getDefaultEnvironment().trim();
 			if (environment == null || environment.trim().isEmpty())
 				throw new IllegalStateException("Missing environment");
 			
@@ -251,7 +311,7 @@ public abstract class WebApplication implements ServletContextListener {
 			appFolder = FileUtils.getOrCreateFolder(new File(FileUtils.USER_HOME, "." + appName).getAbsolutePath());
 
 			persistenceModule = getPersistenceModule();
-			crashReporter     = getCrashReporter();
+			crashReporter     = getCrashReporterModule();
 			loggingModule     = getLoggingModule();
 			
 			try {
@@ -280,6 +340,7 @@ public abstract class WebApplication implements ServletContextListener {
 		}
 	}
 	
+	/** Forces application shutdown. This method is intended to be used for testing purposes. */
 	public final void stop() {
 		if (isRunning()) {
 			printToConsole("====== AGAPSYS WEB CORE FRAMEWORK SHUTDOWN ======");

@@ -100,12 +100,6 @@ limitations under the License.
 		<!-- BEGIN: bundled dependencies-->		
 		<dependency>
 			<groupId>com.agapsys.libs</groupId>
-			<artifactId>logger</artifactId>
-			<version>1.0.0</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.agapsys.libs</groupId>
 			<artifactId>smtp-sender</artifactId>
 			<version>0.1.0</version>
 		</dependency>

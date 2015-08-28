@@ -24,6 +24,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 @WebServlet(ErrorServlet.URL)
+/**
+ * Standard Servlet for handling error requests
+ * @author Leandro Oliveira (leandro@agapsys.com)
+ */
 public class ErrorServlet extends HttpServlet {
 	// CLASS SCOPE =============================================================
 	public static final String URL = "/error";

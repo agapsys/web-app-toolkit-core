@@ -14,8 +14,11 @@
  * limitations under the License.
  */
 
-package com.agapsys.web;
+package com.agapsys.web.modules.impl;
 
+import com.agapsys.web.PersistenceUnit;
+import com.agapsys.web.WebApplication;
+import com.agapsys.web.modules.PersistenceModule;
 import com.agapsys.web.utils.Properties;
 import javax.persistence.EntityManager;
 import javax.persistence.Persistence;
@@ -49,16 +52,29 @@ public class DefaultPersistenceModule implements PersistenceModule {
 		return DEFAULT_PROPERTIES;
 	}
 	
+	/** @return the name of default persistence unit name. Default implementation returns always {@linkplain DefaultPersistenceModule#DEFAULT_PERSISTENCE_UNIT_NAME} */
 	protected String getDefaultPersistenceUnitName() {
 		return DEFAULT_PERSISTENCE_UNIT_NAME;
 	}
 	
+	/**
+	 * Called after persistence module initialization. Default implementation does nothing. This method is intended to be used during database initial load
+	 * @param entityManager entity manager available for initialization
+	 */
 	protected void init(EntityManager entityManager) {}
 	
+	/**
+	 * Called before module shutdown. Default implementation does nothing.
+	 * @param entityManager entity manager available during shutdown process
+	 */
+	protected void beforeStop(EntityManager entityManager) {}
+	
+	/** @return a boolean indicating if module is running. */
 	public boolean isRunning() {
 		return persistenceUnit != null;
 	}
 	
+	/** Starts this module. */
 	public void start() {
 		if (!isRunning()) {
 			java.util.Properties props = new java.util.Properties();
@@ -71,8 +87,12 @@ public class DefaultPersistenceModule implements PersistenceModule {
 		}
 	}
 	
+	/** Stops this module. */
 	public void stop() {
 		if (isRunning()) {
+			EntityManager entityManager = persistenceUnit.getEntityManager();
+			beforeStop(entityManager);
+			entityManager.close();
 			persistenceUnit.close();
 			persistenceUnit = null;
 		}
