@@ -16,8 +16,6 @@
 
 package com.agapsys.web.utils;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -25,31 +23,23 @@ import java.util.Date;
 import java.util.TimeZone;
 
 /**
- * General utilities
+ * Date utilities
  * @author Leandro Oliveira (leandro@agapsys.com)
  */
-public class Utils {
-
+public class DateUtils {
 	// CLASS SCOPE =============================================================
-	/**
-	 * Prints a string into application console
-	 * @param str string to be printed
-	 */
-	public static synchronized void printConsoleLog(String str) {
-		String logMsg = String.format("[web-core][%s]: %s ", getLocalTimestamp(), str);
-		System.out.println(logMsg);
-	}
-	
 	private static final DateFormat SIMPLE_DATE_FORMATTER = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss:SSS");
+	
+	/** @return system time stamp formated as yyyy-MM-dd HH:mm:ss:SSS */
 	public static String getLocalTimestamp() {
 		return SIMPLE_DATE_FORMATTER.format(new Date());
 	}
-	
 	
 	private static final DateFormat ISO_8601_FORMATTER = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss:SSS'Z'");
 	static {
 		ISO_8601_FORMATTER.setTimeZone(TimeZone.getTimeZone("UTC"));
 	}
+	
 	/**
 	 * @param date date to be formatted
 	 * @return ISO representation of given date
@@ -66,19 +56,9 @@ public class Utils {
 	public static Date getDateFromIso(String isoDate) throws ParseException {
 		return ISO_8601_FORMATTER.parse(isoDate);
 	}
-
-	/** 
-	 * @return A string representation of a stack trace for given error
-	 * @param throwable error
-	 */
-	public static String getStackTrace(Throwable throwable) {
-		StringWriter stringWriter = new StringWriter();
-		throwable.printStackTrace(new PrintWriter(stringWriter));
-		return stringWriter.toString();
-	}
 	// =========================================================================
 
 	// INSTANCE SCOPE ==========================================================
-	private Utils() {} // Private constructor prevents external instantiation
+	private DateUtils() {}
 	// =========================================================================
 }
