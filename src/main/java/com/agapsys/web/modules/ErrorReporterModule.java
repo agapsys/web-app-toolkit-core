@@ -21,10 +21,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 /**
- * Represents a crash report in the application
+ * Represents an error reporter
  * @author Leandro Oliveira (leandro@agapsys.com)
  */
-public interface CrashReporterModule extends Module {
+public interface ErrorReporterModule extends Module {
 	/**
 	 * Handles an erroneous request
 	 * @param req HTTP request
