@@ -17,14 +17,12 @@
 package com.agapsys.web.modules.impl;
 
 import com.agapsys.web.WebApplication;
-import com.agapsys.web.modules.CrashReporterModule;
+import com.agapsys.web.modules.ErrorReporterModule;
 
 
 import com.agapsys.web.utils.Properties;
 import com.agapsys.web.utils.RequestUtils;
-import com.agapsys.web.utils.Utils;
-import java.io.IOException;
-import javax.servlet.ServletException;
+import com.agapsys.web.utils.DateUtils;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -36,20 +34,20 @@ import javax.servlet.http.HttpServletResponse;
  * 
  * @author Leandro Oliveira (leandro@agapsys.com)
  */
-public class DefaultCrashReporterModule implements CrashReporterModule {
+public class DefaultErrorReporterModule extends ErrorReporterModule {
 	// CLASS SCOPE =============================================================
 	private static final String ATTR_STATUS_CODE    = "javax.servlet.error.status_code";
 	private static final String ATTR_EXCEPTION_TYPE = "javax.servlet.error.exception_type";
 	private static final String ATTR_MESSAGE        = "javax.servlet.error.message";
 	private static final String ATTR_REQUEST_URI    = "javax.servlet.error.request_uri";
 	private static final String ATTR_EXCEPTION      = "javax.servlet.error.exception";
-		
+	
 	public static final String KEY_NODE_NAME = "com.agapsys.web.nodeName";
 	
 	public static final String DEFAULT_NODE_NAME = "node-01";
 	
 	private static final Properties DEFAULT_PROPERTIES;
-
+	
 	static {
 		DEFAULT_PROPERTIES = new Properties();
 		DEFAULT_PROPERTIES.setProperty(KEY_NODE_NAME, DEFAULT_NODE_NAME);
@@ -57,16 +55,18 @@ public class DefaultCrashReporterModule implements CrashReporterModule {
 	// =========================================================================
 
 	// INSTANCE SCOPE ==========================================================
-	private final String nodeName;
-	
-	public DefaultCrashReporterModule() {
+	private String nodeName = null;
+
+	@Override
+	protected void onStart() {
 		nodeName = WebApplication.getProperties().getProperty(KEY_NODE_NAME, DEFAULT_NODE_NAME);
 	}
-	
-	public final String getNodeName() {
-		return nodeName;
+
+	@Override
+	protected void onStop() {
+		nodeName = null;
 	}
-	
+
 	@Override
 	public Properties getDefaultSettings() {
 		return DEFAULT_PROPERTIES;
@@ -84,15 +84,15 @@ public class DefaultCrashReporterModule implements CrashReporterModule {
 	 * @return error message
 	 */
 	protected String getErrorMessage(Integer statusCode, Throwable throwable, Class<?> exceptionType, String exceptionMessage, String requestUri, String userAgent, String clientIp) {
-		String stacktrace = Utils.getStackTrace(throwable);
+		String stacktrace = ErrorReporterModule.getStackTrace(throwable);
 
 		String msg =
 			"An error was detected"
 			+ "\n\n"
 			+ "Application: " + WebApplication.getName() + "\n"
 			+ "Application version: " + WebApplication.getVersion() + "\n"
-			+ "Node name: " + nodeName  + "\n\n"
-			+ "Server timestamp: " + Utils.getLocalTimestamp() + "\n"
+			+ "Node name: " + nodeName + "\n\n"
+			+ "Server timestamp: " + DateUtils.getLocalTimestamp() + "\n"
 			+ "Status code: " + statusCode + "\n"
 			+ "Exception type: " +(exceptionType != null ? exceptionType.getName() : "null") + "\n"
 			+ "Error message: " + exceptionMessage + "\n"
@@ -113,26 +113,28 @@ public class DefaultCrashReporterModule implements CrashReporterModule {
 	}
 		
 	@Override
-	public void reportError(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-		Integer statusCode = (Integer) req.getAttribute(ATTR_STATUS_CODE);
-		Class exceptionType = (Class) req.getAttribute(ATTR_EXCEPTION_TYPE);
-		String exceptionMessage = (String) req.getAttribute(ATTR_MESSAGE);
-		String requestUri = (String) req.getAttribute(ATTR_REQUEST_URI);
-		String userAgent = RequestUtils.getClientUserAgent(req);
+	protected void processErroneousRequest(HttpServletRequest req, HttpServletResponse resp) {
+		if (isRunning()) {
+			Integer statusCode = (Integer) req.getAttribute(ATTR_STATUS_CODE);
+			Class exceptionType = (Class) req.getAttribute(ATTR_EXCEPTION_TYPE);
+			String exceptionMessage = (String) req.getAttribute(ATTR_MESSAGE);
+			String requestUri = (String) req.getAttribute(ATTR_REQUEST_URI);
+			String userAgent = RequestUtils.getOriginUserAgent(req);
 
-		String clientIp = RequestUtils.getClientIp(req);
+			String clientIp = RequestUtils.getOriginIp(req);
 
-		Throwable throwable = (Throwable) req.getAttribute(ATTR_EXCEPTION);
+			Throwable throwable = (Throwable) req.getAttribute(ATTR_EXCEPTION);
 
-		if (throwable != null) {
-			logError(getErrorMessage(statusCode, throwable, exceptionType, exceptionMessage, requestUri, userAgent, clientIp));
-		} else {
-			String extraInfo =
-				"User-agent: " + userAgent + "\n"
-				+ "Client id: " + clientIp;
+			if (throwable != null) {
+				logError(getErrorMessage(statusCode, throwable, exceptionType, exceptionMessage, requestUri, userAgent, clientIp));
+			} else {
+				String extraInfo =
+					"User-agent: " + userAgent + "\n"
+					+ "Client id: " + clientIp;
 
-			WebApplication.log(WebApplication.LOG_TYPE_ERROR, String.format("Bad request for maintenance module:\n----\n%s\n----", extraInfo));
-			resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+				WebApplication.log(WebApplication.LOG_TYPE_ERROR, String.format("Bad request for maintenance module:\n----\n%s\n----", extraInfo));
+				resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+			}
 		}
 	}
 	// =========================================================================

@@ -21,7 +21,24 @@ import javax.persistence.EntityManager;
  * Persistence module
  * @author Leandro Oliveira (leandro@agapsys.com)
  */
-public interface PersistenceModule extends Module {
-	/** @return an entity manager to be used by application. */
-	public EntityManager getEntityManager();
+public abstract class PersistenceModule extends Module {
+	
+	/** 
+	 * Returns an entity manager to be used by application.
+	 * This method will be called only when module is running.
+	 * @return an entity manager to be used by application.
+	 */
+	protected abstract EntityManager getAppEntityManager();
+	
+	/**
+	 * Returns an entity manager to be used by application.
+	 * @return an entity manager to be used by application.
+	 * @throws IllegalStateException if module is not running
+	 */
+	public final EntityManager getEntityManager() throws IllegalStateException {
+		if (!isRunning())
+			throw new IllegalStateException("Module is not running");
+		
+		return getAppEntityManager();
+	}
 }

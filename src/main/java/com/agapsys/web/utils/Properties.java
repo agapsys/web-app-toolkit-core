@@ -81,8 +81,16 @@ public class Properties {
 		items.add(null);
 	}
 
-	public synchronized String getProperty(String key, String value) {
-		return entries.get(key);
+	public synchronized String getProperty(String key) {
+		return getProperty(key, null);
+	}
+	
+	public synchronized String getProperty(String key, String defaultValue) {
+		if (entries.containsKey(key)) {
+			return entries.get(key);
+		} else {
+			return defaultValue;
+		}
 	}
 	
 	public synchronized void setProperty(String key, String value) {

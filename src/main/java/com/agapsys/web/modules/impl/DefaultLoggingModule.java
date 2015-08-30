@@ -16,9 +16,9 @@
 
 package com.agapsys.web.modules.impl;
 
+import com.agapsys.utils.console.Console;
 import com.agapsys.web.modules.LoggingModule;
-import com.agapsys.web.utils.Properties;
-import com.agapsys.web.utils.Utils;
+import com.agapsys.web.utils.DateUtils;
 
 /**
  * Default logging module implementation.
@@ -27,15 +27,10 @@ import com.agapsys.web.utils.Utils;
  * 
  * @author Leandro Oliveira (leandro@agapsys.com)
  */
-public class DefaultLoggingModule implements LoggingModule {
+public class DefaultLoggingModule extends LoggingModule {
 
 	@Override
-	public void writeLog(String logType, String message) {
-		System.out.println(String.format("[%s] [%s] %s", Utils.getLocalTimestamp(), logType, message));
-	}
-
-	@Override
-	public Properties getDefaultSettings() {
-		return null;
+	protected void processLog(String logType, String message) {
+		Console.println(String.format("[%s] [%s] %s", DateUtils.getLocalTimestamp(), logType, message));
 	}
 }

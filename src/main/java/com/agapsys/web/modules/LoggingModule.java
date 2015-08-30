@@ -16,14 +16,26 @@
 package com.agapsys.web.modules;
 
 /**
- *  Represents a logging module in the application
+ * Represents a logging module
  * @author Leandro Oliveira (leandro@agapsys.com)
  */
-public interface LoggingModule extends Module {
+public abstract class LoggingModule extends Module {
+	
+	/** 
+	 * Actual log code. 
+	 * This method will be called only when module is running.
+	 */
+	protected abstract void processLog(String logType, String message);
+	
 	/**
-	 *  Logs a message
+	 * Logs a message.
+	 * If module is not running, nothing happens.
 	 * @param logType message type
 	 * @param message message to be logged
 	 */
-	public void writeLog(String logType, String message);
+	public final void log(String logType, String message) {
+		if (isRunning()) {
+			processLog(logType, message);
+		}
+	}
 }

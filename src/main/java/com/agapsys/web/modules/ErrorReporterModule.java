@@ -15,8 +15,8 @@
  */
 package com.agapsys.web.modules;
 
-import java.io.IOException;
-import javax.servlet.ServletException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -24,13 +24,37 @@ import javax.servlet.http.HttpServletResponse;
  * Represents an error reporter
  * @author Leandro Oliveira (leandro@agapsys.com)
  */
-public interface ErrorReporterModule extends Module {
+public abstract class ErrorReporterModule extends Module {
+	// CLASS SCOPE =============================================================
+	/** 
+	 * Return a string representation of a stack trace for given error
+	 * @return a string representation of a stack trace for given error
+	 * @param throwable error
+	 */
+	public static String getStackTrace(Throwable throwable) {
+		StringWriter stringWriter = new StringWriter();
+		throwable.printStackTrace(new PrintWriter(stringWriter));
+		return stringWriter.toString();
+	}
+	// =========================================================================
+	
+	// INSTANCE SCOPE ==========================================================
+	/** 
+	 * Actual error report code. 
+	 * This method will be called only when module is running.
+	 */
+	protected abstract void processErroneousRequest(HttpServletRequest req, HttpServletResponse resp);
+	
 	/**
-	 * Handles an erroneous request
+	 * Handles an erroneous request.
+	 * If module is not running, nothing happens.
 	 * @param req HTTP request
 	 * @param resp HTTP response
-	 * @throws ServletException when there is an error processing request
-	 * @throws IOException when there is an I/O error processing request
 	 */
-	public void reportError(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException ;
+	public final void reportErroneousRequest(HttpServletRequest req, HttpServletResponse resp) {
+		if (isRunning()) {
+			processErroneousRequest(req, resp);
+		}
+	}
+	// =========================================================================
 }

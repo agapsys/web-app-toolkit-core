@@ -21,7 +21,48 @@ import com.agapsys.web.utils.Properties;
  * Basic module interface
  * @author Leandro Oliveira (leandro@agapsys.com)
  */
-public interface Module {
-	/** @return default settings for this module. */
-	public Properties getDefaultSettings();
+public abstract class Module {
+	private boolean running = false;
+	
+	/** 
+	 * Return the default settings used by this module.
+	 * @return default settings for this module. Default implementation returns
+	 * null
+	 */
+	public Properties getDefaultSettings() {
+		return null;
+	}
+
+	/** 
+	 * Actual module initialization code.
+	 * Default implementation does nothing.
+	 */
+	protected void onStart() {}
+	
+	/**
+	 * Actual module shutdown code.
+	 * Default implementation does nothing.
+	 */
+	protected void onStop() {}
+	
+	/** Returns a boolean indicating if this module is running. */
+	public final boolean isRunning() {
+		return running;
+	}
+	
+	/** Starts the module. If module is already running, nothing happens. */
+	public final void start() {
+		if (!running) {
+			onStart();
+			running = true;
+		}
+	}
+	
+	/** Stops the module. If module is not running, nothing happens. */
+	public final void stop() {
+		if (running) {
+			onStop();
+			running = false;
+		}
+	}
 }

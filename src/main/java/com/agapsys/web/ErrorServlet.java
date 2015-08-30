@@ -40,7 +40,7 @@ public class ErrorServlet extends HttpServlet {
 			if (!req.getMethod().equals("GET")) {
 				resp.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
 			} else {
-				WebApplication.reportError(req, resp);
+				WebApplication.reportErroneousRequest(req, resp);
 			}
 		}
 	}
