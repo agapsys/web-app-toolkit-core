@@ -16,11 +16,11 @@
 
 package com.agapsys.web.modules.impl;
 
-import com.agapsys.web.persistence.PersistenceUnit;
 import com.agapsys.web.WebApplication;
 import com.agapsys.web.modules.PersistenceModule;
 import com.agapsys.web.utils.Properties;
 import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 
 public class DefaultPersistenceModule extends PersistenceModule {
@@ -45,7 +45,7 @@ public class DefaultPersistenceModule extends PersistenceModule {
 	}
 
 	// INSTANCE SCOPE ==========================================================
-	private PersistenceUnit persistenceUnit = null;
+	private EntityManagerFactory emf = null;
 	
 	@Override
 	public Properties getDefaultSettings() {
@@ -56,13 +56,13 @@ public class DefaultPersistenceModule extends PersistenceModule {
 	protected void onStart() {
 		java.util.Properties props = new java.util.Properties();
 		props.putAll(WebApplication.getProperties().getEntries());
-		persistenceUnit = new PersistenceUnit(Persistence.createEntityManagerFactory(getDefaultPersistenceUnitName(), props));
+		emf = Persistence.createEntityManagerFactory(getDefaultPersistenceUnitName(), props);
 	}
 	
 	@Override
 	protected void onStop() {
-		persistenceUnit.close();
-		persistenceUnit = null;
+		emf.close();
+		emf = null;
 	}
 	
 	@Override
@@ -70,7 +70,7 @@ public class DefaultPersistenceModule extends PersistenceModule {
 		if (!isRunning())
 			throw new IllegalStateException("Module is not running");
 		
-		return persistenceUnit.getEntityManager();
+		return emf.createEntityManager();
 	}
 	
 	/**
