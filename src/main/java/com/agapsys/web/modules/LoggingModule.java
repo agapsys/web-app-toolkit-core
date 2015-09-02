@@ -32,8 +32,15 @@ public abstract class LoggingModule extends Module {
 	 * If module is not running, nothing happens.
 	 * @param logType message type
 	 * @param message message to be logged
+	 * @throws IllegalArgumentException if either logType is null/empty of message is null/empty
 	 */
-	public final void log(String logType, String message) {
+	public final void log(String logType, String message) throws IllegalArgumentException {
+		if (logType == null)
+			throw new IllegalArgumentException("logType == null");
+		
+		if (message == null || message.trim().isEmpty())
+			throw new IllegalArgumentException("Null/Empty message");
+						
 		if (isRunning()) {
 			processLog(logType, message);
 		}
