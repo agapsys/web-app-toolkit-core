@@ -50,8 +50,15 @@ public abstract class ErrorReporterModule extends Module {
 	 * If module is not running, nothing happens.
 	 * @param req HTTP request
 	 * @param resp HTTP response
+	 * @throws IllegalArgumentException if either req == null or resp == null.
 	 */
-	public final void reportErroneousRequest(HttpServletRequest req, HttpServletResponse resp) {
+	public final void reportErroneousRequest(HttpServletRequest req, HttpServletResponse resp) throws IllegalArgumentException {
+		if (req == null)
+			throw new IllegalArgumentException("req == null");
+		
+		if (resp == null)
+			throw new IllegalArgumentException("resp == null");
+		
 		if (isRunning()) {
 			processErroneousRequest(req, resp);
 		}

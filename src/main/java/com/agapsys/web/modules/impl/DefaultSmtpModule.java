@@ -17,6 +17,7 @@
 package com.agapsys.web.modules.impl;
 
 import com.agapsys.mail.Message;
+import com.agapsys.mail.MessageBuilder;
 import com.agapsys.mail.SecurityType;
 import com.agapsys.mail.SmtpSender;
 import com.agapsys.mail.SmtpSettings;
@@ -89,8 +90,15 @@ public class DefaultSmtpModule extends SmtpModule {
 	@Override
 	protected void processMessage(Message message) {
 		if (!isRunning()) {
-			message.setSenderAddress(sender);
 			try {
+				// Forces sender address if message's address not equals to application default sender.
+				if (!message.getSenderAddress().equals(sender)) {
+					message = new MessageBuilder(sender, message.getRecipients().toArray(new InternetAddress[message.getRecipients().size()]))
+						.setCharset(message.getCharset())
+						.setMimeSubtype(message.getMimeSubtype())
+						.setSubject(message.getSubject())
+						.setText(message.getText()).build();
+				}
 				smtpSender.sendMessage(message);
 			} catch (MessagingException ex) {
 				throw new RuntimeException(ex);

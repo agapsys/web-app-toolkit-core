@@ -17,6 +17,7 @@
 package com.agapsys.web.modules.impl;
 
 import com.agapsys.mail.Message;
+import com.agapsys.mail.MessageBuilder;
 import com.agapsys.web.WebApplication;
 import com.agapsys.web.utils.Properties;
 import javax.mail.MessagingException;
@@ -28,7 +29,6 @@ import javax.mail.MessagingException;
 public class DefaultSmtpErrorReporterModule extends DefaultErrorReporterModule {
 	// CLASS SCOPE =============================================================
 	public static final String KEY_ERR_MAIL_RECIPIENTS   = "com.agapsys.web.errMailRecipients";
-	public static final String KEY_ERR_MAIL_SENDER       = "com.agapsys.web.errMailSender";
 	public static final String KEY_ERR_MAIL_SUBJECT      = "com.agapsys.web.errSubject";
 	public static final String RECIPIENT_DELIMITER = ",";
 	
@@ -42,7 +42,6 @@ public class DefaultSmtpErrorReporterModule extends DefaultErrorReporterModule {
 		DEFAULT_PROPERTIES = new Properties();
 		DEFAULT_PROPERTIES.setProperty(KEY_NODE_NAME, DEFAULT_NODE_NAME);
 		DEFAULT_PROPERTIES.setProperty(KEY_ERR_MAIL_RECIPIENTS, DEFAULT_ERR_RECIPIENTS);
-		DEFAULT_PROPERTIES.setProperty(KEY_ERR_MAIL_SENDER,     DEFAULT_ERR_SENDER);
 		DEFAULT_PROPERTIES.setProperty(KEY_ERR_MAIL_SUBJECT,    DEFAULT_ERR_SUBJECT);
 	}
 	
@@ -50,7 +49,6 @@ public class DefaultSmtpErrorReporterModule extends DefaultErrorReporterModule {
 
 	// INSTANCE SCOPE ==========================================================
 	private String[] msgRecipients = null;
-	private String   msgSender     = null;
 	private String   msgSubject    = null;
 	
 	@Override
@@ -58,7 +56,6 @@ public class DefaultSmtpErrorReporterModule extends DefaultErrorReporterModule {
 		Properties props = WebApplication.getProperties();
 		
 		msgRecipients = props.getProperty(KEY_ERR_MAIL_RECIPIENTS, DEFAULT_ERR_RECIPIENTS).split(RECIPIENT_DELIMITER);
-		msgSender     = props.getProperty(KEY_ERR_MAIL_SENDER,     DEFAULT_ERR_SENDER);
 		msgSubject    = props.getProperty(KEY_ERR_MAIL_SUBJECT,    DEFAULT_ERR_SUBJECT);
 
 		for (int i = 0; i < msgRecipients.length; i++)
@@ -68,7 +65,6 @@ public class DefaultSmtpErrorReporterModule extends DefaultErrorReporterModule {
 	@Override
 	protected void onStop() {
 		msgRecipients = null;
-		msgSender = null;
 		msgSubject = null;
 	}
 	
@@ -83,11 +79,10 @@ public class DefaultSmtpErrorReporterModule extends DefaultErrorReporterModule {
 			super.logError(message);
 
 			try {
-				Message msg = new Message();
-				msg.setSenderAddress(msgSender);
-				msg.setRecipients(msgRecipients);
-				msg.setSubject(msgSubject);
-				msg.setText(message);
+				Message msg = new MessageBuilder(WebApplication.getProperties().getProperty(DefaultSmtpModule.KEY_SMTP_MAIL_SENDER), msgRecipients)
+					.setSubject(msgSubject)
+					.setText(message)
+					.build();
 				WebApplication.sendMessage(msg);
 			} catch (MessagingException ex) {
 				WebApplication.log(WebApplication.LOG_TYPE_ERROR, String.format("Error sending error report:\n----\n%s\n----", DefaultErrorReporterModule.getStackTrace(ex)));

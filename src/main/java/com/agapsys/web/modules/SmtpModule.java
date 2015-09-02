@@ -33,8 +33,12 @@ public abstract class SmtpModule extends Module {
 	 * Sends a email message.
 	 * If module is not running, nothing happens.
 	 * @param message message to be sent
+	 * @throws IllegalArgumentException if message == null
 	 */
-	public final void sendMessage(Message message) {
+	public final void sendMessage(Message message) throws IllegalArgumentException {
+		if (message == null)
+			throw new IllegalArgumentException("message == null");
+				
 		if (isRunning()) {
 			processMessage(message);
 		}

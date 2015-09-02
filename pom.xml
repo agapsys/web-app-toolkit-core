@@ -101,7 +101,7 @@ limitations under the License.
 		<dependency>
 			<groupId>com.agapsys.libs</groupId>
 			<artifactId>smtp-sender</artifactId>
-			<version>0.1.0</version>
+			<version>1.0.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.agapsys.libs</groupId>
