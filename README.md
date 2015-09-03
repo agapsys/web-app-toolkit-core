@@ -12,6 +12,7 @@ The first build may take a long time as Maven downloads all the dependencies.
 
 Web Core Framework project requires Java 7 compatible runtime and depends on the following external libraries:
 
+* Java(TM) EE 7 Web Specification APIs
 * Eclipselink
 * Agapsys Java Logging Framework
 * Agapsys SMTP Sender
