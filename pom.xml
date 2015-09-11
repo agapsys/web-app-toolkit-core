@@ -64,6 +64,12 @@ limitations under the License.
 		<!-- Test dependencies -->
 		<dependency>
 			<groupId>com.agapsys.libs</groupId>
+			<artifactId>logger</artifactId>
+			<version>2.0.0-RC2</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.agapsys.libs</groupId>
 			<artifactId>servlet-testing-framework</artifactId>
 			<version>1.0.0-RC1</version>
 			<scope>test</scope>
