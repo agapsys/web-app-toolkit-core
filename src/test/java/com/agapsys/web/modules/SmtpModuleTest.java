@@ -29,7 +29,7 @@ public class SmtpModuleTest {
 		private boolean methodCalled = false;
 		
 		@Override
-		protected void processMessage(Message message) {
+		protected void onSendMessage(Message message) {
 			methodCalled = true;
 		}
 	}

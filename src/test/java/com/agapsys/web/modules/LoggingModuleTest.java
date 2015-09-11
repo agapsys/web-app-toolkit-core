@@ -26,7 +26,7 @@ public class LoggingModuleTest {
 		private boolean methodCalled = false;
 
 		@Override
-		protected void processLog(String logType, String message) {
+		protected void onLog(String logType, String message) {
 			methodCalled = true;
 		}
 	} 

@@ -50,7 +50,7 @@ public class ErrorReporterModuleTest {
 		private boolean methodCalled = false;
 
 		@Override
-		protected void processErroneousRequest(HttpServletRequest req, HttpServletResponse resp) {
+		protected void onReportErroneousRequest(HttpServletRequest req, HttpServletResponse resp) {
 			methodCalled = true;
 		}
 	}
