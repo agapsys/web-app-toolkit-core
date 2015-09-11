@@ -107,11 +107,8 @@ public abstract class WebApplication {
 	 * @param args arguments if message is a formatted string
 	 * @see String#format(String, Object...)
 	 * @see WebApplication#start()
-	 * @throws IllegalStateException if application is not running
 	 */
 	public static void debug(String message, Object...args) throws IllegalStateException  {
-		throwIfNotRunning();
-		
 		if (enableDebug)
 			Console.printlnf(message, args);
 	}
@@ -457,8 +454,6 @@ public abstract class WebApplication {
 			}
 
 		} else {
-			debug("Creating default settings file...");
-
 			// Persistence module: Loading defaults...
 			if (persistenceModule != null) {
 				tmpProperties = persistenceModule.getDefaultSettings();
@@ -496,6 +491,7 @@ public abstract class WebApplication {
 
 			// Storing in settings file...
 			if (!properties.isEmpty()) {
+				debug("Creating default settings file...");
 				properties.store(settingsFile);
 			}
 		}
@@ -616,10 +612,17 @@ public abstract class WebApplication {
 			}
 			
 			// 2) Actual module shutdown...
-			loggingModule.stop();
-			errorReporterModule.stop();
-			smtpModule.stop();
-			persistenceModule.stop(); // persistence module must be the last module to be shutted down
+			if (loggingModule != null)
+				loggingModule.stop();
+			
+			if (errorReporterModule != null)
+				errorReporterModule.stop();
+			
+			if (smtpModule != null)
+				smtpModule.stop();
+			
+			if (persistenceModule != null)
+				persistenceModule.stop(); // persistence module must be the last module to be shutted down
 			
 			fullyLoaded = false;
 			persistenceLoaded = false;
