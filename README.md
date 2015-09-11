@@ -2,7 +2,7 @@
 
 Welcome to the Web Core Framework project.
 
-**Attention:** If you obtained the source from a snapshot branch be aware that  such branch can contain unstable code.
+**Attention:** If you obtained the source from a development branch be aware that  such branch can contain unstable and/or uncompilable code.
 
 ## Compiling
 
@@ -12,21 +12,24 @@ The first build may take a long time as Maven downloads all the dependencies.
 
 Web Core Framework project requires Java 7 compatible runtime and depends on the following external libraries:
 
-* Java(TM) EE 7 Web Specification APIs
-* Eclipselink
-* Agapsys Java Logging Framework
-* Agapsys SMTP Sender
-* GSON
-* Agapsys Servlet Testing Framework (TESTING)
-* H2 Database (TESTING)
-* JUnit (TESTING)
+* Java EE 7 Web Specification APIs
+* Agapsys SMTP Sender (https://github.com/agapsys/smtp-sender)
+* Agapsys Console Utilities (https://github.com/agapsys/console-utils)
+* GSON (https://github.com/google/gson)
 
-(for detailed information on external dependencies please see pom.xml)
+Testing dependencies:
+* Agapsys Java Logging Framework (https://github.com/agapsys/logger)
+* Agapsys Servlet Testing Framework (https://github.com/agapsys/servlet-testing-framework)
+* H2 Database (http://www.h2database.com)
+* JUnit (http://junit.org/)
+* Hibernate JPA (http://hibernate.org/orm/)
+
+For detailed information on external dependencies please see *pom.xml*.
 
 ## Licensing
 
-Web Core Framework project is licensed under the Apache License 2.0. See the files called LICENSE and NOTICE for more information.
+Web Core Framework project is licensed under the **Apache License 2.0**. See the files called *LICENSE* and *NOTICE* for more information.
 
 ## Contact
 
-* For general information visit the main project site at https://github.com/agapsys/web-core
+For general information visit the main project site at https://github.com/agapsys/web-core
