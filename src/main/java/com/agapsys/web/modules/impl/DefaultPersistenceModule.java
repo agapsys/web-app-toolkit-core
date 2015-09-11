@@ -31,17 +31,15 @@ public class DefaultPersistenceModule extends PersistenceModule {
 	public static final String DEFAULT_JDBC_URL          = "jdbc:h2:mem:";
 	public static final String DEFAULT_JDBC_USER         = "sa";
 	public static final String DEFAULT_JDBC_PASSWORD     = "sa";
-	public static final String DEFAULT_SCHEMA_GENERATION = "create";
 	
 	private static final Properties DEFAULT_PROPERTIES;
 	
 	static {
 		DEFAULT_PROPERTIES = new Properties();
-		DEFAULT_PROPERTIES.setProperty("javax.persistence.jdbc.driver",                       DEFAULT_JDBC_DRIVER);
-		DEFAULT_PROPERTIES.setProperty("javax.persistence.jdbc.url",                          DEFAULT_JDBC_URL);
-		DEFAULT_PROPERTIES.setProperty("javax.persistence.jdbc.user",                         DEFAULT_JDBC_USER);
-		DEFAULT_PROPERTIES.setProperty("javax.persistence.jdbc.password",                     DEFAULT_JDBC_PASSWORD);
-		DEFAULT_PROPERTIES.setProperty("javax.persistence.schema-generation.database.action", DEFAULT_SCHEMA_GENERATION);
+		DEFAULT_PROPERTIES.setProperty("javax.persistence.jdbc.driver",   DEFAULT_JDBC_DRIVER);
+		DEFAULT_PROPERTIES.setProperty("javax.persistence.jdbc.url",      DEFAULT_JDBC_URL);
+		DEFAULT_PROPERTIES.setProperty("javax.persistence.jdbc.user",     DEFAULT_JDBC_USER);
+		DEFAULT_PROPERTIES.setProperty("javax.persistence.jdbc.password", DEFAULT_JDBC_PASSWORD);
 	}
 
 	// INSTANCE SCOPE ==========================================================
