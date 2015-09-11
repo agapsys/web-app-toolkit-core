@@ -30,7 +30,7 @@ import com.agapsys.web.utils.DateUtils;
 public class DefaultLoggingModule extends LoggingModule {
 
 	@Override
-	protected void processLog(String logType, String message) {
+	protected void onLog(String logType, String message) {
 		Console.println(String.format("[%s] [%s] %s", DateUtils.getLocalTimestamp(), logType, message));
 	}
 }

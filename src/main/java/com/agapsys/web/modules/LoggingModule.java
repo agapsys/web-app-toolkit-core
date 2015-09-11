@@ -25,7 +25,7 @@ public abstract class LoggingModule extends Module {
 	 * Actual log code. 
 	 * This method will be called only when module is running.
 	 */
-	protected abstract void processLog(String logType, String message);
+	protected abstract void onLog(String logType, String message);
 	
 	/**
 	 * Logs a message.
@@ -42,7 +42,7 @@ public abstract class LoggingModule extends Module {
 			throw new IllegalArgumentException("Null/Empty message");
 						
 		if (isRunning()) {
-			processLog(logType, message);
+			onLog(logType, message);
 		}
 	}
 }
