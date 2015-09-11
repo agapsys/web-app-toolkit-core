@@ -43,7 +43,7 @@ public abstract class ErrorReporterModule extends Module {
 	 * Actual error report code. 
 	 * This method will be called only when module is running.
 	 */
-	protected abstract void processErroneousRequest(HttpServletRequest req, HttpServletResponse resp);
+	protected abstract void onReportErroneousRequest(HttpServletRequest req, HttpServletResponse resp);
 	
 	/**
 	 * Handles an erroneous request.
@@ -60,7 +60,7 @@ public abstract class ErrorReporterModule extends Module {
 			throw new IllegalArgumentException("resp == null");
 		
 		if (isRunning()) {
-			processErroneousRequest(req, resp);
+			onReportErroneousRequest(req, resp);
 		}
 	}
 	// =========================================================================

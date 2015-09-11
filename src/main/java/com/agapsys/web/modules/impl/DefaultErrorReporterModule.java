@@ -113,7 +113,7 @@ public class DefaultErrorReporterModule extends ErrorReporterModule {
 	}
 		
 	@Override
-	protected void processErroneousRequest(HttpServletRequest req, HttpServletResponse resp) {
+	protected void onReportErroneousRequest(HttpServletRequest req, HttpServletResponse resp) {
 		if (isRunning()) {
 			Integer statusCode = (Integer) req.getAttribute(ATTR_STATUS_CODE);
 			Class exceptionType = (Class) req.getAttribute(ATTR_EXCEPTION_TYPE);
