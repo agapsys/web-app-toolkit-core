@@ -88,7 +88,7 @@ public class DefaultSmtpModule extends SmtpModule {
 	}
 
 	@Override
-	protected void processMessage(Message message) {
+	protected void onSendMessage(Message message) {
 		if (!isRunning()) {
 			try {
 				// Forces sender address if message's address not equals to application default sender.

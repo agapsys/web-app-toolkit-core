@@ -27,7 +27,7 @@ public abstract class SmtpModule extends Module {
 	 * Actual message sending code. 
 	 * This method will be called only when module is running.
 	 */
-	protected abstract void processMessage(Message message);
+	protected abstract void onSendMessage(Message message);
 	
 	/** 
 	 * Sends a email message.
@@ -40,7 +40,7 @@ public abstract class SmtpModule extends Module {
 			throw new IllegalArgumentException("message == null");
 				
 		if (isRunning()) {
-			processMessage(message);
+			onSendMessage(message);
 		}
 	}
 }
