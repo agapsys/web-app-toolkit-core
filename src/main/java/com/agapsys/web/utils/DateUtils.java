@@ -35,6 +35,17 @@ public class DateUtils {
 		return SIMPLE_DATE_FORMATTER.format(new Date());
 	}
 	
+	/** 
+	 * @return given date formated as a local timestamp.
+	 * @param date date to be formated
+	 */
+	public static String getLocalTimestamp(Date date) {
+		if (date == null)
+			throw new IllegalArgumentException("Null date");
+		
+		return SIMPLE_DATE_FORMATTER.format(date);
+	}
+	
 	private static final DateFormat ISO_8601_FORMATTER = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss:SSS'Z'");
 	static {
 		ISO_8601_FORMATTER.setTimeZone(TimeZone.getTimeZone("UTC"));
