@@ -125,6 +125,7 @@ public abstract class WebApplication {
 	 */
 	public static String getName() throws IllegalStateException {
 		throwIfNotRunning();
+		
 		return appName;
 	}
 	
@@ -419,7 +420,10 @@ public abstract class WebApplication {
 	// -------------------------------------------------------------------------
 	
 	private void loadSettings() throws IOException {
-		File settingsFile = new File(appFolder, SETTINGS_FILENAME_PREFIX + SETTINGS_FILENAME_DELIMITER + environment + SETTINGS_FILENAME_SUFFIX);
+		String strDelimiter = environment.equals(DEFAULT_ENVIRONMENT) ? "" : SETTINGS_FILENAME_DELIMITER;
+		String strEnvironment = environment.equals(DEFAULT_ENVIRONMENT) ? "" : environment;
+		
+		File settingsFile = new File(appFolder, SETTINGS_FILENAME_PREFIX + strDelimiter + strEnvironment + SETTINGS_FILENAME_SUFFIX);
 		Properties tmpProperties;
 
 		if (settingsFile.exists()) {
@@ -473,7 +477,7 @@ public abstract class WebApplication {
 				tmpProperties = smtpModule.getDefaultSettings();
 
 				if (tmpProperties != null) {
-					properties.addComment("SMTP settings==========================================================");
+					properties.addComment("SMTP settings=================================================================");
 					properties.append(tmpProperties);
 					properties.addComment("==============================================================================");
 				}
