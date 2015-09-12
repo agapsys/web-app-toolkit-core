@@ -26,9 +26,11 @@ import com.agapsys.web.utils.FileUtils;
 import com.agapsys.web.utils.Properties;
 import java.io.File;
 import java.io.IOException;
+import java.lang.management.ManagementFactory;
 import java.util.LinkedList;
 import java.util.List;
 import javax.persistence.EntityManager;
+import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -38,7 +40,7 @@ import javax.servlet.http.HttpServletResponse;
  * This class is not thread-safe
  * @author Leandro Oliveira (leandro@agapsys.com)
  */
-public abstract class WebApplication {
+public abstract class WebApplication implements ServletContextListener {
 	// CLASS SCOPE =============================================================
 	public static final String DEFAULT_ENVIRONMENT = "production";
 	
@@ -298,10 +300,10 @@ public abstract class WebApplication {
 	// INSTANCE SCOPE ==========================================================
 	/** 
 	 * Returns a boolean indicating if debug is enabled.
-	 * @return a boolean indicating if debug is enabled. Default implementation just returns false.
+	 * @return a boolean indicating if debug messages shall be printed.
 	 */
 	protected boolean isDebugEnabled() {
-		return false;
+		return ManagementFactory.getRuntimeMXBean().getInputArguments().toString().indexOf("-agentlib:jdwp") > 0;
 	}
 	
 	/** @return the application name */
@@ -573,6 +575,11 @@ public abstract class WebApplication {
 			debug("====== AGAPSYS WEB CORE FRAMEWORK IS READY! ======");
 		}
 	}
+
+	@Override
+	public void contextInitialized(ServletContextEvent sce) {
+		start();
+	}
 	
 	/**
 	 * Called after application is initialized.
@@ -631,6 +638,11 @@ public abstract class WebApplication {
 			
 			debug("====== AGAPSYS WEB CORE FRAMEWORK WAS SHUTTED DOWN! ======");
 		}
+	}
+	
+	@Override
+	public void contextDestroyed(ServletContextEvent sce) {
+		stop();
 	}
 	
 	/**
