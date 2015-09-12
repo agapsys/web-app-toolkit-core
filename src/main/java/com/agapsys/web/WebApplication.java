@@ -456,6 +456,8 @@ public abstract class WebApplication implements ServletContextListener {
 			}
 
 		} else {
+			boolean addedSettings = false;
+			
 			// Persistence module: Loading defaults...
 			if (persistenceModule != null) {
 				tmpProperties = persistenceModule.getDefaultSettings();
@@ -464,6 +466,7 @@ public abstract class WebApplication implements ServletContextListener {
 					properties.addComment("Persistence settings==========================================================");
 					properties.append(tmpProperties);
 					properties.addComment("==============================================================================");
+					addedSettings = true;
 				}
 			}
 			
@@ -474,9 +477,13 @@ public abstract class WebApplication implements ServletContextListener {
 				tmpProperties = smtpModule.getDefaultSettings();
 
 				if (tmpProperties != null) {
+					if (addedSettings)
+						properties.addEmptyLine();
+					
 					properties.addComment("SMTP settings=================================================================");
 					properties.append(tmpProperties);
 					properties.addComment("==============================================================================");
+					addedSettings = true;
 				}
 			}
 
@@ -485,9 +492,13 @@ public abstract class WebApplication implements ServletContextListener {
 				tmpProperties = errorReporterModule.getDefaultSettings();
 
 				if (tmpProperties != null) {
+					if (addedSettings)
+						properties.addEmptyLine();
+					
 					properties.addComment("Error reporter settings ======================================================");
 					properties.append(tmpProperties);
 					properties.addComment("==============================================================================");
+					addedSettings = true;
 				}
 			}
 

@@ -21,6 +21,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.io.Writer;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -136,19 +137,19 @@ public class Properties {
 	}
 	
 	public synchronized void store(File file) throws IOException {
-		Writer writer = new OutputStreamWriter(new FileOutputStream(file));
-		
-		StringBuilder sb = new StringBuilder();
-		
-		for (Object item : items) {
-			if (item == null) {
-				sb.append("\n");
-			} else {
-				sb.append(item.toString()).append("\n");
+		try (PrintWriter writer = new PrintWriter(new FileOutputStream(file))) {
+			StringBuilder sb = new StringBuilder();
+			
+			for (Object item : items) {
+				if (item == null) {
+					sb.append("\n");
+				} else {
+					sb.append(item.toString()).append("\n");
+				}
 			}
+			
+			writer.println(sb.toString());
 		}
-		
-		writer.write(sb.toString());
 	}
 
 	public synchronized void clear() {
