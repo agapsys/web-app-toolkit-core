@@ -21,7 +21,7 @@ import com.agapsys.web.modules.ErrorReporterModule;
 
 
 import com.agapsys.web.utils.Properties;
-import com.agapsys.web.utils.RequestUtils;
+import com.agapsys.web.utils.HttpUtils;
 import com.agapsys.web.utils.DateUtils;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -119,9 +119,9 @@ public class DefaultErrorReporterModule extends ErrorReporterModule {
 			Class exceptionType = (Class) req.getAttribute(ATTR_EXCEPTION_TYPE);
 			String exceptionMessage = (String) req.getAttribute(ATTR_MESSAGE);
 			String requestUri = (String) req.getAttribute(ATTR_REQUEST_URI);
-			String userAgent = RequestUtils.getOriginUserAgent(req);
+			String userAgent = HttpUtils.getOriginUserAgent(req);
 
-			String clientIp = RequestUtils.getOriginIp(req);
+			String clientIp = HttpUtils.getOriginIp(req);
 
 			Throwable throwable = (Throwable) req.getAttribute(ATTR_EXCEPTION);
 

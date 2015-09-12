@@ -20,9 +20,11 @@ import com.google.gson.Gson;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
 import java.io.IOException;
+import java.io.PrintWriter;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
-public class RequestUtils {
+public class HttpUtils {
 	// CLASS SCOPE =============================================================
 	private static final String JSON_CONTENT_TYPE = "application/json";
 	private static final Gson   JSON              = new Gson();	
@@ -63,6 +65,24 @@ public class RequestUtils {
 	}
 	
 	/**
+	 * Sends an object as a json
+	 * @param response HTTP response
+	 * @param object object to be sent
+	 * @throws IllegalArgumentException
+	 * @throws IOException 
+	 */
+	public static void sendJsonData(HttpServletResponse response, Object object) throws IllegalArgumentException, IOException {
+		if (response == null)
+			throw new IllegalArgumentException("Null response");
+		
+		//TODO check null object
+		response.setContentType(JSON_CONTENT_TYPE);
+		PrintWriter out = response.getWriter();
+		String json = JSON.toJson(object);
+		out.write(json);
+	}
+	
+	/**
 	 * @return request's origin IP
 	 * @param req HTTP request
 	 */
@@ -84,6 +104,6 @@ public class RequestUtils {
 	// =========================================================================
 
 	// INSTANCE SCOPE ==========================================================
-	private RequestUtils() {}
+	private HttpUtils() {}
 	// =========================================================================
 }
