@@ -101,6 +101,7 @@ public class DefaultSmtpModule extends SmtpModule {
 				}
 				smtpSender.sendMessage(message);
 			} catch (MessagingException ex) {
+				WebApplication.log(WebApplication.LOG_TYPE_ERROR, "Error sending message: " + ex.getMessage());
 				throw new RuntimeException(ex);
 			}
 		}
