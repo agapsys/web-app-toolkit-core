@@ -24,6 +24,8 @@ public abstract class LoggingModule extends Module {
 	/** 
 	 * Actual log code. 
 	 * This method will be called only when module is running.
+	 * @param logType log type
+	 * @param message log message
 	 */
 	protected abstract void onLog(String logType, String message);
 	

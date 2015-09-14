@@ -26,6 +26,7 @@ public abstract class SmtpModule extends Module {
 	/** 
 	 * Actual message sending code. 
 	 * This method will be called only when module is running.
+	 * @param message message to be sent
 	 */
 	protected abstract void onSendMessage(Message message);
 	

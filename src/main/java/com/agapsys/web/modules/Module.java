@@ -45,7 +45,7 @@ public abstract class Module {
 	 */
 	protected void onStop() {}
 	
-	/** Returns a boolean indicating if this module is running. */
+	/** @return a boolean indicating if this module is running. */
 	public final boolean isRunning() {
 		return running;
 	}

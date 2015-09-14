@@ -272,7 +272,7 @@ public abstract class WebApplication implements ServletContextListener {
 	 * 
 	 * @param message message to be sent
 	 * @throws IllegalStateException if application is not running.
-	 * @see WebApplication#getStmpModule()
+	 * @see WebApplication#getSmtpModule()
 	 */
 	public static void sendMessage(Message message) throws IllegalStateException {
 		throwIfNotRunning();

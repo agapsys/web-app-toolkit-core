@@ -42,6 +42,8 @@ public abstract class ErrorReporterModule extends Module {
 	/** 
 	 * Actual error report code. 
 	 * This method will be called only when module is running.
+	 * @param req HTTP request
+	 * @param resp HTTP response
 	 */
 	protected abstract void onReportErroneousRequest(HttpServletRequest req, HttpServletResponse resp);
 	

@@ -54,8 +54,9 @@ public class HttpUtils {
 	 * @param request HTTP request
 	 * @param clazz desired output object class
 	 * @throws IllegalArgumentException if request == null || clazz == null
-	 * @throws com.agapsys.web.utils.RequestUtils.BadRequestException if given request content-type does not match with expected
+	 * @throws BadRequestException if given request content-type does not match with expected
 	 * @throws IOException if there is an I/O error while processing the request
+	 * @param <T> generic type
 	 */
 	public static <T> T getJsonRequestData(HttpServletRequest request, Class<T> clazz) throws IllegalArgumentException, BadRequestException, IOException {
 		if (request == null)
@@ -84,8 +85,8 @@ public class HttpUtils {
 	 * Sends an object as a json
 	 * @param response HTTP response
 	 * @param object object to be sent
-	 * @throws IllegalArgumentException
-	 * @throws IOException 
+	 * @throws IllegalArgumentException if response == null
+	 * @throws IOException if there is an I/O error while processing the request
 	 */
 	public static void sendJsonData(HttpServletResponse response, Object object) throws IllegalArgumentException, IOException {
 		if (response == null)
