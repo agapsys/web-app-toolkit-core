@@ -53,6 +53,8 @@ public class DefaultSmtpErrorReporterModule extends DefaultErrorReporterModule {
 	
 	@Override
 	protected void onStart() {
+		super.onStart();
+		
 		Properties props = WebApplication.getProperties();
 		
 		msgRecipients = props.getProperty(KEY_ERR_MAIL_RECIPIENTS, DEFAULT_ERR_RECIPIENTS).split(RECIPIENT_DELIMITER);
