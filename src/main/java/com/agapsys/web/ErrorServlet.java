@@ -37,11 +37,7 @@ public class ErrorServlet extends HttpServlet {
 	@Override
 	protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		if (resp.getStatus() != HttpServletResponse.SC_NOT_FOUND) {
-			if (!req.getMethod().equals("GET")) {
-				resp.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
-			} else {
-				WebApplication.reportErroneousRequest(req, resp);
-			}
+			WebApplication.reportErroneousRequest(req, resp);
 		}
 	}
 	// =========================================================================
