@@ -28,7 +28,7 @@ import java.util.TimeZone;
  */
 public class DateUtils {
 	// CLASS SCOPE =============================================================
-	private static final DateFormat SIMPLE_DATE_FORMATTER = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss:SSS");
+	private static final DateFormat SIMPLE_DATE_FORMATTER = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
 	
 	/** @return system time stamp formated as yyyy-MM-dd HH:mm:ss:SSS */
 	public static String getLocalTimestamp() {
@@ -46,7 +46,7 @@ public class DateUtils {
 		return SIMPLE_DATE_FORMATTER.format(date);
 	}
 	
-	private static final DateFormat ISO_8601_FORMATTER = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss:SSS'Z'");
+	private static final DateFormat ISO_8601_FORMATTER = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 	static {
 		ISO_8601_FORMATTER.setTimeZone(TimeZone.getTimeZone("UTC"));
 	}
