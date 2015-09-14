@@ -29,6 +29,7 @@ public class HttpUtils {
 	// CLASS SCOPE =============================================================
 	public static final String JSON_CONTENT_TYPE = "application/json";
 	public static final String JSON_DATE_FORMAT  = "yyyy-MM-dd";
+	public static final String JSON_ENCODING     = "UTF-8";
 	
 	private static final Gson DEFAULT_GSON;
 	
@@ -94,6 +95,8 @@ public class HttpUtils {
 		
 		//TODO check null object
 		response.setContentType(JSON_CONTENT_TYPE);
+		response.setCharacterEncoding(JSON_ENCODING);
+		
 		PrintWriter out = response.getWriter();
 		String json = gson.toJson(object);
 		out.write(json);
