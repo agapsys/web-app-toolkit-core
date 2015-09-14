@@ -30,7 +30,11 @@ import java.util.Set;
 
 public class Properties {
 	// CLASS SCOPE =============================================================
-	private static class Comment {
+	private static interface PropertyItem {
+		public String getOutput();
+	}
+	
+	private static class Comment implements PropertyItem {
 		public String comment;
 		
 		public Comment(String comment) {
@@ -39,32 +43,42 @@ public class Properties {
 
 		@Override
 		public String toString() {
+			return getOutput();
+		}
+		
+		@Override
+		public String getOutput() {
 			return comment.replace("\n", "\n# ");
 		}
 	}
 	
-	private static class Entry {
+	private static class Property implements PropertyItem {
 		public String key;
 		public String value;
 		
-		public Entry(String key, String value) {
+		public Property(String key, String value) {
 			this.key = key;
 			this.value = value;
 		}
 
 		@Override
-		public String toString() {
+		public String getOutput() {
 			String adjustedKey = key.replace(":", "\\:").replace("=", "\\=");
 			String adjustedValue = value.replace("\\", "\\\\").replace("\n", "\\n").replace("\t", "\\t");
 			
 			return adjustedKey+"="+adjustedValue;
 		}
+		
+		@Override
+		public String toString() {
+			return getOutput();
+		}
 	}
 	// =========================================================================
 
 	// INSTANCE SCOPE ==========================================================
-	private List<Object> items = new LinkedList<>();
-	private Map<String, String> entries = new LinkedHashMap<>();
+	private List<PropertyItem> items = new LinkedList<>();
+	private Map<String, String> properties = new LinkedHashMap<>();
 
 	public Properties() {}
 	
@@ -85,8 +99,8 @@ public class Properties {
 	}
 	
 	public synchronized String getProperty(String key, String defaultValue) {
-		if (entries.containsKey(key)) {
-			return entries.get(key);
+		if (properties.containsKey(key)) {
+			return properties.get(key);
 		} else {
 			return defaultValue;
 		}
@@ -100,9 +114,9 @@ public class Properties {
 		if (key == null || key.trim().isEmpty())
 			throw new IllegalArgumentException("Null/Empty key");
 		
-		if (!entries.containsKey(key) || !keepExisting) {
-			entries.put(key, value);
-			items.add(new Entry(key, value));
+		if (!properties.containsKey(key) || !keepExisting) {
+			properties.put(key, value);
+			items.add(new Property(key, value));
 		}
 	}
 	
@@ -114,7 +128,7 @@ public class Properties {
 		if (other == null)
 			throw new IllegalArgumentException("Given properties is null");
 		
-		for (Map.Entry<String, String> entry : other.entries.entrySet()) {
+		for (Map.Entry<String, String> entry : other.properties.entrySet()) {
 			setProperty(entry.getKey(), entry.getValue(), keepExisting);
 		}
 	}
@@ -123,13 +137,16 @@ public class Properties {
 		clear();
 		
 		try (FileInputStream fis = new FileInputStream(file)) {
-			java.util.Properties props = new java.util.Properties();
-			props.load(fis);
+			java.util.Properties coreProperties = new java.util.Properties();
+			coreProperties.load(fis);
 			
-			Set<Map.Entry<Object, Object>> entrySet = props.entrySet();
+			Set<Map.Entry<Object, Object>> entrySet = coreProperties.entrySet();
 			
 			for (Map.Entry entry: entrySet) {
-				items.add(new Entry((String)entry.getKey(), (String)entry.getValue()));
+				String key = (String)entry.getKey();
+				String value = (String) entry.getValue();
+				properties.put(key, value);
+				items.add(new Property(key, value));
 			}
 		}
 	}
@@ -138,11 +155,11 @@ public class Properties {
 		try (PrintWriter writer = new PrintWriter(new FileOutputStream(file))) {
 			StringBuilder sb = new StringBuilder();
 			
-			for (Object item : items) {
+			for (PropertyItem item : items) {
 				if (item == null) {
 					sb.append("\n");
 				} else {
-					sb.append(item.toString()).append("\n");
+					sb.append(item.getOutput()).append("\n");
 				}
 			}
 			
@@ -152,7 +169,7 @@ public class Properties {
 
 	public synchronized void clear() {
 		items.clear();
-		entries.clear();
+		properties.clear();
 	}
 	
 	public synchronized boolean isEmpty() {
@@ -160,16 +177,16 @@ public class Properties {
 	}
 	
 	public Map<String, String> getEntries() {
-		return Collections.unmodifiableMap(entries);
+		return Collections.unmodifiableMap(properties);
 	}
 	
 	public Properties getUnmodifiableProperties() {
-		List<Object> tmpItems = Collections.unmodifiableList(items);
-		Map<String, String> tmpEntries = getEntries();
-		Properties clone = new Properties();
-		clone.entries = tmpEntries;
-		clone.items = tmpItems;
-		return clone;
+		List<PropertyItem> lockedItems = Collections.unmodifiableList(items);
+		Map<String, String> lockedProperties = getEntries();
+		Properties other = new Properties();
+		other.properties = lockedProperties;
+		other.items = lockedItems;
+		return other;
 	}
 	
 	// =========================================================================
