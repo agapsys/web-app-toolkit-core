@@ -23,6 +23,8 @@ import com.agapsys.web.modules.ErrorReporterModule;
 import com.agapsys.web.utils.Properties;
 import com.agapsys.web.utils.HttpUtils;
 import com.agapsys.web.utils.DateUtils;
+import java.util.LinkedList;
+import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -42,6 +44,8 @@ public class DefaultErrorReporterModule extends ErrorReporterModule {
 	private static final String ATTR_REQUEST_URI    = "javax.servlet.error.request_uri";
 	private static final String ATTR_EXCEPTION      = "javax.servlet.error.exception";
 	
+	public static final int DEFAULT_STACKTRACE_HISTORY_SIZE = 5;
+	
 	public static final String KEY_NODE_NAME = "com.agapsys.web.nodeName";
 	
 	public static final String DEFAULT_NODE_NAME = "node-01";
@@ -56,6 +60,19 @@ public class DefaultErrorReporterModule extends ErrorReporterModule {
 
 	// INSTANCE SCOPE ==========================================================
 	private String nodeName = null;
+	private final int stacktraceHistorySize;
+	private final List<String> stacktraceHistory = new LinkedList<>();
+	
+	public DefaultErrorReporterModule(int stacktraceHistorySize) {
+		if (stacktraceHistorySize < 0)
+			throw new IllegalArgumentException("Invalid stacktrace history size: " + stacktraceHistorySize);
+		
+		this.stacktraceHistorySize = stacktraceHistorySize;
+	}
+	
+	public DefaultErrorReporterModule() {
+		this(DEFAULT_STACKTRACE_HISTORY_SIZE);
+	}
 
 	@Override
 	protected void onStart() {
@@ -108,10 +125,28 @@ public class DefaultErrorReporterModule extends ErrorReporterModule {
 	 * Logs the error.
 	 * @param message complete error message
 	 */
-	protected void logError(String message) {
+	protected void reportError(String message) {
 		WebApplication.log(WebApplication.LOG_TYPE_ERROR, String.format("Application error:\n----\n%s\n----", message));
 	}
+	
+	/**
+	 * @param t error to test
+	 * @return a boolean indicating if report shall be skipped for given error
+	 */
+	protected boolean skipErrorReport(Throwable t) {
+		String stacktrace = ErrorReporterModule.getStackTrace(t);
 		
+		if (stacktraceHistory.contains(stacktrace)) {
+			return true;
+		} else {
+			if (stacktraceHistory.size() == stacktraceHistorySize) {
+				stacktraceHistory.remove(0); // Remove oldest
+			}
+			stacktraceHistory.add(stacktrace);
+			return false;
+		}
+	}
+	
 	@Override
 	protected void onReportErroneousRequest(HttpServletRequest req, HttpServletResponse resp) {
 		if (isRunning()) {
@@ -126,7 +161,10 @@ public class DefaultErrorReporterModule extends ErrorReporterModule {
 			Throwable throwable = (Throwable) req.getAttribute(ATTR_EXCEPTION);
 
 			if (throwable != null) {
-				logError(getErrorMessage(statusCode, throwable, exceptionType, exceptionMessage, requestUri, userAgent, clientIp));
+				if (!skipErrorReport(throwable))
+					reportError(getErrorMessage(statusCode, throwable, exceptionType, exceptionMessage, requestUri, userAgent, clientIp));
+				else
+					WebApplication.log(WebApplication.LOG_TYPE_WARNING, "Application error (already reported): " + throwable.getMessage());
 			} else {
 				String extraInfo =
 					"User-agent: " + userAgent + "\n"

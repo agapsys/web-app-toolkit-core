@@ -48,8 +48,8 @@ public class DefaultSmtpErrorReporterModule extends DefaultErrorReporterModule {
 	// =========================================================================
 
 	// INSTANCE SCOPE ==========================================================
-	private String[] msgRecipients = null;
-	private String   msgSubject    = null;
+	private String[]     msgRecipients = null;
+	private String       msgSubject    = null;
 	
 	@Override
 	protected void onStart() {
@@ -79,9 +79,9 @@ public class DefaultSmtpErrorReporterModule extends DefaultErrorReporterModule {
 	}
 
 	@Override
-	protected void logError(String message) {
+	protected void reportError(String message) {
 		if (isRunning()) {
-			super.logError(message);
+			super.reportError(message);
 
 			try {
 				Message msg = new MessageBuilder(WebApplication.getProperties().getProperty(DefaultSmtpModule.KEY_SMTP_MAIL_SENDER), msgRecipients)
