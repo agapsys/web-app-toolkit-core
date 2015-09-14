@@ -17,6 +17,7 @@
 package com.agapsys.web.utils;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
 import java.io.IOException;
@@ -26,14 +27,26 @@ import javax.servlet.http.HttpServletResponse;
 
 public class HttpUtils {
 	// CLASS SCOPE =============================================================
-	private static final String JSON_CONTENT_TYPE = "application/json";
-	private static final Gson   JSON              = new Gson();	
+	public static final String JSON_CONTENT_TYPE = "application/json";
+	public static final String JSON_DATE_FORMAT  = "yyyy-MM-dd";
+	
+	private static final Gson DEFAULT_GSON;
+	
+	private static Gson gson;
+	
+	static {
+		DEFAULT_GSON = new GsonBuilder().setDateFormat(JSON_DATE_FORMAT).create();
+	}
 	
 	/** Represents a bad request detected in application. */
 	public static class BadRequestException extends Exception {
 		private BadRequestException(String message) {
 			super(message);
 		}
+	}
+	
+	public static void setGSON(Gson gson) {
+		HttpUtils.gson = gson;
 	}
 	
 	/**
@@ -52,11 +65,14 @@ public class HttpUtils {
 			throw new IllegalArgumentException("Null clazz");
 		
 		String reqContentType = request.getContentType();
-		if(!reqContentType.equals(JSON_CONTENT_TYPE))
+		if(!reqContentType.startsWith(JSON_CONTENT_TYPE))
 			throw new BadRequestException("Invalid content-type: " + reqContentType);
 				
 		try {
-			return JSON.fromJson(request.getReader(), clazz);
+			if (gson == null)
+				gson = DEFAULT_GSON;
+			
+			return gson.fromJson(request.getReader(), clazz);
 		} catch (JsonIOException ex) {
 			throw new IOException(ex);
 		} catch (JsonSyntaxException ex) {
@@ -78,7 +94,7 @@ public class HttpUtils {
 		//TODO check null object
 		response.setContentType(JSON_CONTENT_TYPE);
 		PrintWriter out = response.getWriter();
-		String json = JSON.toJson(object);
+		String json = gson.toJson(object);
 		out.write(json);
 	}
 	
