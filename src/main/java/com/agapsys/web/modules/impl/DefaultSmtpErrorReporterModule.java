@@ -32,7 +32,7 @@ public class DefaultSmtpErrorReporterModule extends DefaultErrorReporterModule {
 	public static final String KEY_ERR_MAIL_SUBJECT      = "com.agapsys.web.errSubject";
 	public static final String RECIPIENT_DELIMITER = ",";
 	
-	public static final String DEFAULT_ERR_SUBJECT    = "[System report] Error report";
+	public static final String DEFAULT_ERR_SUBJECT    = "[%s][System report] Error report";
 	public static final String DEFAULT_ERR_RECIPIENTS = "user@email.com";
 	public static final String DEFAULT_ERR_SENDER     = "no-reply@email.com";
 	
@@ -56,7 +56,12 @@ public class DefaultSmtpErrorReporterModule extends DefaultErrorReporterModule {
 		Properties props = WebApplication.getProperties();
 		
 		msgRecipients = props.getProperty(KEY_ERR_MAIL_RECIPIENTS, DEFAULT_ERR_RECIPIENTS).split(RECIPIENT_DELIMITER);
-		msgSubject    = props.getProperty(KEY_ERR_MAIL_SUBJECT,    DEFAULT_ERR_SUBJECT);
+		
+		String tmpErrSubject = props.getProperty(KEY_ERR_MAIL_SUBJECT, DEFAULT_ERR_SUBJECT);
+		if (tmpErrSubject.equals(DEFAULT_ERR_SUBJECT))
+			tmpErrSubject = String.format(tmpErrSubject, WebApplication.getName());
+		
+		msgSubject = tmpErrSubject;
 
 		for (int i = 0; i < msgRecipients.length; i++)
 			msgRecipients[i] = msgRecipients[i].trim();
