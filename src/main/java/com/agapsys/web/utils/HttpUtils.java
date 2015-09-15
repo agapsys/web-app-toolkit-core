@@ -46,8 +46,15 @@ public class HttpUtils {
 		}
 	}
 	
-	public static void setGSON(Gson gson) {
+	public static void setGson(Gson gson) {
 		HttpUtils.gson = gson;
+	}
+	
+	private static Gson getGson() {
+		if (gson == null)
+			gson = DEFAULT_GSON;
+		
+		return gson;
 	}
 	
 	/**
@@ -71,10 +78,7 @@ public class HttpUtils {
 			throw new BadRequestException("Invalid content-type: " + reqContentType);
 				
 		try {
-			if (gson == null)
-				gson = DEFAULT_GSON;
-			
-			return gson.fromJson(request.getReader(), clazz);
+			return getGson().fromJson(request.getReader(), clazz);
 		} catch (JsonIOException ex) {
 			throw new IOException(ex);
 		} catch (JsonSyntaxException ex) {
@@ -98,7 +102,7 @@ public class HttpUtils {
 		response.setCharacterEncoding(JSON_ENCODING);
 		
 		PrintWriter out = response.getWriter();
-		String json = gson.toJson(object);
+		String json = getGson().toJson(object);
 		out.write(json);
 	}
 	
