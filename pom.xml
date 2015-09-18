@@ -20,7 +20,7 @@ limitations under the License.
 	<modelVersion>4.0.0</modelVersion>
 	
 	<groupId>com.agapsys.libs</groupId>
-	<artifactId>web-core</artifactId>
+	<artifactId>web-toolkit</artifactId>
 	<version>0.1.0-RC1-SNAPSHOT</version>
 	<packaging>jar</packaging>
 	
@@ -30,9 +30,9 @@ limitations under the License.
 		<maven.compiler.target>1.7</maven.compiler.target>
 	</properties>
 	
-	<name>Web Core Framework</name>
-	<description>Core framework for web applications</description>
-	<url>https://github.com/agapsys/web-core</url>
+	<name>Web Toolkit</name>
+	<description>Essential tools for back-end applications</description>
+	<url>https://github.com/agapsys/web-toolkit</url>
 	
 	<licenses>
 		<license>
@@ -51,8 +51,8 @@ limitations under the License.
 	</developers>
 	
 	<scm>
-		<connection>scm:git:git@github.com:agapsys/web-core.git</connection>
-		<url>git@github.com:agapsys/web-core.git</url>
+		<connection>scm:git:git@github.com:agapsys/web-toolkit.git</connection>
+		<url>git@github.com:agapsys/web-toolkit.git</url>
 	</scm>
 	
 	<organization>
