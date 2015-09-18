@@ -16,7 +16,6 @@
 
 package com.agapsys.web.toolkit.utils;
 
-import com.agapsys.web.toolkit.utils.Properties;
 import org.junit.Test;
 
 public class PropertiesTest {

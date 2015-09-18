@@ -17,7 +17,6 @@
 package com.agapsys.web.toolkit;
 
 import com.agapsys.utils.console.Console;
-import com.agapsys.web.toolkit.LoggingModule;
 import com.agapsys.web.toolkit.utils.DateUtils;
 
 /**

@@ -16,7 +16,6 @@
 
 package com.agapsys.web.toolkit;
 
-import com.agapsys.web.toolkit.WebApplication;
 import java.io.File;
 import org.junit.Assert;
 import org.junit.Test;

@@ -16,7 +16,6 @@
 
 package com.agapsys.web.toolkit;
 
-import com.agapsys.web.toolkit.PersistenceModule;
 import javax.persistence.EntityManager;
 import org.junit.Assert;
 import org.junit.Before;

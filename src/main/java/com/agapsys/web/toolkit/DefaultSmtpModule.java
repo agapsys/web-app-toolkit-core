@@ -21,8 +21,6 @@ import com.agapsys.mail.MessageBuilder;
 import com.agapsys.mail.SecurityType;
 import com.agapsys.mail.SmtpSender;
 import com.agapsys.mail.SmtpSettings;
-import com.agapsys.web.toolkit.WebApplication;
-import com.agapsys.web.toolkit.SmtpModule;
 import com.agapsys.web.toolkit.utils.Properties;
 import javax.mail.MessagingException;
 import javax.mail.internet.AddressException;

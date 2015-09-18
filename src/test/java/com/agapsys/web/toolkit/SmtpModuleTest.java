@@ -16,7 +16,6 @@
 
 package com.agapsys.web.toolkit;
 
-import com.agapsys.web.toolkit.SmtpModule;
 import com.agapsys.mail.Message;
 import com.agapsys.mail.MessageBuilder;
 import javax.mail.internet.AddressException;

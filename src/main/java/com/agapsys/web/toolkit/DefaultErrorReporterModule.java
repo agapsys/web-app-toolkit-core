@@ -16,10 +16,6 @@
 
 package com.agapsys.web.toolkit;
 
-import com.agapsys.web.toolkit.WebApplication;
-import com.agapsys.web.toolkit.ErrorReporterModule;
-
-
 import com.agapsys.web.toolkit.utils.Properties;
 import com.agapsys.web.toolkit.utils.HttpUtils;
 import com.agapsys.web.toolkit.utils.DateUtils;

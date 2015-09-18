@@ -16,7 +16,6 @@
 
 package com.agapsys.web.toolkit;
 
-import com.agapsys.web.toolkit.ErrorReporterModule;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;

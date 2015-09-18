@@ -18,7 +18,6 @@ package com.agapsys.web.toolkit;
 
 import com.agapsys.mail.Message;
 import com.agapsys.mail.MessageBuilder;
-import com.agapsys.web.toolkit.WebApplication;
 import com.agapsys.web.toolkit.utils.Properties;
 import javax.mail.MessagingException;
 

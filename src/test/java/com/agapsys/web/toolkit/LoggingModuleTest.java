@@ -16,7 +16,6 @@
 
 package com.agapsys.web.toolkit;
 
-import com.agapsys.web.toolkit.LoggingModule;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
