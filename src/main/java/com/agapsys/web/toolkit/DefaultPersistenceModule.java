@@ -17,6 +17,11 @@
 package com.agapsys.web.toolkit;
 
 import com.agapsys.web.toolkit.utils.Properties;
+import com.agapsys.web.toolkit.utils.RuntimeJarLoader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
@@ -29,6 +34,8 @@ public class DefaultPersistenceModule extends PersistenceModule {
 	public static final String DEFAULT_JDBC_URL          = "jdbc:h2:mem:";
 	public static final String DEFAULT_JDBC_USER         = "sa";
 	public static final String DEFAULT_JDBC_PASSWORD     = "sa";
+	
+	public static final String KEY_JDBC_DRIVER_FILE = "com.agapsys.jdbc.driverFile";
 	
 	private static final Properties DEFAULT_PROPERTIES;
 	
@@ -50,8 +57,25 @@ public class DefaultPersistenceModule extends PersistenceModule {
 	
 	@Override
 	protected void onStart() {
+		Properties appProperties = WebApplication.getProperties();
+		
+		// If a JDBC driver file was set load it
+		String jdbcDriverFilename = appProperties.getProperty(KEY_JDBC_DRIVER_FILE);
+		String jdbcDriverClass = appProperties.getProperty("javax.persistence.jdbc.driver");
+		
+		if (jdbcDriverFilename != null) {
+			if (jdbcDriverFilename.trim().isEmpty())
+				throw new RuntimeException("Empty JDBC driver file name in application settings");
+			
+			if (jdbcDriverClass == null || jdbcDriverClass.trim().isEmpty())
+				throw new RuntimeException("Missing jdbc driver class definition in application settings");
+			
+			File jdbcDriverFile = new File(WebApplication.getAppFolder(), jdbcDriverFilename);
+			RuntimeJarLoader.loadJar(jdbcDriverFile);
+		}
+		
 		java.util.Properties props = new java.util.Properties();
-		props.putAll(WebApplication.getProperties().getEntries());
+		props.putAll(appProperties.getEntries());
 		emf = Persistence.createEntityManagerFactory(getDefaultPersistenceUnitName(), props);
 	}
 	
