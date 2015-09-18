@@ -19,7 +19,7 @@ package com.agapsys.web;
 public class Defs {
 	// CLASS SCOPE =============================================================
 	public static final String ENVIRONMENT = "test";
-	public static final String APP_NAME    = "web-core";
+	public static final String APP_NAME    = "web-toolkit-test";
 	public static final String APP_VERSION = "0.1.0";
 	// =========================================================================
 

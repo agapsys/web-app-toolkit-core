@@ -520,7 +520,7 @@ public abstract class WebApplication implements ServletContextListener {
 			running = true;
 			WebApplication.enableDebug = isDebugEnabled();
 			
-			debug("====== AGAPSYS WEB CORE FRAMEWORK INITIALIZATION ======");
+			debug("====== AGAPSYS WEB TOOLKIT INITIALIZATION ======");
 			appName = getAppName();
 			if (appName == null || appName.trim().isEmpty())
 				throw new IllegalStateException("Missing application name");
@@ -583,7 +583,7 @@ public abstract class WebApplication implements ServletContextListener {
 			processEventQueue(); // <-- Processes all pending events genereted due to cross-module calls using an unloaded-module
 			onApplicationStart();
 			fullyLoaded = true;
-			debug("====== AGAPSYS WEB CORE FRAMEWORK IS READY! ======");
+			debug("====== AGAPSYS WEB TOOLKIT IS READY! ======");
 		}
 	}
 
@@ -605,7 +605,7 @@ public abstract class WebApplication implements ServletContextListener {
 	 */
 	public final void stop() {
 		if (isRunning()) {
-			debug("====== AGAPSYS WEB CORE FRAMEWORK SHUTDOWN ======");
+			debug("====== AGAPSYS WEB TOOLKIT SHUTDOWN ======");
 			beforeApplicationShutdown();
 			
 			// 1) Module pre-shutdown. Sequence is irrelevant. Cross-module calls are allowed
@@ -647,7 +647,7 @@ public abstract class WebApplication implements ServletContextListener {
 			settingsLoaded = false;
 			running = false;
 			
-			debug("====== AGAPSYS WEB CORE FRAMEWORK WAS SHUTTED DOWN! ======");
+			debug("====== AGAPSYS WEB TOOLKIT WAS SHUTTED DOWN! ======");
 		}
 	}
 	
