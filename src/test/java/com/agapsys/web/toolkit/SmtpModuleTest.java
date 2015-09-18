@@ -14,49 +14,57 @@
  * limitations under the License.
  */
 
-package com.agapsys.web.modules;
+package com.agapsys.web.toolkit;
 
-import javax.persistence.EntityManager;
+import com.agapsys.web.toolkit.SmtpModule;
+import com.agapsys.mail.Message;
+import com.agapsys.mail.MessageBuilder;
+import javax.mail.internet.AddressException;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-public class PersistenceModuleTest {
+public class SmtpModuleTest {
 	// CLASS SCOPE =============================================================
-	private static class TestPersistenceModule extends PersistenceModule {
+	private static class TestSmtpModule extends SmtpModule {
 		private boolean methodCalled = false;
 		
 		@Override
-		protected EntityManager getAppEntityManager() {
+		protected void onSendMessage(Message message) {
 			methodCalled = true;
-			return null;
 		}
 	}
 	// =========================================================================
 
 	// INSTANCE SCOPE ==========================================================
-	private TestPersistenceModule module;
+	private TestSmtpModule module;
+	private final Message testMessage;
+
+	public SmtpModuleTest() throws AddressException {
+		this.testMessage = new MessageBuilder("sender@host.com", "recipient@host.com").build();
+	}	
 	
 	@Before
 	public void before() {
-		module = new TestPersistenceModule();
+		module = new TestSmtpModule();
+	}
+	
+	@Test(expected = IllegalArgumentException.class)
+	public void sendNullMessage() {
+		module.sendMessage(null);
 	}
 	
 	@Test
-	public void sanityCheck() {
-		Assert.assertFalse(module.methodCalled);
+	public void sendMessageWhileNotRunning() {
 		Assert.assertFalse(module.isRunning());
-	}
-	
-	@Test(expected = IllegalStateException.class)
-	public void testGetEntityManagerWhileNotRunning() {
-		module.getEntityManager();
+		module.sendMessage(testMessage);
+		Assert.assertFalse(module.methodCalled);
 	}
 	
 	@Test
-	public void testGetEntityManagerWhileRunning() {
+	public void sendMessageWhileRunning() {
 		module.start();
-		Assert.assertNull(module.getEntityManager());
+		module.sendMessage(testMessage);
 		Assert.assertTrue(module.methodCalled);
 	}
 	// =========================================================================

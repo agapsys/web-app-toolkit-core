@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package com.agapsys.web.modules.impl;
+package com.agapsys.web.toolkit;
 
-import com.agapsys.web.WebApplication;
-import com.agapsys.web.modules.ErrorReporterModule;
+import com.agapsys.web.toolkit.WebApplication;
+import com.agapsys.web.toolkit.ErrorReporterModule;
 
 
-import com.agapsys.web.utils.Properties;
-import com.agapsys.web.utils.HttpUtils;
-import com.agapsys.web.utils.DateUtils;
+import com.agapsys.web.toolkit.utils.Properties;
+import com.agapsys.web.toolkit.utils.HttpUtils;
+import com.agapsys.web.toolkit.utils.DateUtils;
 import java.util.LinkedList;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;

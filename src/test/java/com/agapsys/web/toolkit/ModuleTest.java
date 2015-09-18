@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package com.agapsys.web.modules;
+package com.agapsys.web.toolkit;
 
+import com.agapsys.web.toolkit.Module;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

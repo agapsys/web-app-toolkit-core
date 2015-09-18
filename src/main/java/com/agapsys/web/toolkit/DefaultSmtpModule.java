@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-package com.agapsys.web.modules.impl;
+package com.agapsys.web.toolkit;
 
 import com.agapsys.mail.Message;
 import com.agapsys.mail.MessageBuilder;
 import com.agapsys.mail.SecurityType;
 import com.agapsys.mail.SmtpSender;
 import com.agapsys.mail.SmtpSettings;
-import com.agapsys.web.WebApplication;
-import com.agapsys.web.modules.SmtpModule;
-import com.agapsys.web.utils.Properties;
+import com.agapsys.web.toolkit.WebApplication;
+import com.agapsys.web.toolkit.SmtpModule;
+import com.agapsys.web.toolkit.utils.Properties;
 import javax.mail.MessagingException;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;

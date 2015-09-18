@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.agapsys.web.utils;
+package com.agapsys.web.toolkit.utils;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;

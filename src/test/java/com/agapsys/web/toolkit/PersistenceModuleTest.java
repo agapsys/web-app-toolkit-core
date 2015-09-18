@@ -14,53 +14,50 @@
  * limitations under the License.
  */
 
-package com.agapsys.web.modules;
+package com.agapsys.web.toolkit;
 
+import com.agapsys.web.toolkit.PersistenceModule;
+import javax.persistence.EntityManager;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-public class LoggingModuleTest {
+public class PersistenceModuleTest {
 	// CLASS SCOPE =============================================================
-	private static class TestLoggingModule extends LoggingModule {
+	private static class TestPersistenceModule extends PersistenceModule {
 		private boolean methodCalled = false;
-
+		
 		@Override
-		protected void onLog(String logType, String message) {
+		protected EntityManager getAppEntityManager() {
 			methodCalled = true;
+			return null;
 		}
-	} 
+	}
 	// =========================================================================
 
 	// INSTANCE SCOPE ==========================================================
-	private TestLoggingModule module;
+	private TestPersistenceModule module;
 	
 	@Before
 	public void before() {
-		module = new TestLoggingModule();
-	}
-	
-	@Test(expected = IllegalArgumentException.class)
-	public void nullLogType() {
-		module.log(null, "msg");
-	}
-	
-	@Test(expected = IllegalArgumentException.class)
-	public void nullMessage() {
-		module.log("info", null);
+		module = new TestPersistenceModule();
 	}
 	
 	@Test
-	public void logWhileNotRunning() {
-		Assert.assertFalse(module.isRunning());
-		module.log("info", "test");
+	public void sanityCheck() {
 		Assert.assertFalse(module.methodCalled);
+		Assert.assertFalse(module.isRunning());
+	}
+	
+	@Test(expected = IllegalStateException.class)
+	public void testGetEntityManagerWhileNotRunning() {
+		module.getEntityManager();
 	}
 	
 	@Test
-	public void logWhileRunning() {
+	public void testGetEntityManagerWhileRunning() {
 		module.start();
-		module.log("info", "test");
+		Assert.assertNull(module.getEntityManager());
 		Assert.assertTrue(module.methodCalled);
 	}
 	// =========================================================================

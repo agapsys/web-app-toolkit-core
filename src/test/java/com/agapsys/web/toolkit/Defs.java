@@ -14,23 +14,16 @@
  * limitations under the License.
  */
 
-package com.agapsys.web.modules.impl;
+package com.agapsys.web.toolkit;
 
-import com.agapsys.utils.console.Console;
-import com.agapsys.web.modules.LoggingModule;
-import com.agapsys.web.utils.DateUtils;
+public class Defs {
+	// CLASS SCOPE =============================================================
+	public static final String ENVIRONMENT = "test";
+	public static final String APP_NAME    = "web-toolkit-test";
+	public static final String APP_VERSION = "0.1.0";
+	// =========================================================================
 
-/**
- * Default logging module implementation.
- * 
- * All logs messages will be printed to console
- * 
- * @author Leandro Oliveira (leandro@agapsys.com)
- */
-public class DefaultLoggingModule extends LoggingModule {
-
-	@Override
-	protected void onLog(String logType, String message) {
-		Console.println(String.format("[%s] [%s] %s", DateUtils.getLocalTimestamp(), logType, message));
-	}
+	// INSTANCE SCOPE ==========================================================
+	private Defs() {}
+	// =========================================================================
 }

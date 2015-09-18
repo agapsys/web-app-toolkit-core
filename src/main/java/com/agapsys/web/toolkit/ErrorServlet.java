@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.agapsys.web;
+package com.agapsys.web.toolkit;
 
 import java.io.IOException;
 import javax.servlet.ServletException;

@@ -14,16 +14,9 @@
  * limitations under the License.
  */
 
-package com.agapsys.web;
+package com.agapsys.web.toolkit;
 
-import com.agapsys.web.modules.ErrorReporterModule;
-import com.agapsys.web.modules.LoggingModule;
-import com.agapsys.web.modules.PersistenceModule;
-import com.agapsys.web.modules.SmtpModule;
-import com.agapsys.web.modules.impl.DefaultErrorReporterModule;
-import com.agapsys.web.modules.impl.DefaultLoggingModule;
-import com.agapsys.web.modules.impl.DefaultPersistenceModule;
-import com.agapsys.web.modules.impl.DefaultSmtpModule;
+import com.agapsys.web.toolkit.WebApplication;
 import java.io.File;
 import org.junit.Assert;
 import org.junit.Test;

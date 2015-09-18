@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.agapsys.web.utils;
+package com.agapsys.web.toolkit.utils;
 
 import java.io.File;
 import java.io.FileNotFoundException;

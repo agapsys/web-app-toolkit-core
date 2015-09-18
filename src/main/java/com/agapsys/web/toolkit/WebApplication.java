@@ -14,16 +14,12 @@
  * limitations under the License.
  */
 
-package com.agapsys.web;
+package com.agapsys.web.toolkit;
 
 import com.agapsys.mail.Message;
 import com.agapsys.utils.console.Console;
-import com.agapsys.web.modules.LoggingModule;
-import com.agapsys.web.modules.ErrorReporterModule;
-import com.agapsys.web.modules.PersistenceModule;
-import com.agapsys.web.modules.SmtpModule;
-import com.agapsys.web.utils.FileUtils;
-import com.agapsys.web.utils.Properties;
+import com.agapsys.web.toolkit.utils.FileUtils;
+import com.agapsys.web.toolkit.utils.Properties;
 import java.io.File;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;

@@ -14,56 +14,54 @@
  * limitations under the License.
  */
 
-package com.agapsys.web.modules;
+package com.agapsys.web.toolkit;
 
-import com.agapsys.mail.Message;
-import com.agapsys.mail.MessageBuilder;
-import javax.mail.internet.AddressException;
+import com.agapsys.web.toolkit.LoggingModule;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-public class SmtpModuleTest {
+public class LoggingModuleTest {
 	// CLASS SCOPE =============================================================
-	private static class TestSmtpModule extends SmtpModule {
+	private static class TestLoggingModule extends LoggingModule {
 		private boolean methodCalled = false;
-		
+
 		@Override
-		protected void onSendMessage(Message message) {
+		protected void onLog(String logType, String message) {
 			methodCalled = true;
 		}
-	}
+	} 
 	// =========================================================================
 
 	// INSTANCE SCOPE ==========================================================
-	private TestSmtpModule module;
-	private final Message testMessage;
-
-	public SmtpModuleTest() throws AddressException {
-		this.testMessage = new MessageBuilder("sender@host.com", "recipient@host.com").build();
-	}	
+	private TestLoggingModule module;
 	
 	@Before
 	public void before() {
-		module = new TestSmtpModule();
+		module = new TestLoggingModule();
 	}
 	
 	@Test(expected = IllegalArgumentException.class)
-	public void sendNullMessage() {
-		module.sendMessage(null);
+	public void nullLogType() {
+		module.log(null, "msg");
+	}
+	
+	@Test(expected = IllegalArgumentException.class)
+	public void nullMessage() {
+		module.log("info", null);
 	}
 	
 	@Test
-	public void sendMessageWhileNotRunning() {
+	public void logWhileNotRunning() {
 		Assert.assertFalse(module.isRunning());
-		module.sendMessage(testMessage);
+		module.log("info", "test");
 		Assert.assertFalse(module.methodCalled);
 	}
 	
 	@Test
-	public void sendMessageWhileRunning() {
+	public void logWhileRunning() {
 		module.start();
-		module.sendMessage(testMessage);
+		module.log("info", "test");
 		Assert.assertTrue(module.methodCalled);
 	}
 	// =========================================================================

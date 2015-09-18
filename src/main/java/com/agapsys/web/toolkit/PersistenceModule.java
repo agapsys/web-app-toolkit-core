@@ -13,35 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.agapsys.web.modules;
+package com.agapsys.web.toolkit;
 
-import com.agapsys.mail.Message;
+import javax.persistence.EntityManager;
 
 /**
- * E-mail sender module
+ * Persistence module
  * @author Leandro Oliveira (leandro@agapsys.com)
  */
-public abstract class SmtpModule extends Module {
+public abstract class PersistenceModule extends Module {
 	
 	/** 
-	 * Actual message sending code. 
+	 * Returns an entity manager to be used by application.
 	 * This method will be called only when module is running.
-	 * @param message message to be sent
+	 * @return an entity manager to be used by application.
 	 */
-	protected abstract void onSendMessage(Message message);
+	protected abstract EntityManager getAppEntityManager();
 	
-	/** 
-	 * Sends a email message.
-	 * If module is not running, nothing happens.
-	 * @param message message to be sent
-	 * @throws IllegalArgumentException if message == null
+	/**
+	 * Returns an entity manager to be used by application.
+	 * @return an entity manager to be used by application.
+	 * @throws IllegalStateException if module is not running
 	 */
-	public final void sendMessage(Message message) throws IllegalArgumentException {
-		if (message == null)
-			throw new IllegalArgumentException("message == null");
-				
-		if (isRunning()) {
-			onSendMessage(message);
-		}
+	public final EntityManager getEntityManager() throws IllegalStateException {
+		if (!isRunning())
+			throw new IllegalStateException("Module is not running");
+		
+		return getAppEntityManager();
 	}
 }

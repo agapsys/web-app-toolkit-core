@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.agapsys.web.modules;
+package com.agapsys.web.toolkit;
 
-import com.agapsys.web.utils.Properties;
+import com.agapsys.web.toolkit.utils.Properties;
 
 /**
  * Basic module interface

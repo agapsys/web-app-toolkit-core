@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package com.agapsys.web.modules.impl;
+package com.agapsys.web.toolkit;
 
-import com.agapsys.web.WebApplication;
-import com.agapsys.web.modules.PersistenceModule;
-import com.agapsys.web.utils.Properties;
+import com.agapsys.web.toolkit.WebApplication;
+import com.agapsys.web.toolkit.PersistenceModule;
+import com.agapsys.web.toolkit.utils.Properties;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
