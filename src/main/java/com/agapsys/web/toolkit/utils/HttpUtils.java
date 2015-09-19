@@ -22,6 +22,9 @@ import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -44,6 +47,10 @@ public class HttpUtils {
 		private BadRequestException(String message) {
 			super(message);
 		}
+		
+		private BadRequestException(String message, Throwable cause) {
+			super(message, cause);
+		}
 	}
 	
 	public static void setGson(Gson gson) {
@@ -57,51 +64,100 @@ public class HttpUtils {
 		return gson;
 	}
 	
+	// Check if given request is valid for GSON parsing
+	private static void checkJsonContent(HttpServletRequest req) throws BadRequestException {
+		String reqContentType = req.getContentType();
+		
+		if(!reqContentType.startsWith(JSON_CONTENT_TYPE))
+			throw new BadRequestException("Invalid content-type: " + reqContentType);
+	}
+	
 	/**
-	 * @return an object stored in given request. It's expected that request has a content-type "application/json".
-	 * @param request HTTP request
+	 * Returns an object from given request.
+	 * Request must have 'application/json' content-type.
+	 * @param req HTTP request
 	 * @param clazz desired output object class
-	 * @throws IllegalArgumentException if request == null || clazz == null
 	 * @throws BadRequestException if given request content-type does not match with expected
 	 * @throws IOException if there is an I/O error while processing the request
 	 * @param <T> generic type
+	 * @return an object stored in given request.
 	 */
-	public static <T> T getJsonRequestData(HttpServletRequest request, Class<T> clazz) throws IllegalArgumentException, BadRequestException, IOException {
-		if (request == null)
-			throw new IllegalArgumentException("Null request");
-		
+	public static <T> T getJsonData(HttpServletRequest req, Class<T> clazz) throws BadRequestException, IOException {
 		if (clazz == null)
 			throw new IllegalArgumentException("Null clazz");
 		
-		String reqContentType = request.getContentType();
-		if(!reqContentType.startsWith(JSON_CONTENT_TYPE))
-			throw new BadRequestException("Invalid content-type: " + reqContentType);
+		checkJsonContent(req);
 				
 		try {
-			return getGson().fromJson(request.getReader(), clazz);
+			return getGson().fromJson(req.getReader(), clazz);
 		} catch (JsonIOException ex) {
 			throw new IOException(ex);
 		} catch (JsonSyntaxException ex) {
-			throw new BadRequestException("Malformed request");
+			throw new BadRequestException("Malformed JSON", ex);
+		}
+	}
+	
+	private static class ListType implements ParameterizedType {
+		private final Type[] typeArguments = new Type[1];
+		public ListType(Class<?> clazz) {
+			typeArguments[0] = clazz;
+		}
+
+		@Override
+		public String getTypeName() {
+			return String.format("java.util.List<%s>", typeArguments[0].getTypeName());
+		}
+
+		@Override
+		public Type[] getActualTypeArguments() {
+			return typeArguments;
+		}
+
+		@Override
+		public Type getRawType() {
+			return List.class;
+		}
+
+		@Override
+		public Type getOwnerType() {
+			return List.class;
+		}
+	}
+	
+	/**
+	 * Returns a list of objects from given request
+	 * Request must have 'application/json' content-type.
+	 * @param <T> generic type
+	 * @param req HTTP request
+	 * @param elementType type of the list elements
+	 * @return list stored in request content body
+	 * @throws BadRequestException if given request content-type does not match with expected
+	 * @throws IOException if there is an I/O error while processing the request
+	 */	
+	public static <T> List<T> getJsonList(HttpServletRequest req, Class<T> elementType) throws BadRequestException, IOException {
+		checkJsonContent(req);
+		
+		try {
+			ListType lt = new ListType(elementType);
+			return getGson().fromJson(req.getReader(), lt);
+		} catch (JsonIOException ex) {
+			throw new IOException(ex);
+		} catch (JsonSyntaxException ex) {
+			throw new BadRequestException("Malformed JSON", ex);
 		}
 	}
 	
 	/**
 	 * Sends an object as a json
-	 * @param response HTTP response
+	 * @param resp HTTP response
 	 * @param object object to be sent
-	 * @throws IllegalArgumentException if response == null
 	 * @throws IOException if there is an I/O error while processing the request
 	 */
-	public static void sendJsonData(HttpServletResponse response, Object object) throws IllegalArgumentException, IOException {
-		if (response == null)
-			throw new IllegalArgumentException("Null response");
+	public static void sendJsonData(HttpServletResponse resp, Object object) throws IllegalArgumentException, IOException {
+		resp.setContentType(JSON_CONTENT_TYPE);
+		resp.setCharacterEncoding(JSON_ENCODING);
 		
-		//TODO check null object
-		response.setContentType(JSON_CONTENT_TYPE);
-		response.setCharacterEncoding(JSON_ENCODING);
-		
-		PrintWriter out = response.getWriter();
+		PrintWriter out = resp.getWriter();
 		String json = getGson().toJson(object);
 		out.write(json);
 	}
