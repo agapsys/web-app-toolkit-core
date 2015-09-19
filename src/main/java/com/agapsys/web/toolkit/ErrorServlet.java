@@ -30,15 +30,13 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class ErrorServlet extends HttpServlet {
 	// CLASS SCOPE =============================================================
-	public static final String URL = "/error";
+	public static final String URL = "/throwable-error";
 	// =========================================================================
 
 	// INSTANCE SCOPE ==========================================================
 	@Override
 	protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-		if (resp.getStatus() != HttpServletResponse.SC_NOT_FOUND) {
-			WebApplication.reportErroneousRequest(req, resp);
-		}
+		WebApplication.reportErroneousRequest(req, resp);
 	}
 	// =========================================================================
 }

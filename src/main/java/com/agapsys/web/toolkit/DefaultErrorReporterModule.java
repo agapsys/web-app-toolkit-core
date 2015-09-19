@@ -162,10 +162,7 @@ public class DefaultErrorReporterModule extends ErrorReporterModule {
 				else
 					WebApplication.log(WebApplication.LOG_TYPE_WARNING, "Application error (already reported): " + throwable.getMessage());
 			} else {
-				String extraInfo =
-					"User-agent: " + userAgent + "\n"
-					+ "Client id: " + clientIp;
-
+				String extraInfo = String.format("User-agent: %s\nClient IP:%s, Request URL: %s", userAgent, clientIp, requestUri);
 				WebApplication.log(WebApplication.LOG_TYPE_ERROR, String.format("Bad request for maintenance module:\n----\n%s\n----", extraInfo));
 				resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 			}
