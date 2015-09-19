@@ -32,23 +32,23 @@ public abstract class ExceptionReporterModule extends Module {
 	private static final String ATTR_REQUEST_URI    = "javax.servlet.error.request_uri";
 	private static final String ATTR_EXCEPTION      = "javax.servlet.error.exception";
 	
-	public static int getStatusCode(HttpServletRequest req) {
+	static int getStatusCode(HttpServletRequest req) {
 		return (Integer) req.getAttribute(ATTR_STATUS_CODE);
 	}
 	
-	public static Class<?> getExceptionType(HttpServletRequest req) {
+	static Class<?> getExceptionType(HttpServletRequest req) {
 		return (Class) req.getAttribute(ATTR_EXCEPTION_TYPE);
 	}
 	
-	public static String getExceptionMessage(HttpServletRequest req) {
+	static String getExceptionMessage(HttpServletRequest req) {
 		return (String) req.getAttribute(ATTR_MESSAGE);
 	}
 	
-	public static String getRequestUri(HttpServletRequest req) {
+	static String getRequestUri(HttpServletRequest req) {
 		return (String) req.getAttribute(ATTR_REQUEST_URI);
 	}
 	
-	public static Throwable getException(HttpServletRequest req) {
+	static Throwable getException(HttpServletRequest req) {
 		return (Throwable) req.getAttribute(ATTR_EXCEPTION);
 	}
 	
