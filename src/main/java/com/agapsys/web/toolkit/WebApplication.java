@@ -64,7 +64,7 @@ public abstract class WebApplication implements ServletContextListener {
 	private static Properties readOnlyProperties = null;
 	
 	private static PersistenceModule   persistenceModule   = null;
-	private static ErrorReporterModule errorReporterModule = null;
+	private static ExceptionReporterModule errorReporterModule = null;
 	private static LoggingModule       loggingModule       = null;
 	private static SmtpModule          smtpModule          = null;
 	
@@ -370,7 +370,7 @@ public abstract class WebApplication implements ServletContextListener {
 	 * Default implementation just returns null (there is no error reporter module).
 	 * @return the error reporter module used by application.
 	 */
-	protected ErrorReporterModule getErrorReporterModule() {
+	protected ExceptionReporterModule getErrorReporterModule() {
 		return null;
 	}
 	

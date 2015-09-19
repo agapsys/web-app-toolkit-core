@@ -44,9 +44,9 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-public class ErrorReporterModuleTest {
+public class ExceptionReporterModuleTest {
 	// CLASS SCOPE =============================================================
-	private static class TestErrorReporterModule extends ErrorReporterModule {
+	private static class TestExceptionReporterModule extends ExceptionReporterModule {
 		private boolean methodCalled = false;
 
 		@Override
@@ -592,11 +592,11 @@ public class ErrorReporterModuleTest {
 		}
 	};
 	
-	private TestErrorReporterModule module;
+	private TestExceptionReporterModule module;
 	
 	@Before
 	public void before() {
-		module = new TestErrorReporterModule();
+		module = new TestExceptionReporterModule();
 	}
 	
 	@Test(expected = IllegalArgumentException.class)

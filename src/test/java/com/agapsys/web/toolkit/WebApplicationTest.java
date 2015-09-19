@@ -159,8 +159,8 @@ public class WebApplicationTest  {
 	private static class WebApplicationWithErrorReport extends WebApplicationBase {
 
 		@Override
-		protected ErrorReporterModule getErrorReporterModule() {
-			return new DefaultErrorReporterModule();
+		protected ExceptionReporterModule getErrorReporterModule() {
+			return new DefaultExceptionReporterModule();
 		}
 	}
 	

@@ -25,7 +25,7 @@ import javax.mail.MessagingException;
  * Default crash reporter module with SMTP sending capabilities
  * @author Leandro Oliveira (leandro@agapsys.com)
  */
-public class DefaultSmtpErrorReporterModule extends DefaultErrorReporterModule {
+public class DefaultSmtpErrorReporterModule extends DefaultExceptionReporterModule {
 	// CLASS SCOPE =============================================================
 	public static final String KEY_ERR_MAIL_RECIPIENTS   = "com.agapsys.web.errMailRecipients";
 	public static final String KEY_ERR_MAIL_SUBJECT      = "com.agapsys.web.errSubject";
@@ -91,7 +91,7 @@ public class DefaultSmtpErrorReporterModule extends DefaultErrorReporterModule {
 					.build();
 				WebApplication.sendMessage(msg);
 			} catch (MessagingException ex) {
-				WebApplication.log(WebApplication.LOG_TYPE_ERROR, String.format("Error sending error report:\n----\n%s\n----", DefaultErrorReporterModule.getStackTrace(ex)));
+				WebApplication.log(WebApplication.LOG_TYPE_ERROR, String.format("Error sending error report:\n----\n%s\n----", DefaultExceptionReporterModule.getStackTrace(ex)));
 				throw new RuntimeException(ex);
 			}
 		}

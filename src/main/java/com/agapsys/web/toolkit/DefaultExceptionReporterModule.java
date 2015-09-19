@@ -32,14 +32,8 @@ import javax.servlet.http.HttpServletResponse;
  * 
  * @author Leandro Oliveira (leandro@agapsys.com)
  */
-public class DefaultErrorReporterModule extends ErrorReporterModule {
+public class DefaultExceptionReporterModule extends ExceptionReporterModule {
 	// CLASS SCOPE =============================================================
-	private static final String ATTR_STATUS_CODE    = "javax.servlet.error.status_code";
-	private static final String ATTR_EXCEPTION_TYPE = "javax.servlet.error.exception_type";
-	private static final String ATTR_MESSAGE        = "javax.servlet.error.message";
-	private static final String ATTR_REQUEST_URI    = "javax.servlet.error.request_uri";
-	private static final String ATTR_EXCEPTION      = "javax.servlet.error.exception";
-	
 	public static final int DEFAULT_STACKTRACE_HISTORY_SIZE = 5;
 	
 	public static final String KEY_NODE_NAME = "com.agapsys.web.nodeName";
@@ -59,14 +53,14 @@ public class DefaultErrorReporterModule extends ErrorReporterModule {
 	private final int stacktraceHistorySize;
 	private final List<String> stacktraceHistory = new LinkedList<>();
 	
-	public DefaultErrorReporterModule(int stacktraceHistorySize) {
+	public DefaultExceptionReporterModule(int stacktraceHistorySize) {
 		if (stacktraceHistorySize < 0)
 			throw new IllegalArgumentException("Invalid stacktrace history size: " + stacktraceHistorySize);
 		
 		this.stacktraceHistorySize = stacktraceHistorySize;
 	}
 	
-	public DefaultErrorReporterModule() {
+	public DefaultExceptionReporterModule() {
 		this(DEFAULT_STACKTRACE_HISTORY_SIZE);
 	}
 
@@ -97,7 +91,7 @@ public class DefaultErrorReporterModule extends ErrorReporterModule {
 	 * @return error message
 	 */
 	protected String getErrorMessage(Integer statusCode, Throwable throwable, Class<?> exceptionType, String exceptionMessage, String requestUri, String userAgent, String clientIp) {
-		String stacktrace = ErrorReporterModule.getStackTrace(throwable);
+		String stacktrace = ExceptionReporterModule.getStackTrace(throwable);
 
 		String msg =
 			"An error was detected"
@@ -130,7 +124,7 @@ public class DefaultErrorReporterModule extends ErrorReporterModule {
 	 * @return a boolean indicating if report shall be skipped for given error
 	 */
 	protected boolean skipErrorReport(Throwable t) {
-		String stacktrace = ErrorReporterModule.getStackTrace(t);
+		String stacktrace = ExceptionReporterModule.getStackTrace(t);
 		
 		if (stacktraceHistory.contains(stacktrace)) {
 			return true;
@@ -146,15 +140,14 @@ public class DefaultErrorReporterModule extends ErrorReporterModule {
 	@Override
 	protected void onReportErroneousRequest(HttpServletRequest req, HttpServletResponse resp) {
 		if (isRunning()) {
-			Integer statusCode = (Integer) req.getAttribute(ATTR_STATUS_CODE);
-			Class exceptionType = (Class) req.getAttribute(ATTR_EXCEPTION_TYPE);
-			String exceptionMessage = (String) req.getAttribute(ATTR_MESSAGE);
-			String requestUri = (String) req.getAttribute(ATTR_REQUEST_URI);
+			Integer statusCode      = ExceptionReporterModule.getStatusCode(req);
+			Class exceptionType     = ExceptionReporterModule.getExceptionType(req);
+			String exceptionMessage = ExceptionReporterModule.getExceptionMessage(req);
+			String requestUri       = ExceptionReporterModule.getRequestUri(req);
+			Throwable throwable     = ExceptionReporterModule.getException(req);
+			
 			String userAgent = HttpUtils.getOriginUserAgent(req);
-
 			String clientIp = HttpUtils.getOriginIp(req);
-
-			Throwable throwable = (Throwable) req.getAttribute(ATTR_EXCEPTION);
 
 			if (throwable != null) {
 				if (!skipErrorReport(throwable))

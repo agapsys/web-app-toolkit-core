@@ -30,13 +30,14 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class ErrorServlet extends HttpServlet {
 	// CLASS SCOPE =============================================================
-	public static final String URL = "/throwable-error";
+	public static final String URL = "/error";
 	// =========================================================================
 
 	// INSTANCE SCOPE ==========================================================
 	@Override
 	protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-		WebApplication.reportErroneousRequest(req, resp);
+		if (ExceptionReporterModule.getException(req) != null)
+			WebApplication.reportErroneousRequest(req, resp);
 	}
 	// =========================================================================
 }

@@ -19,11 +19,11 @@ package com.agapsys.web.toolkit;
 import org.junit.Assert;
 import org.junit.Test;
 
-public class DefaultErrorReporterModuleTest {
+public class DefaultExceptionReporterModuleTest {
 	// CLASS SCOPE =============================================================
 	private static final int STACK_TRACE_HISTORY_SIZE = 2;
 	
-	private static class TestModule extends DefaultErrorReporterModule {
+	private static class TestModule extends DefaultExceptionReporterModule {
 		public TestModule() {
 			super(STACK_TRACE_HISTORY_SIZE);
 		}
