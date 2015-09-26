@@ -203,7 +203,7 @@ public abstract class WebApplication implements ServletContextListener {
 	 * @param req erroneous HTTP request
 	 * @param resp HTTP response
 	 * @throws IllegalStateException if application is not running.
-	 * @see WebApplication#getErrorReporterModule() 
+	 * @see WebApplication#getExceptionReporterModule() 
 	 */
 	public static void reportErroneousRequest(HttpServletRequest req, HttpServletResponse resp) throws IllegalStateException {
 		throwIfNotRunning();
@@ -317,11 +317,11 @@ public abstract class WebApplication implements ServletContextListener {
 	// Persistence module ----------------------------------------------------------
 	/** 
 	 * Return the persistence module used by application. 
-	 * Default implementation just returns null (there is no persistence module).
+	 * Default implementation returns an instance of {@linkplain DefaultPersistenceModule}.
 	 * @return the persistence module used by application.
 	 */
 	protected PersistenceModule getPersistenceModule() {
-		return null;
+		return new DefaultPersistenceModule();
 	}
 	
 	/** 
@@ -342,11 +342,11 @@ public abstract class WebApplication implements ServletContextListener {
 	// SMTP module ----------------------------------------------------------
 	/** 
 	 * Returns the SMTP module used by application. 
-	 * Default implementation just returns null (there is no SMTP module).
+	 * Default implementation returns an instance of {@linkplain DefaultSmtpModule}.
 	 * @return the SMTP module used by application.
 	 */
 	protected SmtpModule getSmtpModule() {
-		return null;
+		return new DefaultSmtpModule();
 	}
 	
 	/** 
@@ -367,24 +367,24 @@ public abstract class WebApplication implements ServletContextListener {
 	// Error reporter module ---------------------------------------------------
 	/**
 	 * Return the error reporter module used by application. 
-	 * Default implementation just returns null (there is no error reporter module).
+	 * Default implementation returns an instance off {@linkplain DefaultExceptionReporterModule}.
 	 * @return the error reporter module used by application.
 	 */
-	protected ExceptionReporterModule getErrorReporterModule() {
-		return null;
+	protected ExceptionReporterModule getExceptionReporterModule() {
+		return new DefaultExceptionReporterModule();
 	}
 	
 	/**
 	 * Called after error reporter module is initialized.
 	 * Default implementation does nothing.
-	 * This method will be called only if {@linkplain WebApplication#getErrorReporterModule()} returns a non-null value.
+	 * This method will be called only if {@link WebApplication#getExceptionReporterModule()} returns a non-null value.
 	 */
 	protected void onErrorReporterModuleStart() {}
 	
 	/** 
 	 * Called before error reporter module shutdown.
 	 * Default implementation does nothing.
-	 * This method will be called only if {@linkplain WebApplication#getErrorReporterModule()} returns a non-null value.
+	 * This method will be called only if {@link WebApplication#getExceptionReporterModule()} returns a non-null value.
 	 */
 	protected void beforeErrorReporterModuleStop() {}
 	// -------------------------------------------------------------------------
@@ -392,11 +392,11 @@ public abstract class WebApplication implements ServletContextListener {
 	// Logging module ----------------------------------------------------------
 	/** 
 	 * Returns the logging module used by application. 
-	 * Default implementation just returns null (there is no logging module).
+	 * Default implementation returns an instance of {@linkplain DefaultLoggingModule}.
 	 * @return the logging module used by application.
 	 */
 	protected LoggingModule getLoggingModule() {
-		return null;
+		return new DefaultLoggingModule();
 	}
 	
 	/** 
@@ -541,7 +541,7 @@ public abstract class WebApplication implements ServletContextListener {
 
 			persistenceModule   = getPersistenceModule();
 			smtpModule          = getSmtpModule();
-			errorReporterModule = getErrorReporterModule();
+			errorReporterModule = getExceptionReporterModule();
 			loggingModule       = getLoggingModule();
 			
 			try {

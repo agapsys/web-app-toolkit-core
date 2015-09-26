@@ -139,6 +139,27 @@ public class WebApplicationTest  {
 		protected boolean isDebugEnabled() {
 			return true;
 		}
+
+		
+		@Override
+		protected LoggingModule getLoggingModule() {
+			return null;
+		}
+
+		@Override
+		protected PersistenceModule getPersistenceModule() {
+			return null;
+		}
+
+		@Override
+		protected ExceptionReporterModule getExceptionReporterModule() {
+			return null;
+		}
+
+		@Override
+		protected SmtpModule getSmtpModule() {
+			return null;
+		}
 	}
 	
 	private static class WebApplicationWithPersistence extends WebApplicationBase {
@@ -159,7 +180,7 @@ public class WebApplicationTest  {
 	private static class WebApplicationWithErrorReport extends WebApplicationBase {
 
 		@Override
-		protected ExceptionReporterModule getErrorReporterModule() {
+		protected ExceptionReporterModule getExceptionReporterModule() {
 			return new DefaultExceptionReporterModule();
 		}
 	}
