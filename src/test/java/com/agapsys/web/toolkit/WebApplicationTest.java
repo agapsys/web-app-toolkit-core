@@ -104,14 +104,24 @@ public class WebApplicationTest  {
 	
 	
 	private static class WebApplicationBase extends com.agapsys.web.toolkit.application.WebApplication {
-		private boolean beforeApplicationShutdownCalled = false;
-		private boolean onApplicationStartCalled = false;
+		private boolean beforeApplicationStopCalled = false;
+		private boolean beforeApplicationStartCalled = false;
+		
+		private boolean afterApplicationStartCalled = false;
+		private boolean afterApplicationStopCalled = false;
 
-		public boolean isBeforeApplicationShutdownCalled() {
-			return beforeApplicationShutdownCalled;
+		public boolean isBeforeApplicationStartCalled() {
+			return beforeApplicationStartCalled;
 		}
-		public boolean isOnApplicationStartCalled() {
-			return onApplicationStartCalled;
+		public boolean isAfterApplicationStartCalled() {
+			return afterApplicationStartCalled;
+		}
+		
+		public boolean isBeforeApplicationStopCalled() {
+			return beforeApplicationStopCalled;
+		}
+		public boolean isAfterApplicationStopCalled() {
+			return afterApplicationStopCalled;
 		}
 		
 		private boolean onPersistenceModuleStartCalled = false;
@@ -153,17 +163,24 @@ public class WebApplicationTest  {
 		public boolean isOnSmtpModuleStopCalled() {
 			return onSmtpModuleStopCalled;
 		}
-		
-		
+
 		@Override
-		protected void onApplicationStart() {
-			this.onApplicationStartCalled = true;
+		protected void beforeApplicationStart() {
+			this.beforeApplicationStartCalled = true;
 		}
 		@Override
-		protected void beforeApplicationShutdown() {
-			this.beforeApplicationShutdownCalled = true;
+		protected void afterApplicationStart() {
+			this.afterApplicationStartCalled = true;
 		}
 
+		@Override
+		protected void beforeApplicationStop() {
+			this.beforeApplicationStopCalled = true;
+		}
+		@Override
+		protected void afterApplicationStop() {
+			this.afterApplicationStopCalled = true;
+		}
 		
 		@Override
 		protected Class<? extends PersistenceModule> getPersistenceModuleClass() {
@@ -274,19 +291,24 @@ public class WebApplicationTest  {
 		
 		WebApplicationBase webApp = new WebApplicationBase();
 		webApp.start();
-		Assert.assertTrue(webApp.isOnApplicationStartCalled());
+		Assert.assertTrue(webApp.isBeforeApplicationStartCalled());
 		Assert.assertTrue(WebApplicationBase.isRunning());
 		Assert.assertFalse(webApp.isOnPersistenceModuleStartCalled());
 		Assert.assertFalse(webApp.isOnLogginModuleStartCalled());
 		Assert.assertFalse(webApp.isOnExceptionReporterModuleStartCalled());
 		Assert.assertFalse(webApp.isOnSmtpModuleStartCalled());
+		Assert.assertTrue(webApp.isAfterApplicationStartCalled());
+		Assert.assertFalse(webApp.isBeforeApplicationStopCalled());
+		Assert.assertFalse(webApp.isAfterApplicationStopCalled());
+		
 		webApp.stop();
-		Assert.assertTrue(webApp.isBeforeApplicationShutdownCalled());
+		Assert.assertTrue(webApp.isBeforeApplicationStopCalled());
 		Assert.assertFalse(webApp.isOnPersistenceModuleStopCalled());
 		Assert.assertFalse(webApp.isOnLoggingModuleStopCalled());
 		Assert.assertFalse(webApp.isOnExceptionReporterModuleStopCalled());
 		Assert.assertFalse(webApp.isOnSmtpModuleStopCalled());
 		Assert.assertFalse(WebApplicationBase.isRunning());
+		Assert.assertTrue(webApp.isAfterApplicationStopCalled());
 	}
 	
 	@Test(expected = IllegalStateException.class)

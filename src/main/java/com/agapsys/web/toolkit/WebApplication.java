@@ -249,13 +249,14 @@ public abstract class WebApplication implements ServletContextListener {
 	 */
 	public final void start() {
 		if (!isRunning()) {
-			debug("====== AGAPSYS WEB TOOLKIT INITIALIZATION ======");
-			
 			String name = getName();
 			if (name != null)
 				name = name.trim();
 			if (name == null || name.isEmpty())
 				throw new IllegalStateException("Missing application name");
+			
+			debug("====== AGAPSYS WEB TOOLKIT INITIALIZATION: %s ======", name);
+			beforeApplicationStart();
 			
 			String version = getVersion();
 			if (version != null)
@@ -295,8 +296,8 @@ public abstract class WebApplication implements ServletContextListener {
 				}
 			}
 			
-			onApplicationStart();
 			singleton = this;
+			afterApplicationStart();
 			debug("====== AGAPSYS WEB TOOLKIT IS READY! ======");
 		}
 	}
@@ -306,11 +307,17 @@ public abstract class WebApplication implements ServletContextListener {
 		start();
 	}
 	
+	/** 
+	 * Called before application is initialized.
+	 * Default implementation does nothing.
+	 */
+	protected void beforeApplicationStart() {}
+	
 	/**
 	 * Called after application is initialized.
 	 * Default implementation does nothing.
 	 */
-	protected void onApplicationStart() {}
+	protected void afterApplicationStart() {}
 	
 	/**
 	 * Forces application shutdown.
@@ -320,7 +327,7 @@ public abstract class WebApplication implements ServletContextListener {
 	public final void stop() {
 		if (isRunning()) {
 			debug("====== AGAPSYS WEB TOOLKIT SHUTDOWN ======");
-			beforeApplicationShutdown();
+			beforeApplicationStop();
 			
 			shutdownModules();
 			loadedModules.clear();
@@ -329,6 +336,7 @@ public abstract class WebApplication implements ServletContextListener {
 			readOnlyProperties = null;
 			singleton = null;
 			
+			afterApplicationStop();
 			debug("====== AGAPSYS WEB TOOLKIT WAS SHUTTED DOWN! ======");
 		}
 	}
@@ -342,6 +350,12 @@ public abstract class WebApplication implements ServletContextListener {
 	 * Called before application shutdown.
 	 * Default implementation does nothing.
 	 */
-	protected void beforeApplicationShutdown() {}
+	protected void beforeApplicationStop() {}
+	
+	/** 
+	 * Called after application is stopped.
+	 * Default implementation does nothing.
+	 */
+	protected void afterApplicationStop() {}
 	// =========================================================================
 }
