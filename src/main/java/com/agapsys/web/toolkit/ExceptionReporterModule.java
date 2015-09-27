@@ -26,29 +26,31 @@ import javax.servlet.http.HttpServletResponse;
  */
 public abstract class ExceptionReporterModule extends Module {
 	// CLASS SCOPE =============================================================
+	private static final String DESCRIPTION = "Exception reporter module";
+	
 	private static final String ATTR_STATUS_CODE    = "javax.servlet.error.status_code";
 	private static final String ATTR_EXCEPTION_TYPE = "javax.servlet.error.exception_type";
 	private static final String ATTR_MESSAGE        = "javax.servlet.error.message";
 	private static final String ATTR_REQUEST_URI    = "javax.servlet.error.request_uri";
 	private static final String ATTR_EXCEPTION      = "javax.servlet.error.exception";
 	
-	static int getStatusCode(HttpServletRequest req) {
+	protected static int getStatusCode(HttpServletRequest req) {
 		return (Integer) req.getAttribute(ATTR_STATUS_CODE);
 	}
 	
-	static Class<?> getExceptionType(HttpServletRequest req) {
+	protected static Class<?> getExceptionType(HttpServletRequest req) {
 		return (Class) req.getAttribute(ATTR_EXCEPTION_TYPE);
 	}
 	
-	static String getExceptionMessage(HttpServletRequest req) {
+	protected static String getExceptionMessage(HttpServletRequest req) {
 		return (String) req.getAttribute(ATTR_MESSAGE);
 	}
 	
-	static String getRequestUri(HttpServletRequest req) {
+	protected static String getRequestUri(HttpServletRequest req) {
 		return (String) req.getAttribute(ATTR_REQUEST_URI);
 	}
 	
-	static Throwable getException(HttpServletRequest req) {
+	protected static Throwable getException(HttpServletRequest req) {
 		return (Throwable) req.getAttribute(ATTR_EXCEPTION);
 	}
 	
@@ -65,8 +67,17 @@ public abstract class ExceptionReporterModule extends Module {
 	// =========================================================================
 	
 	// INSTANCE SCOPE ==========================================================
-	/** 
-	 * Actual error report code. 
+	public ExceptionReporterModule(WebApplication application) {
+		super(application);
+	}
+
+	@Override
+	public String getDescription() {
+		return DESCRIPTION;
+	}
+	
+	/**
+	 * Actual error report code.
 	 * This method will be called only when module is running.
 	 * @param req HTTP request
 	 * @param resp HTTP response

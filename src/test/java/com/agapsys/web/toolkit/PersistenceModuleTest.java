@@ -25,6 +25,10 @@ public class PersistenceModuleTest {
 	// CLASS SCOPE =============================================================
 	private static class TestPersistenceModule extends PersistenceModule {
 		private boolean methodCalled = false;
+
+		public TestPersistenceModule(WebApplication application) {
+			super(application);
+		}
 		
 		@Override
 		protected EntityManager getAppEntityManager() {
@@ -39,7 +43,7 @@ public class PersistenceModuleTest {
 	
 	@Before
 	public void before() {
-		module = new TestPersistenceModule();
+		module = new TestPersistenceModule(new TestApplication());
 	}
 	
 	@Test

@@ -16,18 +16,49 @@
 package com.agapsys.web.toolkit;
 
 import com.agapsys.web.toolkit.utils.Properties;
+import java.util.Set;
 
 /**
  * Basic module interface
  * @author Leandro Oliveira (leandro@agapsys.com)
  */
 public abstract class Module {
+	private final WebApplication application;
 	private boolean running = false;
+	/**
+	 * Creates a module instance
+	 * @param application application owning this module
+	 */
+	public Module(WebApplication application) {
+		if (application == null)
+			throw new IllegalArgumentException("Null application");
+		
+		this.application = application;
+	}
+	
+	/** @return the application owning this module. */
+	public final WebApplication getApplication() {
+		return application;
+	}
+		
+	/** @return the mandatory dependencies of this module. Default implementation returns null (no mandatory dependencies). */
+	protected Set<String> getMandatoryDependencies() {
+		return null;
+	}
+	
+	/** @return the optional dependencies of this module. Default implementation returns null (no optional dependencies). */
+	protected Set<String> getOptionalDependencies() {
+		return null;
+	}
+	
+	/** @return module description. Default implementation returns null. */
+	public String getDescription() {
+		return null;
+	}
 	
 	/** 
 	 * Return the default settings used by this module.
-	 * @return default settings for this module. Default implementation returns
-	 * null
+	 * @return default settings for this module. Default implementation returns null.
 	 */
 	public Properties getDefaultSettings() {
 		return null;
@@ -49,10 +80,10 @@ public abstract class Module {
 	public final boolean isRunning() {
 		return running;
 	}
-	
+		
 	/** Starts the module. If module is already running, nothing happens. */
 	public final void start() {
-		if (!running) {
+		if (!running)  {
 			onStart();
 			running = true;
 		}

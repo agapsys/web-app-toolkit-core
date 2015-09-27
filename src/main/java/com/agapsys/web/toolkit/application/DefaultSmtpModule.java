@@ -14,14 +14,19 @@
  * limitations under the License.
  */
 
-package com.agapsys.web.toolkit;
+package com.agapsys.web.toolkit.application;
 
+import com.agapsys.web.toolkit.WebApplication;
 import com.agapsys.mail.Message;
 import com.agapsys.mail.MessageBuilder;
 import com.agapsys.mail.SecurityType;
 import com.agapsys.mail.SmtpSender;
 import com.agapsys.mail.SmtpSettings;
+import com.agapsys.web.toolkit.LoggingModule;
+import com.agapsys.web.toolkit.SmtpModule;
 import com.agapsys.web.toolkit.utils.Properties;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import javax.mail.MessagingException;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
@@ -58,11 +63,24 @@ public class DefaultSmtpModule extends SmtpModule {
 	// INSTANCE SCOPE ==========================================================
 	private SmtpSender      smtpSender = null;
 	private InternetAddress sender     = null;
+	private final Set<String> optionalDependencies = new LinkedHashSet<>();
+
+	public DefaultSmtpModule(WebApplication application) {
+		super(application);
+		optionalDependencies.add(com.agapsys.web.toolkit.application.WebApplication.LOGGING_MODULE_ID);
+
+	}
+
+	@Override
+	protected Set<String> getOptionalDependencies() {
+		return optionalDependencies;
+	}
 	
 	@Override
 	protected void onStart() {
+		WebApplication app = getApplication();
 		java.util.Properties props = new java.util.Properties();
-		props.putAll(WebApplication.getProperties().getEntries());
+		props.putAll(WebApplication.getInstance().getProperties().getEntries());
 		
 		SmtpSettings settings = new SmtpSettings(props);
 		smtpSender = new SmtpSender(settings);
@@ -99,7 +117,9 @@ public class DefaultSmtpModule extends SmtpModule {
 				}
 				smtpSender.sendMessage(message);
 			} catch (MessagingException ex) {
-				WebApplication.log(WebApplication.LOG_TYPE_ERROR, "Error sending message: " + ex.getMessage());
+				LoggingModule loggingModule = (LoggingModule) WebApplication.getInstance().getModuleInstance(com.agapsys.web.toolkit.application.WebApplication.LOGGING_MODULE_ID);
+				if (loggingModule != null)
+					loggingModule.log(LoggingModule.LOG_TYPE_ERROR, "Error sending message: " + ex.getMessage());
 				throw new RuntimeException(ex);
 			}
 		}

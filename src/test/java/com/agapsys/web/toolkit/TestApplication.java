@@ -15,21 +15,17 @@
  */
 
 package com.agapsys.web.toolkit;
+import com.agapsys.web.toolkit.application.WebApplication;
 
-import com.agapsys.utils.console.Console;
-import com.agapsys.web.toolkit.utils.DateUtils;
-
-/**
- * Default logging module implementation.
- * 
- * All logs messages will be printed to console
- * 
- * @author Leandro Oliveira (leandro@agapsys.com)
- */
-public class DefaultLoggingModule extends LoggingModule {
+public class TestApplication extends WebApplication{
 
 	@Override
-	protected void onLog(String logType, String message) {
-		Console.println(String.format("[%s] [%s] %s", DateUtils.getLocalTimestamp(), logType, message));
+	public String getName() {
+		return Defs.APP_NAME;
+	}
+
+	@Override
+	public String getVersion() {
+		return Defs.APP_VERSION;
 	}
 }

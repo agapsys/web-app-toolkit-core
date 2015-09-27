@@ -16,6 +16,7 @@
 
 package com.agapsys.web.toolkit;
 
+import com.agapsys.web.toolkit.application.DefaultExceptionReporterModule;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -24,9 +25,15 @@ public class DefaultExceptionReporterModuleTest {
 	private static final int STACK_TRACE_HISTORY_SIZE = 2;
 	
 	private static class TestModule extends DefaultExceptionReporterModule {
-		public TestModule() {
-			super(STACK_TRACE_HISTORY_SIZE);
+		
+		public TestModule(WebApplication application) {
+			super(application);
 		}
+
+		@Override
+		protected int getStacktraceHistorySize() {
+			return STACK_TRACE_HISTORY_SIZE;
+		}		
 		
 		@Override
 		public boolean skipErrorReport(Throwable t) {
@@ -38,7 +45,7 @@ public class DefaultExceptionReporterModuleTest {
 	// INSTANCE SCOPE ==========================================================
 	@Test
 	public void skipReportTest() {
-		TestModule module = new TestModule();
+		TestModule module = new TestModule(new TestApplication());
 		RuntimeException re1 = new RuntimeException();
 		RuntimeException re2 = new RuntimeException();
 		RuntimeException re3 = new RuntimeException();

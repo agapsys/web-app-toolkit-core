@@ -27,6 +27,10 @@ public class SmtpModuleTest {
 	// CLASS SCOPE =============================================================
 	private static class TestSmtpModule extends SmtpModule {
 		private boolean methodCalled = false;
+
+		public TestSmtpModule(WebApplication application) {
+			super(application);
+		}
 		
 		@Override
 		protected void onSendMessage(Message message) {
@@ -45,7 +49,7 @@ public class SmtpModuleTest {
 	
 	@Before
 	public void before() {
-		module = new TestSmtpModule();
+		module = new TestSmtpModule(new TestApplication());
 	}
 	
 	@Test(expected = IllegalArgumentException.class)

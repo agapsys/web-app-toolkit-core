@@ -26,6 +26,10 @@ public class ModuleTest {
 		private boolean isStartCalled = false;
 		private boolean isStopCalled = false;
 
+		public TestModule(WebApplication application) {
+			super(application);
+		}
+
 		@Override
 		protected void onStart() {
 			isStartCalled = true;
@@ -43,7 +47,7 @@ public class ModuleTest {
 	
 	@Before
 	public void before() {
-		module = new TestModule();
+		module = new TestModule(new TestApplication());
 	}
 	
 	@Test

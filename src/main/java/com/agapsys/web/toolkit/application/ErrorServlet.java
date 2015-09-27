@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.agapsys.web.toolkit;
+package com.agapsys.web.toolkit.application;
 
 import java.io.IOException;
 import javax.servlet.ServletException;
@@ -33,11 +33,10 @@ public class ErrorServlet extends HttpServlet {
 	public static final String URL = "/error";
 	// =========================================================================
 
-	// INSTANCE SCOPE ==========================================================
+	// INSTANCE SCOPE ==========================================================		
 	@Override
 	protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-		if (ExceptionReporterModule.getException(req) != null)
-			WebApplication.reportErroneousRequest(req, resp);
+		WebApplication.reportErroneousRequest(req, resp);
 	}
 	// =========================================================================
 }

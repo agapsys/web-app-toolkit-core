@@ -16,20 +16,21 @@
 
 package com.agapsys.web.toolkit;
 
-import com.agapsys.mail.Message;
 import com.agapsys.utils.console.Console;
 import com.agapsys.web.toolkit.utils.FileUtils;
 import com.agapsys.web.toolkit.utils.Properties;
 import java.io.File;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
+import java.lang.reflect.InvocationTargetException;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
-import javax.persistence.EntityManager;
+import java.util.Map;
+import java.util.Set;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 /** 
  * Web application.
@@ -42,61 +43,47 @@ public abstract class WebApplication implements ServletContextListener {
 	
 	private static final String SETTINGS_FILENAME_PREFIX    = "settings";
 	private static final String SETTINGS_FILENAME_SUFFIX    = ".conf";
-	private static final String SETTINGS_FILENAME_DELIMITER = "-";
+	private static final String SETTINGS_FILENAME_ENVIRONMENT_DELIMITER = "-";
 	
-	public static final String LOG_TYPE_ERROR   = "ERROR";
-	public static final String LOG_TYPE_WARNING = "WARNING";
-	public static final String LOG_TYPE_INFO    = "INFO";
+	public static WebApplication singleton = null;
 	
-	// State -------------------------------------------------------------------
-	private static boolean running           = false;
-	private static boolean settingsLoaded    = false;
-	private static boolean persistenceLoaded = false;
-	private static boolean fullyLoaded       = false;
-	
-	private static boolean enableDebug = false;
-	private static String  appName     = null;
-	private static String  appVersion  = null;
-	private static File    appFolder   = null;
-	private static String  environment = null;
-	
-	private static final Properties properties = new Properties();
-	private static Properties readOnlyProperties = null;
-	
-	private static PersistenceModule   persistenceModule   = null;
-	private static ExceptionReporterModule errorReporterModule = null;
-	private static LoggingModule       loggingModule       = null;
-	private static SmtpModule          smtpModule          = null;
-	
-	private static final List<Runnable> eventQueue = new LinkedList<>();
-	// -------------------------------------------------------------------------
-	
-	// Application management methods ------------------------------------------
-	/**
-	 * Return  a boolean indicating if application is running. 
-	 * @return  a boolean indicating if application is running.
-	 */
 	public static boolean isRunning() {
-		return running;
+		return singleton != null;
 	}
 	
-	/** Throws an exception if application is not running. */
-	private static void throwIfNotRunning() throws IllegalStateException {
-		if (!isRunning())
+	public static WebApplication getInstance() throws IllegalStateException {
+		if (singleton == null)
 			throw new IllegalStateException("Application is not running");
+		
+		return singleton;
+	}
+	// =========================================================================
+	
+	// INSTANCE SCOPE ==========================================================
+	private Map<String, Module> moduleMap          = new LinkedHashMap<>();
+	private List<Module>        loadedModules      = null;
+	private Properties          properties         = null;
+	private Properties          readOnlyProperties = null;
+
+	
+	/** @return a boolean indicating if debug messages shall be printed. */
+	protected boolean isDebugEnabled() {
+		return ManagementFactory.getRuntimeMXBean().getInputArguments().toString().indexOf("-agentlib:jdwp") > 0;
 	}
 	
-	/** Queues an runnable to be executed after application is fully loaded. */
-	private static void invokeLater(Runnable runnable) {
-		eventQueue.add(runnable);
+	/** @return settings filename prefix. */
+	protected String getSettingsFilenamePrefix() {
+		return SETTINGS_FILENAME_PREFIX;
 	}
 	
-	/** Process event queue. */
-	private static void processEventQueue() {
-		for (Runnable runnable : eventQueue) {
-			runnable.run();
-		}
-		eventQueue.clear();
+	/** @return settings filename suffix. */
+	protected String getSettingsFilenameSuffix() {
+		return SETTINGS_FILENAME_SUFFIX;
+	}
+	
+	/** @return settings filename environment delimiter. */
+	protected String getSettingsFilenameEnvironmentDelimiter() {
+		return SETTINGS_FILENAME_ENVIRONMENT_DELIMITER;
 	}
 	
 	/** 
@@ -106,66 +93,47 @@ public abstract class WebApplication implements ServletContextListener {
 	 * @see String#format(String, Object...)
 	 * @see WebApplication#start()
 	 */
-	public static void debug(String message, Object...args) throws IllegalStateException  {
-		if (enableDebug)
+	protected void debug(String message, Object...args) {
+		if (isDebugEnabled())
 			Console.printlnf(message, args);
 	}
-	// -------------------------------------------------------------------------
 	
-	// State management methods ------------------------------------------------
-	/**
-	 * @return application name. 
-	 * @see WebApplication#getAppName() 
-	 * @throws IllegalStateException if application is not running
-	 */
-	public static String getName() throws IllegalStateException {
-		throwIfNotRunning();
-		
-		return appName;
+	/** @return the application name */
+	public abstract String getName();
+	
+	/** @return the application version **/
+	public abstract String getVersion();
+
+	/** @return the folder where application stores resources outside application context in servlet container. Default implementation will create application if it not exists */
+	public File getFolder() {
+		return FileUtils.getOrCreateFolder(new File(FileUtils.USER_HOME, "." + getName()).getAbsolutePath());
 	}
 	
-	/**
-	 * @return application version.
-	 * @see WebApplication#getAppVersion() 
-	 * @throws IllegalStateException if application is not running.
-	 */
-	public static String getVersion() throws IllegalStateException {
-		throwIfNotRunning();
-		
-		return appVersion;
+	/** @return the name of the currently running environment. Default implementation return {@linkplain WebApplication#DEFAULT_ENVIRONMENT} */
+	public String getEnvironment() {
+		return DEFAULT_ENVIRONMENT;
 	}
 	
-	/** 
-	 * @return the folder where application stores resources outside application context in servlet container. 
-	 * @throws IllegalStateException if application is not running.
-	 */
-	public static File getAppFolder() throws IllegalStateException {
-		throwIfNotRunning();
-		
-		return appFolder;
+	/** @return the modules used by this application. */
+	protected Map<String, Class<? extends Module>> getModules() {
+		return null;
 	}
 	
-	/**
-	 * @return the name of the currently running environment.
-	 * @throws IllegalStateException if application is not running.
-	 * @see WebApplication#getDefaultEnvironment() 
+	/** Returns a module registered with this application.
+	 * @param moduleId module ID
+	 * @return registered module instance or null if there is no such module.
 	 */
-	public static String getEnvironment() throws IllegalStateException {
-		throwIfNotRunning();
+	public final Module getModuleInstance(String moduleId) {
+		if (moduleMap == null)
+			return null;
 		
-		return environment;
+		return moduleMap.get(moduleId);
 	}
-	// -------------------------------------------------------------------------
 	
-	// Global application methods ----------------------------------------------
-	/**
-	 * Return application settings.
-	 * @return application properties
-	 * @throws IllegalStateException if settings were not loaded yet
-	 */
-	public static Properties getProperties() throws IllegalStateException {
-		if (!settingsLoaded)
-			throw new IllegalStateException("Settings were not loaded yet");
+	/** @return application properties. */
+	public final Properties getProperties() {
+		if (properties == null)
+			return null;
 		
 		if (readOnlyProperties == null)
 			readOnlyProperties = properties.getUnmodifiableProperties();
@@ -173,336 +141,112 @@ public abstract class WebApplication implements ServletContextListener {
 		return readOnlyProperties;
 	}
 	
-	/**
-	 * Returns an entity manager to be used by application.
-	 * @return an entity manger to be used by application. If there is no persistence module, returns null
-	 * @throws IllegalStateException if application is not running or application is running but persistence module were no loaded yet.
-	 * @see WebApplication#getPersistenceModule() 
-	 */
-	public static EntityManager getEntityManager() throws IllegalStateException {
-		throwIfNotRunning();
+	
+	private Properties getSettings() throws IOException {
+		Properties tmpProperties = new Properties();
 		
-		if (persistenceModule != null) {
-			if (persistenceLoaded) {
-				return persistenceModule.getEntityManager();
-			} else {
-				throw new IllegalStateException("Persistence module were not loaded yet");
-			}
-		} else {
-			return null;
-		}
-	}
-	
-	/**
-	 * Reports an error in the application. 
-	 * If there is no error reporter, nothing happens. 
-	 * 
-	 * Calling this method before application fully-loaded will queue the
-	 * operation and return immediately.
-	 * 
-	 * @param req erroneous HTTP request
-	 * @param resp HTTP response
-	 * @throws IllegalStateException if application is not running.
-	 * @see WebApplication#getExceptionReporterModule() 
-	 */
-	public static void reportErroneousRequest(HttpServletRequest req, HttpServletResponse resp) throws IllegalStateException {
-		throwIfNotRunning();
+		String environment = getEnvironment();
 		
-		final HttpServletRequest _req = req;
-		final HttpServletResponse _resp = resp;
-		
-		Runnable runnable = new Runnable() {
-			@Override
-			public void run() {
-				if (errorReporterModule != null)
-					errorReporterModule.reportErroneousRequest(_req, _resp);
-			}
-		};
-		
-		if (fullyLoaded)
-			runnable.run();
-		else
-			invokeLater(runnable);
-	}
-	
-	/**
-	 * Logs a message in the application. 
-	 * If there is no logging module, nothing happens.
-	 * 
-	 * Calling this method before application fully-loaded will queue the
-	 * operation and return immediately.
-	 * 
-	 * @param logType message type
-	 * @param message message to be logged
-	 * @throws IllegalStateException if application is not running.
-	 * @see WebApplication#getLoggingModule() 
-	 */
-	public static void log(String logType, String message) throws IllegalStateException {
-		throwIfNotRunning();
-		
-		final String _logType = logType;
-		final String _message = message;
-		
-		Runnable runnable = new Runnable() {
-
-			@Override
-			public void run() {
-				if (loggingModule != null)
-					loggingModule.log(_logType, _message);
-			}
-		};
-		
-		if (fullyLoaded) {
-			runnable.run();
-		} else {
-			invokeLater(runnable);
-		}
-	}
-	
-	/**
-	 * Sends a message using SMTP module.
-	 * If there is no SMTP module, nothing happens.
-	 * 
-	 * Calling this method before application fully-loaded will queue the
-	 * operation and return immediately.
-	 * 
-	 * @param message message to be sent
-	 * @throws IllegalStateException if application is not running.
-	 * @see WebApplication#getSmtpModule()
-	 */
-	public static void sendMessage(Message message) throws IllegalStateException {
-		throwIfNotRunning();
-		
-		final Message _message = message;
-		
-		Runnable runnable = new Runnable() {
-
-			@Override
-			public void run() {
-				if (smtpModule != null)
-					smtpModule.sendMessage(_message);
-			}
-		};
-		
-		if (fullyLoaded) {
-			runnable.run();
-		} else {
-			invokeLater(runnable);
-		}
-	}
-	// -------------------------------------------------------------------------
-	// =========================================================================
-	
-	// INSTANCE SCOPE ==========================================================
-	/** 
-	 * Returns a boolean indicating if debug is enabled.
-	 * @return a boolean indicating if debug messages shall be printed.
-	 */
-	protected boolean isDebugEnabled() {
-		return ManagementFactory.getRuntimeMXBean().getInputArguments().toString().indexOf("-agentlib:jdwp") > 0;
-	}
-	
-	/** @return the application name */
-	protected abstract String getAppName();
-	
-	/** @return the application version **/
-	protected abstract String getAppVersion();
-	
-	/** @return the defaultEnvironment used by application. Default implementation returns {@linkplain WebApplication#DEFAULT_ENVIRONMENT}. */
-	protected String getDefaultEnvironment() {
-		return DEFAULT_ENVIRONMENT;
-	}
-	
-	
-	// Persistence module ----------------------------------------------------------
-	/** 
-	 * Return the persistence module used by application. 
-	 * Default implementation returns an instance of {@linkplain DefaultPersistenceModule}.
-	 * @return the persistence module used by application.
-	 */
-	protected PersistenceModule getPersistenceModule() {
-		return new DefaultPersistenceModule();
-	}
-	
-	/** 
-	 * Called after persistence module is initialized.
-	 * Default implementation does nothing.
-	 * This method will be called only if {@linkplain WebApplication#getPersistenceModule()} returns a non-null value.
-	 */
-	protected void onPersistenceModuleStart() {}
-	
-	/** 
-	 * Called before persistence module shutdown.
-	 * Default implementation does nothing.
-	 * This method will be called only if {@linkplain WebApplication#getPersistenceModule()} returns a non-null value.
-	 */
-	protected void beforePersistenceModuleStop() {}
-	// -------------------------------------------------------------------------
-
-	// SMTP module ----------------------------------------------------------
-	/** 
-	 * Returns the SMTP module used by application. 
-	 * Default implementation returns an instance of {@linkplain DefaultSmtpModule}.
-	 * @return the SMTP module used by application.
-	 */
-	protected SmtpModule getSmtpModule() {
-		return new DefaultSmtpModule();
-	}
-	
-	/** 
-	 * Called after SMTP module is initialized.
-	 * Default implementation does nothing.
-	 * This method will be called only if {@linkplain WebApplication#getSmtpModule()} returns a non-null value.
-	 */
-	protected void onSmtpModuleStart() {}
-	
-	/**
-	 * Called before SMTP module shutdown.
-	 * Default implementation does nothing.
-	 * This method will be called only if {@linkplain WebApplication#getSmtpModule()} returns a non-null value.
-	 */
-	protected void beforeSmtpModuleStop() {}
-	// -------------------------------------------------------------------------
-	
-	// Error reporter module ---------------------------------------------------
-	/**
-	 * Return the error reporter module used by application. 
-	 * Default implementation returns an instance off {@linkplain DefaultExceptionReporterModule}.
-	 * @return the error reporter module used by application.
-	 */
-	protected ExceptionReporterModule getExceptionReporterModule() {
-		return new DefaultExceptionReporterModule();
-	}
-	
-	/**
-	 * Called after error reporter module is initialized.
-	 * Default implementation does nothing.
-	 * This method will be called only if {@link WebApplication#getExceptionReporterModule()} returns a non-null value.
-	 */
-	protected void onErrorReporterModuleStart() {}
-	
-	/** 
-	 * Called before error reporter module shutdown.
-	 * Default implementation does nothing.
-	 * This method will be called only if {@link WebApplication#getExceptionReporterModule()} returns a non-null value.
-	 */
-	protected void beforeErrorReporterModuleStop() {}
-	// -------------------------------------------------------------------------
-	
-	// Logging module ----------------------------------------------------------
-	/** 
-	 * Returns the logging module used by application. 
-	 * Default implementation returns an instance of {@linkplain DefaultLoggingModule}.
-	 * @return the logging module used by application.
-	 */
-	protected LoggingModule getLoggingModule() {
-		return new DefaultLoggingModule();
-	}
-	
-	/** 
-	 * Called after logging module is initialized.
-	 * Default implementation does nothing.
-	 * This method will be called only if {@linkplain WebApplication#getLoggingModule()} returns a non-null value.
-	 */
-	protected void onLogginModuleStart() {}
-	
-	/**
-	 * Called before logging module shutdown.
-	 * Default implementation does nothing.
-	 * This method will be called only if {@linkplain WebApplication#getLoggingModule()} returns a non-null value.
-	 */
-	protected void beforeLoggingModuleStop() {}
-	// -------------------------------------------------------------------------
-	
-	private void loadSettings() throws IOException {
-		String strDelimiter = environment.equals(DEFAULT_ENVIRONMENT) ? "" : SETTINGS_FILENAME_DELIMITER;
+		String strDelimiter   = environment.equals(DEFAULT_ENVIRONMENT) ? "" : getSettingsFilenameEnvironmentDelimiter();
 		String strEnvironment = environment.equals(DEFAULT_ENVIRONMENT) ? "" : environment;
 		
-		File settingsFile = new File(appFolder, SETTINGS_FILENAME_PREFIX + strDelimiter + strEnvironment + SETTINGS_FILENAME_SUFFIX);
-		Properties tmpProperties;
+		File settingsFile = new File(getFolder(), getSettingsFilenamePrefix() + strDelimiter + strEnvironment + getSettingsFilenameSuffix());
 
 		if (settingsFile.exists()) {
 			debug("Loading settings file...");
 
 			// Load settings from file...
-			properties.load(settingsFile);
+			tmpProperties.load(settingsFile);
+		}
 
-			// Persistence module: put default settings when there is no definition...
-			if (persistenceModule != null) {
-				tmpProperties = persistenceModule.getDefaultSettings();
+		for (Map.Entry<String, Module> entry : moduleMap.entrySet()) {
+			Module moduleInstance = entry.getValue();
+			
+			tmpProperties.addComment(moduleInstance.getDescription());
+			Properties defaultModuleProperties = moduleInstance.getDefaultSettings();
+			
+			if (defaultModuleProperties != null) {
+				tmpProperties.append(defaultModuleProperties, true);
+			}
+		}
+		
+		if (!settingsFile.exists()) {
+			debug("Creating default settings file...");
+			tmpProperties.store(settingsFile);
+		}
+		
+		return tmpProperties;
+	}	
 
-				if (tmpProperties != null)
-					properties.append(tmpProperties, true);
+	private Module instantiateModule(Class<? extends Module> moduleClass)  {
+		try {
+			return moduleClass.getConstructor(WebApplication.class).newInstance(this);
+		} catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException ex) {
+			throw new RuntimeException(ex);
+		}
+	}
+		
+	private void startModule(String moduleId, boolean mandatory, List<String> callerModules)  {
+		if (callerModules == null)
+			callerModules = new LinkedList<>();
+		
+		if (callerModules.contains(moduleId))
+			throw new RuntimeException("Cyclic dependency on module: " + moduleId);
+
+		callerModules.add(moduleId);
+		
+		Module moduleInstance = getModuleInstance(moduleId);
+		
+		if (moduleInstance == null && mandatory)
+			throw new RuntimeException("Mandatory module not registered: " + moduleId);
+		
+		if (moduleInstance == null && !mandatory)
+			debug("Optional module not found: %s", moduleId);
+		
+		if (moduleInstance != null && !moduleInstance.isRunning()) {
+			Set<String> mandatoryDependencies = moduleInstance.getMandatoryDependencies();
+			Set<String> optionalDependencies = moduleInstance.getOptionalDependencies();
+
+			if (mandatoryDependencies == null)
+				mandatoryDependencies = new LinkedHashSet<>();
+
+			if (optionalDependencies == null)
+				optionalDependencies = new LinkedHashSet<>();
+
+			String moduleErrString = "Module is mandatory and optional at the same time: %s (%s)";
+
+			for (String mandatoryModuleId : mandatoryDependencies) {
+				if (optionalDependencies.contains(mandatoryModuleId))
+					throw new RuntimeException(String.format(moduleErrString, mandatoryModuleId, moduleId));
+			}
+
+			for (String optionalModuleId : optionalDependencies) {
+				if (mandatoryDependencies.contains(optionalModuleId))
+					throw new RuntimeException(String.format(moduleErrString, optionalModuleId, moduleId));
 			}
 			
-			// SMTP module: put default settings when there is no definition...
-			if (smtpModule != null) {
-				tmpProperties = smtpModule.getDefaultSettings();
-
-				if (tmpProperties != null)
-					properties.append(tmpProperties, true);
-			}
-
-			// Error reporter module: put default settings when there is no definition...
-			if (errorReporterModule != null) {
-				tmpProperties = errorReporterModule.getDefaultSettings();
-
-				if (tmpProperties != null)
-					properties.append(tmpProperties, true);
-			}
-
-		} else {
-			boolean addedSettings = false;
-			
-			// Persistence module: Loading defaults...
-			if (persistenceModule != null) {
-				tmpProperties = persistenceModule.getDefaultSettings();
-
-				if (tmpProperties != null) {
-					properties.addComment("Persistence settings==========================================================");
-					properties.append(tmpProperties);
-					properties.addComment("==============================================================================");
-					addedSettings = true;
-				}
+			// Load mandatory modules
+			for (String mandatoryModuleId : mandatoryDependencies) {
+				startModule(mandatoryModuleId, true, callerModules);
 			}
 			
-			// From now, non-getter modules can be loaded in any sequence...
-			
-			// SMTP module: Loading defaults...
-			if (smtpModule != null) {
-				tmpProperties = smtpModule.getDefaultSettings();
-
-				if (tmpProperties != null) {
-					if (addedSettings)
-						properties.addEmptyLine();
-					
-					properties.addComment("SMTP settings=================================================================");
-					properties.append(tmpProperties);
-					properties.addComment("==============================================================================");
-					addedSettings = true;
-				}
+			// Load optional modules
+			for (String optionalModuleId : optionalDependencies) {
+				startModule(optionalModuleId, false, callerModules);
 			}
 
-			// Error reporter module: Loading defaults...
-			if (errorReporterModule != null) {
-				tmpProperties = errorReporterModule.getDefaultSettings();
+			moduleInstance.start();
 
-				if (tmpProperties != null) {
-					if (addedSettings)
-						properties.addEmptyLine();
-					
-					properties.addComment("Error reporter settings ======================================================");
-					properties.append(tmpProperties);
-					properties.addComment("==============================================================================");
-					addedSettings = true;
-				}
-			}
+			if (loadedModules == null)
+				loadedModules = new LinkedList<>();
 
-			// Storing in settings file...
-			if (!properties.isEmpty()) {
-				debug("Creating default settings file...");
-				properties.store(settingsFile);
-			}
+			loadedModules.add(moduleInstance);
+		}
+	}
+	
+	private void shutdownModules() {
+		for (int i = loadedModules.size() - 1; i >= 0; i--) {
+			loadedModules.get(i).stop();
 		}
 	}
 	
@@ -513,72 +257,54 @@ public abstract class WebApplication implements ServletContextListener {
 	 */
 	public final void start() {
 		if (!isRunning()) {
-			running = true;
-			WebApplication.enableDebug = isDebugEnabled();
-			
 			debug("====== AGAPSYS WEB TOOLKIT INITIALIZATION ======");
-			appName = getAppName();
-			if (appName == null || appName.trim().isEmpty())
+			
+			String name = getName();
+			if (name != null)
+				name = name.trim();
+			if (name == null || name.isEmpty())
 				throw new IllegalStateException("Missing application name");
 			
-			appName = appName.trim();
-			
-			appVersion = getAppVersion();
-			if (appVersion == null || appVersion.trim().isEmpty())
+			String version = getVersion();
+			if (version != null)
+				version = version.trim();
+			if (version == null || version.isEmpty())
 				throw new IllegalStateException("Missing application version");
 			
-			appVersion = appVersion.trim();
-			
-			environment = getDefaultEnvironment();
-			if (environment == null || environment.trim().isEmpty())
+			String environment = getEnvironment();
+			if (environment != null)
+				environment = environment.trim();
+			if (environment == null || environment.isEmpty())
 				throw new IllegalStateException("Missing environment");
-			
-			environment = environment.trim();
 			
 			debug("Environment set: %s", environment);
 			
-			appFolder = FileUtils.getOrCreateFolder(new File(FileUtils.USER_HOME, "." + appName).getAbsolutePath());
-
-			persistenceModule   = getPersistenceModule();
-			smtpModule          = getSmtpModule();
-			errorReporterModule = getExceptionReporterModule();
-			loggingModule       = getLoggingModule();
+			Map<String, Class<? extends Module>> moduleClassMap = getModules();
+			if (moduleMap == null)
+				moduleMap = new LinkedHashMap<>();
 			
+			// Instantiate all modules...
+			for (Map.Entry<String, Class<? extends Module>> entry : moduleClassMap.entrySet()) {
+				moduleMap.put(entry.getKey(), instantiateModule(entry.getValue()));
+			}
+
 			try {
-				loadSettings();
-				settingsLoaded = true;
+				debug("Loading settings...");
+				properties = getSettings();
 			} catch (IOException ex) {
 				throw new RuntimeException(ex);
 			}
-			
-			if (persistenceModule != null) {
-				debug("Starting persistence module...");
-				persistenceModule.start();
-				onPersistenceModuleStart();
-				persistenceLoaded = true;
+
+			// Starts all modules
+			debug("Loading modules...");
+			for (Map.Entry<String, Module> entry : moduleMap.entrySet()) {
+				if (!entry.getValue().isRunning()) {
+					startModule(entry.getKey(), true, null);
+				}
 			}
 			
-			if (smtpModule != null) {
-				debug("Starting SMTP module...");
-				smtpModule.start();
-				onSmtpModuleStart();
-			}
-			
-			if (errorReporterModule != null) {
-				debug("Starting error reporter module...");
-				errorReporterModule.start();
-				onErrorReporterModuleStart();
-			}
-			
-			if (loggingModule != null) {
-				debug("Starting logging module...");
-				loggingModule.start();
-				onLogginModuleStart();
-			}
-			
-			processEventQueue(); // <-- Processes all pending events genereted due to cross-module calls using an unloaded-module
 			onApplicationStart();
-			fullyLoaded = true;
+			singleton = this;
 			debug("====== AGAPSYS WEB TOOLKIT IS READY! ======");
 		}
 	}
@@ -604,44 +330,22 @@ public abstract class WebApplication implements ServletContextListener {
 			debug("====== AGAPSYS WEB TOOLKIT SHUTDOWN ======");
 			beforeApplicationShutdown();
 			
-			// 1) Module pre-shutdown. Sequence is irrelevant. Cross-module calls are allowed
-			if (loggingModule != null) {
-				debug("Shutting down logging module...");
-				beforeLoggingModuleStop();
-			}
-						
-			if (errorReporterModule != null) {
-				debug("Shutting down error reporter module...");
-				beforeErrorReporterModuleStop();
+			shutdownModules();
+			if (loadedModules != null) {
+				loadedModules.clear();
+				loadedModules = null;
+				loadedModules = null;
 			}
 			
-			if (smtpModule != null) {
-				debug("Shutting down SMTP module");
-				beforeSmtpModuleStop();
+			if (moduleMap != null) {
+				moduleMap.clear();
+				moduleMap = null;
+				moduleMap = null;
 			}
 			
-			if (persistenceModule != null) {
-				debug("Shutting down persistence module...");
-				beforePersistenceModuleStop();
-			}
-			
-			// 2) Actual module shutdown...
-			if (loggingModule != null)
-				loggingModule.stop();
-			
-			if (errorReporterModule != null)
-				errorReporterModule.stop();
-			
-			if (smtpModule != null)
-				smtpModule.stop();
-			
-			if (persistenceModule != null)
-				persistenceModule.stop(); // persistence module must be the last module to be shutted down
-			
-			fullyLoaded = false;
-			persistenceLoaded = false;
-			settingsLoaded = false;
-			running = false;
+			properties = null;
+			readOnlyProperties = null;
+			singleton = null;
 			
 			debug("====== AGAPSYS WEB TOOLKIT WAS SHUTTED DOWN! ======");
 		}

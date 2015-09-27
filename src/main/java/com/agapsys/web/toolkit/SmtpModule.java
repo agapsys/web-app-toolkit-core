@@ -22,6 +22,19 @@ import com.agapsys.mail.Message;
  * @author Leandro Oliveira (leandro@agapsys.com)
  */
 public abstract class SmtpModule extends Module {
+	// CLASS SCOPE =============================================================
+	private static final String DESCRIPTION = "SMTP module";
+	// =========================================================================
+	
+	// INSTANCE SCOPE ==========================================================
+	public SmtpModule(WebApplication application) {
+		super(application);
+	}
+
+	@Override
+	public String getDescription() {
+		return DESCRIPTION;
+	}
 	
 	/** 
 	 * Actual message sending code. 
@@ -44,4 +57,5 @@ public abstract class SmtpModule extends Module {
 			onSendMessage(message);
 		}
 	}
+	// =========================================================================
 }

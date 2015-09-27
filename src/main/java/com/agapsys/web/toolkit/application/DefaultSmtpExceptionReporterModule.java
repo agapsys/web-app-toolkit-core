@@ -14,18 +14,22 @@
  * limitations under the License.
  */
 
-package com.agapsys.web.toolkit;
+package com.agapsys.web.toolkit.application;
 
 import com.agapsys.mail.Message;
 import com.agapsys.mail.MessageBuilder;
+import com.agapsys.web.toolkit.LoggingModule;
+import com.agapsys.web.toolkit.SmtpModule;
+import com.agapsys.web.toolkit.WebApplication;
 import com.agapsys.web.toolkit.utils.Properties;
+import java.util.Set;
 import javax.mail.MessagingException;
 
 /**
  * Default crash reporter module with SMTP sending capabilities
  * @author Leandro Oliveira (leandro@agapsys.com)
  */
-public class DefaultSmtpErrorReporterModule extends DefaultExceptionReporterModule {
+public class DefaultSmtpExceptionReporterModule extends DefaultExceptionReporterModule {
 	// CLASS SCOPE =============================================================
 	public static final String KEY_ERR_MAIL_RECIPIENTS   = "com.agapsys.web.errMailRecipients";
 	public static final String KEY_ERR_MAIL_SUBJECT      = "com.agapsys.web.errSubject";
@@ -47,20 +51,34 @@ public class DefaultSmtpErrorReporterModule extends DefaultExceptionReporterModu
 	// =========================================================================
 
 	// INSTANCE SCOPE ==========================================================
-	private String[]     msgRecipients = null;
-	private String       msgSubject    = null;
+	private String[] msgRecipients = null;
+	private String   msgSubject    = null;
+	private boolean  initialized   = false;
+
+	public DefaultSmtpExceptionReporterModule(WebApplication application) {
+		super(application);
+	}
+	
+	@Override
+	protected Set<String> getMandatoryDependencies() {
+		if (!initialized) {
+			super.getMandatoryDependencies().add(com.agapsys.web.toolkit.application.WebApplication.SMTP_MODULE_ID);
+			initialized = true;
+		}
+		
+		return super.getMandatoryDependencies();
+	}
 	
 	@Override
 	protected void onStart() {
 		super.onStart();
-		
-		Properties props = WebApplication.getProperties();
+		Properties props = getApplication().getProperties();
 		
 		msgRecipients = props.getProperty(KEY_ERR_MAIL_RECIPIENTS, DEFAULT_ERR_RECIPIENTS).split(RECIPIENT_DELIMITER);
 		
 		String tmpErrSubject = props.getProperty(KEY_ERR_MAIL_SUBJECT, DEFAULT_ERR_SUBJECT);
 		if (tmpErrSubject.equals(DEFAULT_ERR_SUBJECT))
-			tmpErrSubject = String.format(tmpErrSubject, WebApplication.getName());
+			tmpErrSubject = String.format(tmpErrSubject, getApplication().getName());
 		
 		msgSubject = tmpErrSubject;
 
@@ -78,6 +96,10 @@ public class DefaultSmtpErrorReporterModule extends DefaultExceptionReporterModu
 	public Properties getDefaultSettings() {
 		return DEFAULT_PROPERTIES;
 	}
+	
+	protected SmtpModule getSmtpModule() {
+		return (SmtpModule) getApplication().getModuleInstance(com.agapsys.web.toolkit.application.WebApplication.SMTP_MODULE_ID);
+	}
 
 	@Override
 	protected void reportError(String message) {
@@ -85,13 +107,13 @@ public class DefaultSmtpErrorReporterModule extends DefaultExceptionReporterModu
 			super.reportError(message);
 
 			try {
-				Message msg = new MessageBuilder(WebApplication.getProperties().getProperty(DefaultSmtpModule.KEY_SMTP_MAIL_SENDER), msgRecipients)
+				Message msg = new MessageBuilder(getApplication().getProperties().getProperty(DefaultSmtpModule.KEY_SMTP_MAIL_SENDER), msgRecipients)
 					.setSubject(msgSubject)
 					.setText(message)
 					.build();
-				WebApplication.sendMessage(msg);
+				getSmtpModule().sendMessage(msg);
 			} catch (MessagingException ex) {
-				WebApplication.log(WebApplication.LOG_TYPE_ERROR, String.format("Error sending error report:\n----\n%s\n----", DefaultExceptionReporterModule.getStackTrace(ex)));
+				getLoggingModule().log(LoggingModule.LOG_TYPE_ERROR, String.format("Error sending error report:\n----\n%s\n----", DefaultExceptionReporterModule.getStackTrace(ex)));
 				throw new RuntimeException(ex);
 			}
 		}

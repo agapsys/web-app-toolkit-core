@@ -20,9 +20,26 @@ package com.agapsys.web.toolkit;
  * @author Leandro Oliveira (leandro@agapsys.com)
  */
 public abstract class LoggingModule extends Module {
+	// CLASS SCOPE =============================================================
+	private static final String DESCRIPTION = "Logging module";
 	
-	/** 
-	 * Actual log code. 
+	public static final String LOG_TYPE_ERROR   = "error";
+	public static final String LOG_TYPE_INFO    = "info";
+	public static final String LOG_TYPE_WARNING = "warning";
+	// =========================================================================
+	
+	// INSTANCE SCOPE ==========================================================
+	public LoggingModule(WebApplication application) {
+		super(application);
+	}
+
+	@Override
+	public String getDescription() {
+		return DESCRIPTION;
+	}
+
+	/**
+	 * Actual log code.
 	 * This method will be called only when module is running.
 	 * @param logType log type
 	 * @param message log message
@@ -47,4 +64,5 @@ public abstract class LoggingModule extends Module {
 			onLog(logType, message);
 		}
 	}
+	// =========================================================================
 }

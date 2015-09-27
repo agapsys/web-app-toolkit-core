@@ -22,6 +22,19 @@ import javax.persistence.EntityManager;
  * @author Leandro Oliveira (leandro@agapsys.com)
  */
 public abstract class PersistenceModule extends Module {
+	// CLASS SCOPE =============================================================
+	private static final String DESCRIPTION = "Persistence module";
+	// =========================================================================
+	
+	// INSTANCE SCOPE ==========================================================
+	public PersistenceModule(WebApplication application) {
+		super(application);
+	}
+
+	@Override
+	public String getDescription() {
+		return DESCRIPTION;
+	}
 	
 	/** 
 	 * Returns an entity manager to be used by application.
@@ -41,4 +54,5 @@ public abstract class PersistenceModule extends Module {
 		
 		return getAppEntityManager();
 	}
+	// =========================================================================
 }

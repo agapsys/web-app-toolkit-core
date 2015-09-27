@@ -25,6 +25,10 @@ public class LoggingModuleTest {
 	private static class TestLoggingModule extends LoggingModule {
 		private boolean methodCalled = false;
 
+		public TestLoggingModule(WebApplication application) {
+			super(application);
+		}
+
 		@Override
 		protected void onLog(String logType, String message) {
 			methodCalled = true;
@@ -37,7 +41,7 @@ public class LoggingModuleTest {
 	
 	@Before
 	public void before() {
-		module = new TestLoggingModule();
+		module = new TestLoggingModule(new TestApplication());
 	}
 	
 	@Test(expected = IllegalArgumentException.class)

@@ -49,6 +49,10 @@ public class ExceptionReporterModuleTest {
 	private static class TestExceptionReporterModule extends ExceptionReporterModule {
 		private boolean methodCalled = false;
 
+		public TestExceptionReporterModule(WebApplication application) {
+			super(application);
+		}
+
 		@Override
 		protected void onReportErroneousRequest(HttpServletRequest req, HttpServletResponse resp) {
 			methodCalled = true;
@@ -596,7 +600,7 @@ public class ExceptionReporterModuleTest {
 	
 	@Before
 	public void before() {
-		module = new TestExceptionReporterModule();
+		module = new TestExceptionReporterModule(new TestApplication());
 	}
 	
 	@Test(expected = IllegalArgumentException.class)

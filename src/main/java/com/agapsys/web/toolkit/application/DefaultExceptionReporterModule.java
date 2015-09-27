@@ -14,13 +14,18 @@
  * limitations under the License.
  */
 
-package com.agapsys.web.toolkit;
+package com.agapsys.web.toolkit.application;
 
+import com.agapsys.web.toolkit.ExceptionReporterModule;
+import com.agapsys.web.toolkit.LoggingModule;
+import com.agapsys.web.toolkit.WebApplication;
 import com.agapsys.web.toolkit.utils.Properties;
 import com.agapsys.web.toolkit.utils.HttpUtils;
 import com.agapsys.web.toolkit.utils.DateUtils;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -41,7 +46,7 @@ public class DefaultExceptionReporterModule extends ExceptionReporterModule {
 	public static final String DEFAULT_NODE_NAME = "node-01";
 	
 	private static final Properties DEFAULT_PROPERTIES;
-	
+		
 	static {
 		DEFAULT_PROPERTIES = new Properties();
 		DEFAULT_PROPERTIES.setProperty(KEY_NODE_NAME, DEFAULT_NODE_NAME);
@@ -50,23 +55,26 @@ public class DefaultExceptionReporterModule extends ExceptionReporterModule {
 
 	// INSTANCE SCOPE ==========================================================
 	private String nodeName = null;
-	private final int stacktraceHistorySize;
 	private final List<String> stacktraceHistory = new LinkedList<>();
-	
-	public DefaultExceptionReporterModule(int stacktraceHistorySize) {
-		if (stacktraceHistorySize < 0)
-			throw new IllegalArgumentException("Invalid stacktrace history size: " + stacktraceHistorySize);
-		
-		this.stacktraceHistorySize = stacktraceHistorySize;
+	private final Set<String> mandatoryDependencies = new LinkedHashSet<>();
+
+	public DefaultExceptionReporterModule(WebApplication application) {
+		super(application);
+		mandatoryDependencies.add(com.agapsys.web.toolkit.application.WebApplication.LOGGING_MODULE_ID);
+	}
+
+	@Override
+	protected Set<String> getMandatoryDependencies() {
+		return mandatoryDependencies;
 	}
 	
-	public DefaultExceptionReporterModule() {
-		this(DEFAULT_STACKTRACE_HISTORY_SIZE);
+	protected int getStacktraceHistorySize() {
+		return DEFAULT_STACKTRACE_HISTORY_SIZE;
 	}
 
 	@Override
 	protected void onStart() {
-		nodeName = WebApplication.getProperties().getProperty(KEY_NODE_NAME, DEFAULT_NODE_NAME);
+		nodeName = WebApplication.getInstance().getProperties().getProperty(KEY_NODE_NAME, DEFAULT_NODE_NAME);
 	}
 
 	@Override
@@ -96,8 +104,8 @@ public class DefaultExceptionReporterModule extends ExceptionReporterModule {
 		String msg =
 			"An error was detected"
 			+ "\n\n"
-			+ "Application: " + WebApplication.getName() + "\n"
-			+ "Application version: " + WebApplication.getVersion() + "\n"
+			+ "Application: " + WebApplication.getInstance().getName() + "\n"
+			+ "Application version: " + WebApplication.getInstance().getVersion() + "\n"
 			+ "Node name: " + nodeName + "\n\n"
 			+ "Server timestamp: " + DateUtils.getLocalTimestamp() + "\n"
 			+ "Status code: " + statusCode + "\n"
@@ -111,12 +119,16 @@ public class DefaultExceptionReporterModule extends ExceptionReporterModule {
 		return msg;
 	}
 	
+	protected LoggingModule getLoggingModule() {
+		return (LoggingModule) getApplication().getModuleInstance(com.agapsys.web.toolkit.application.WebApplication.LOGGING_MODULE_ID);
+	}
+	
 	/** 
 	 * Logs the error.
 	 * @param message complete error message
 	 */
 	protected void reportError(String message) {
-		WebApplication.log(WebApplication.LOG_TYPE_ERROR, String.format("Application error:\n----\n%s\n----", message));
+		getLoggingModule().log(LoggingModule.LOG_TYPE_ERROR, String.format("Application error:\n----\n%s\n----", message));
 	}
 	
 	/**
@@ -129,7 +141,7 @@ public class DefaultExceptionReporterModule extends ExceptionReporterModule {
 		if (stacktraceHistory.contains(stacktrace)) {
 			return true;
 		} else {
-			if (stacktraceHistory.size() == stacktraceHistorySize) {
+			if (stacktraceHistory.size() == getStacktraceHistorySize()) {
 				stacktraceHistory.remove(0); // Remove oldest
 			}
 			stacktraceHistory.add(stacktrace);
@@ -153,10 +165,10 @@ public class DefaultExceptionReporterModule extends ExceptionReporterModule {
 				if (!skipErrorReport(throwable))
 					reportError(getErrorMessage(statusCode, throwable, exceptionType, exceptionMessage, requestUri, userAgent, clientIp));
 				else
-					WebApplication.log(WebApplication.LOG_TYPE_WARNING, "Application error (already reported): " + throwable.getMessage());
+					getLoggingModule().log(LoggingModule.LOG_TYPE_WARNING, "Application error (already reported): " + throwable.getMessage());
 			} else {
 				String extraInfo = String.format("User-agent: %s\nClient IP:%s, Request URL: %s", userAgent, clientIp, requestUri);
-				WebApplication.log(WebApplication.LOG_TYPE_ERROR, String.format("Bad request for maintenance module:\n----\n%s\n----", extraInfo));
+				getLoggingModule().log(LoggingModule.LOG_TYPE_ERROR, String.format("Bad request for maintenance module:\n----\n%s\n----", extraInfo));
 				resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 			}
 		}

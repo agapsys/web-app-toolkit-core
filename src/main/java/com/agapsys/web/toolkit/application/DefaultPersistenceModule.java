@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-package com.agapsys.web.toolkit;
+package com.agapsys.web.toolkit.application;
 
+import com.agapsys.web.toolkit.WebApplication;
+import com.agapsys.web.toolkit.PersistenceModule;
 import com.agapsys.web.toolkit.utils.Properties;
 import com.agapsys.web.toolkit.utils.RuntimeJarLoader;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
@@ -49,6 +48,10 @@ public class DefaultPersistenceModule extends PersistenceModule {
 
 	// INSTANCE SCOPE ==========================================================
 	private EntityManagerFactory emf = null;
+
+	public DefaultPersistenceModule(WebApplication application) {
+		super(application);
+	}
 	
 	@Override
 	public Properties getDefaultSettings() {
@@ -57,7 +60,8 @@ public class DefaultPersistenceModule extends PersistenceModule {
 	
 	@Override
 	protected void onStart() {
-		Properties appProperties = WebApplication.getProperties();
+		WebApplication application = getApplication();
+		Properties appProperties = application.getProperties();
 		
 		// If a JDBC driver file was set load it
 		String jdbcDriverFilename = appProperties.getProperty(KEY_JDBC_DRIVER_FILE);
@@ -70,7 +74,7 @@ public class DefaultPersistenceModule extends PersistenceModule {
 			if (jdbcDriverClass == null || jdbcDriverClass.trim().isEmpty())
 				throw new RuntimeException("Missing jdbc driver class definition in application settings");
 			
-			File jdbcDriverFile = new File(WebApplication.getAppFolder(), jdbcDriverFilename);
+			File jdbcDriverFile = new File(application.getFolder(), jdbcDriverFilename);
 			RuntimeJarLoader.loadJar(jdbcDriverFile);
 		}
 		
