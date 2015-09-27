@@ -157,10 +157,10 @@ public abstract class WebApplication implements ServletContextListener {
 		for (Map.Entry<String, Module> entry : moduleMap.entrySet()) {
 			Module moduleInstance = entry.getValue();
 			
-			properties.addComment(moduleInstance.getDescription());
 			Properties defaultModuleProperties = moduleInstance.getDefaultSettings();
 			
 			if (defaultModuleProperties != null) {
+				properties.addComment(moduleInstance.getDescription());
 				properties.append(defaultModuleProperties, true);
 			}
 		}
