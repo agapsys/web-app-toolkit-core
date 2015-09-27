@@ -28,4 +28,14 @@ public class TestApplication extends WebApplication{
 	public String getVersion() {
 		return Defs.APP_VERSION;
 	}
+
+	@Override
+	protected boolean isDebugEnabled() {
+		return true;
+	}
+
+	@Override
+	public String getEnvironment() {
+		return Defs.ENVIRONMENT;
+	}
 }

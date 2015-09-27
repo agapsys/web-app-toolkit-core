@@ -183,11 +183,6 @@ public abstract class WebApplication implements ServletContextListener {
 		if (callerModules == null)
 			callerModules = new LinkedList<>();
 		
-		if (callerModules.contains(moduleId))
-			throw new RuntimeException("Cyclic dependency on module: " + moduleId);
-
-		callerModules.add(moduleId);
-		
 		Module moduleInstance = getModuleInstance(moduleId);
 		
 		if (moduleInstance == null && mandatory)
@@ -197,6 +192,12 @@ public abstract class WebApplication implements ServletContextListener {
 			debug("\tOptional module not found: %s", moduleId);
 		
 		if (moduleInstance != null && !moduleInstance.isRunning()) {
+			
+			if (callerModules.contains(moduleId))
+				throw new RuntimeException("Cyclic dependency on module: " + moduleId);
+
+			callerModules.add(moduleId);
+			
 			Set<String> mandatoryDependencies = moduleInstance.getMandatoryDependencies();
 			Set<String> optionalDependencies = moduleInstance.getOptionalDependencies();
 

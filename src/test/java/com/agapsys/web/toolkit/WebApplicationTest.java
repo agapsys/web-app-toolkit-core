@@ -242,6 +242,29 @@ public class WebApplicationTest  {
 			return CustomSmtpModule.class;
 		}
 	}
+	
+	private static class FullFledgedApplication extends WebApplicationBase {
+
+		@Override
+		protected Class<? extends PersistenceModule> getPersistenceModuleClass() {
+			return CustomPersistenceModule.class;
+		}
+
+		@Override
+		protected Class<? extends LoggingModule> getLoggingModuleClass() {
+			return CustomLoggingModule.class;
+		}
+
+		@Override
+		protected Class<? extends SmtpModule> getSmtpModuleClass() {
+			return CustomSmtpModule.class;
+		}
+
+		@Override
+		protected Class<? extends ExceptionReporterModule> getExceptionReporterModuleClass() {
+			return CustomExceptionReporterModule.class;
+		}
+	}
 	// =========================================================================
 
 	// INSTANCE SCOPE ==========================================================
@@ -378,6 +401,34 @@ public class WebApplicationTest  {
 		
 		webApp.stop();
 		Assert.assertTrue(webApp.isOnSmtpModuleStopCalled());
+	}
+	
+	@Test
+	public void Full_fledged_application_test() {
+		Utils.printCurrentMethod();
+		
+		WebApplicationBase webApp = new FullFledgedApplication();
+		webApp.start();
+		
+		Assert.assertTrue(webApp.isOnPersistenceModuleStartCalled());
+		Assert.assertTrue(webApp.isOnLogginModuleStartCalled());
+		Assert.assertTrue(webApp.isOnSmtpModuleStartCalled());
+		Assert.assertTrue(webApp.isOnExceptionReporterModuleStartCalled());
+		
+		webApp.stop();
+		Assert.assertTrue(webApp.isOnPersistenceModuleStopCalled());
+		Assert.assertTrue(webApp.isOnLoggingModuleStopCalled());
+		Assert.assertTrue(webApp.isOnSmtpModuleStopCalled());
+		Assert.assertTrue(webApp.isOnExceptionReporterModuleStopCalled());
+	}
+	
+	@Test
+	public void Full_fledged_application_with_standard_modules_test() {
+		Utils.printCurrentMethod();
+
+		TestApplication app = new TestApplication();
+		app.start();
+		app.stop();
 	}
 	// =========================================================================
 }
