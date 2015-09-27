@@ -16,6 +16,7 @@
 
 package com.agapsys.web.toolkit;
 
+import com.agapsys.Utils;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -605,16 +606,22 @@ public class ExceptionReporterModuleTest {
 	
 	@Test(expected = IllegalArgumentException.class)
 	public void nullRequest() {
+		Utils.printCurrentMethod();
+		
 		module.reportErroneousRequest(null, resp);
 	}
 	
 	@Test(expected = IllegalArgumentException.class)
 	public void nullResponse() {
+		Utils.printCurrentMethod();
+		
 		module.reportErroneousRequest(req, null);
 	}
 	
 	@Test
 	public void reportWhileNotRunning() {
+		Utils.printCurrentMethod();
+		
 		Assert.assertFalse(module.isRunning());
 		module.reportErroneousRequest(req, resp);
 		Assert.assertFalse(module.methodCalled);
@@ -622,6 +629,8 @@ public class ExceptionReporterModuleTest {
 	
 	@Test
 	public void logWhileRunning() {
+		Utils.printCurrentMethod();
+		
 		module.start();
 		module.reportErroneousRequest(req, resp);
 		Assert.assertTrue(module.methodCalled);

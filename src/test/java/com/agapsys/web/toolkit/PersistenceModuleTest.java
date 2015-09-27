@@ -16,6 +16,7 @@
 
 package com.agapsys.web.toolkit;
 
+import com.agapsys.Utils;
 import javax.persistence.EntityManager;
 import org.junit.Assert;
 import org.junit.Before;
@@ -48,17 +49,23 @@ public class PersistenceModuleTest {
 	
 	@Test
 	public void sanityCheck() {
+		Utils.printCurrentMethod();
+		
 		Assert.assertFalse(module.methodCalled);
 		Assert.assertFalse(module.isRunning());
 	}
 	
 	@Test(expected = IllegalStateException.class)
 	public void testGetEntityManagerWhileNotRunning() {
+		Utils.printCurrentMethod();
+		
 		module.getEntityManager();
 	}
 	
 	@Test
 	public void testGetEntityManagerWhileRunning() {
+		Utils.printCurrentMethod();
+		
 		module.start();
 		Assert.assertNull(module.getEntityManager());
 		Assert.assertTrue(module.methodCalled);

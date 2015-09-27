@@ -22,6 +22,7 @@ import com.agapsys.web.toolkit.LoggingModule;
 import com.agapsys.web.toolkit.SmtpModule;
 import com.agapsys.web.toolkit.WebApplication;
 import com.agapsys.web.toolkit.utils.Properties;
+import java.util.LinkedHashSet;
 import java.util.Set;
 import javax.mail.MessagingException;
 
@@ -31,6 +32,8 @@ import javax.mail.MessagingException;
  */
 public class DefaultSmtpExceptionReporterModule extends DefaultExceptionReporterModule {
 	// CLASS SCOPE =============================================================
+	private static final String SMTP_MODULE_ID = com.agapsys.web.toolkit.application.WebApplication.SMTP_MODULE_ID;
+	
 	public static final String KEY_ERR_MAIL_RECIPIENTS   = "com.agapsys.web.errMailRecipients";
 	public static final String KEY_ERR_MAIL_SUBJECT      = "com.agapsys.web.errSubject";
 	public static final String RECIPIENT_DELIMITER = ",";
@@ -53,20 +56,25 @@ public class DefaultSmtpExceptionReporterModule extends DefaultExceptionReporter
 	// INSTANCE SCOPE ==========================================================
 	private String[] msgRecipients = null;
 	private String   msgSubject    = null;
-	private boolean  initialized   = false;
 
 	public DefaultSmtpExceptionReporterModule(WebApplication application) {
 		super(application);
 	}
 	
+	protected String getSmtpModuleId() {
+		return SMTP_MODULE_ID;
+	}
+	
 	@Override
 	protected Set<String> getMandatoryDependencies() {
-		if (!initialized) {
-			super.getMandatoryDependencies().add(com.agapsys.web.toolkit.application.WebApplication.SMTP_MODULE_ID);
-			initialized = true;
-		}
+		Set<String> superMandatoryDeps = super.getMandatoryDependencies();
 		
-		return super.getMandatoryDependencies();
+		Set<String> deps = new LinkedHashSet<>();
+		if (superMandatoryDeps != null)
+			deps.addAll(superMandatoryDeps);
+		
+		deps.add(getSmtpModuleId());
+		return deps;
 	}
 	
 	@Override
@@ -96,9 +104,9 @@ public class DefaultSmtpExceptionReporterModule extends DefaultExceptionReporter
 	public Properties getDefaultSettings() {
 		return DEFAULT_PROPERTIES;
 	}
-	
-	protected SmtpModule getSmtpModule() {
-		return (SmtpModule) getApplication().getModuleInstance(com.agapsys.web.toolkit.application.WebApplication.SMTP_MODULE_ID);
+
+	private SmtpModule getSmtpModule() {
+		return (SmtpModule) getApplication().getModuleInstance(getSmtpModuleId());
 	}
 
 	@Override
@@ -113,7 +121,7 @@ public class DefaultSmtpExceptionReporterModule extends DefaultExceptionReporter
 					.build();
 				getSmtpModule().sendMessage(msg);
 			} catch (MessagingException ex) {
-				getLoggingModule().log(LoggingModule.LOG_TYPE_ERROR, String.format("Error sending error report:\n----\n%s\n----", DefaultExceptionReporterModule.getStackTrace(ex)));
+				log(LoggingModule.LOG_TYPE_ERROR, String.format("Error sending error report:\n----\n%s\n----", DefaultExceptionReporterModule.getStackTrace(ex)));
 				throw new RuntimeException(ex);
 			}
 		}

@@ -29,7 +29,13 @@ import com.agapsys.web.toolkit.utils.DateUtils;
  * @author Leandro Oliveira (leandro@agapsys.com)
  */
 public class DefaultLoggingModule extends LoggingModule {
-
+	// CLASS SCOPE =============================================================
+	static void defaultLog(String logType, String message) {
+		Console.println(String.format("[%s] [%s] %s", DateUtils.getLocalTimestamp(), logType, message));
+	}
+	// =========================================================================
+	
+	// INSTANCE SCOPE ==========================================================
 	public DefaultLoggingModule(WebApplication application) {
 		super(application);
 	}
@@ -38,4 +44,5 @@ public class DefaultLoggingModule extends LoggingModule {
 	protected void onLog(String logType, String message) {
 		Console.println(String.format("[%s] [%s] %s", DateUtils.getLocalTimestamp(), logType, message));
 	}
+	// =========================================================================
 }

@@ -60,12 +60,12 @@ public abstract class WebApplication implements ServletContextListener {
 	// =========================================================================
 	
 	// INSTANCE SCOPE ==========================================================
-	private Map<String, Module> moduleMap          = new LinkedHashMap<>();
-	private List<Module>        loadedModules      = null;
-	private Properties          properties         = null;
-	private Properties          readOnlyProperties = null;
-
+	private final Map<String, Module> moduleMap          = new LinkedHashMap<>();
+	private final List<Module>        loadedModules      = new LinkedList<>();
+	private final Properties          properties         = new Properties();
 	
+	private Properties readOnlyProperties = null;
+
 	/** @return a boolean indicating if debug messages shall be printed. */
 	protected boolean isDebugEnabled() {
 		return ManagementFactory.getRuntimeMXBean().getInputArguments().toString().indexOf("-agentlib:jdwp") > 0;
@@ -104,7 +104,7 @@ public abstract class WebApplication implements ServletContextListener {
 	/** @return the application version **/
 	public abstract String getVersion();
 
-	/** @return the folder where application stores resources outside application context in servlet container. Default implementation will create application if it not exists */
+	/** @return the folder where application stores resources outside application context in servlet container. Default implementation will create folder if it not exists */
 	public File getFolder() {
 		return FileUtils.getOrCreateFolder(new File(FileUtils.USER_HOME, "." + getName()).getAbsolutePath());
 	}
@@ -124,17 +124,11 @@ public abstract class WebApplication implements ServletContextListener {
 	 * @return registered module instance or null if there is no such module.
 	 */
 	public final Module getModuleInstance(String moduleId) {
-		if (moduleMap == null)
-			return null;
-		
 		return moduleMap.get(moduleId);
 	}
 	
 	/** @return application properties. */
 	public final Properties getProperties() {
-		if (properties == null)
-			return null;
-		
 		if (readOnlyProperties == null)
 			readOnlyProperties = properties.getUnmodifiableProperties();
 		
@@ -142,8 +136,9 @@ public abstract class WebApplication implements ServletContextListener {
 	}
 	
 	
-	private Properties getSettings() throws IOException {
-		Properties tmpProperties = new Properties();
+	private void loadSettings() throws IOException {
+		properties.clear();
+		readOnlyProperties = null;
 		
 		String environment = getEnvironment();
 		
@@ -156,26 +151,24 @@ public abstract class WebApplication implements ServletContextListener {
 			debug("Loading settings file...");
 
 			// Load settings from file...
-			tmpProperties.load(settingsFile);
+			properties.load(settingsFile);
 		}
 
 		for (Map.Entry<String, Module> entry : moduleMap.entrySet()) {
 			Module moduleInstance = entry.getValue();
 			
-			tmpProperties.addComment(moduleInstance.getDescription());
+			properties.addComment(moduleInstance.getDescription());
 			Properties defaultModuleProperties = moduleInstance.getDefaultSettings();
 			
 			if (defaultModuleProperties != null) {
-				tmpProperties.append(defaultModuleProperties, true);
+				properties.append(defaultModuleProperties, true);
 			}
 		}
 		
 		if (!settingsFile.exists()) {
 			debug("Creating default settings file...");
-			tmpProperties.store(settingsFile);
+			properties.store(settingsFile);
 		}
-		
-		return tmpProperties;
 	}	
 
 	private Module instantiateModule(Class<? extends Module> moduleClass)  {
@@ -201,7 +194,7 @@ public abstract class WebApplication implements ServletContextListener {
 			throw new RuntimeException("Mandatory module not registered: " + moduleId);
 		
 		if (moduleInstance == null && !mandatory)
-			debug("Optional module not found: %s", moduleId);
+			debug("\tOptional module not found: %s", moduleId);
 		
 		if (moduleInstance != null && !moduleInstance.isRunning()) {
 			Set<String> mandatoryDependencies = moduleInstance.getMandatoryDependencies();
@@ -236,9 +229,7 @@ public abstract class WebApplication implements ServletContextListener {
 			}
 
 			moduleInstance.start();
-
-			if (loadedModules == null)
-				loadedModules = new LinkedList<>();
+			debug("\tModule loaded: %s", moduleInstance.getDescription());
 
 			loadedModules.add(moduleInstance);
 		}
@@ -280,8 +271,6 @@ public abstract class WebApplication implements ServletContextListener {
 			debug("Environment set: %s", environment);
 			
 			Map<String, Class<? extends Module>> moduleClassMap = getModules();
-			if (moduleMap == null)
-				moduleMap = new LinkedHashMap<>();
 			
 			// Instantiate all modules...
 			for (Map.Entry<String, Class<? extends Module>> entry : moduleClassMap.entrySet()) {
@@ -290,16 +279,18 @@ public abstract class WebApplication implements ServletContextListener {
 
 			try {
 				debug("Loading settings...");
-				properties = getSettings();
+				loadSettings();
 			} catch (IOException ex) {
 				throw new RuntimeException(ex);
 			}
 
 			// Starts all modules
-			debug("Loading modules...");
-			for (Map.Entry<String, Module> entry : moduleMap.entrySet()) {
-				if (!entry.getValue().isRunning()) {
-					startModule(entry.getKey(), true, null);
+			if (moduleMap.size() > 0) {
+				debug("Loading modules...");
+				for (Map.Entry<String, Module> entry : moduleMap.entrySet()) {
+					if (!entry.getValue().isRunning()) {
+						startModule(entry.getKey(), true, null);
+					}
 				}
 			}
 			
@@ -331,19 +322,9 @@ public abstract class WebApplication implements ServletContextListener {
 			beforeApplicationShutdown();
 			
 			shutdownModules();
-			if (loadedModules != null) {
-				loadedModules.clear();
-				loadedModules = null;
-				loadedModules = null;
-			}
-			
-			if (moduleMap != null) {
-				moduleMap.clear();
-				moduleMap = null;
-				moduleMap = null;
-			}
-			
-			properties = null;
+			loadedModules.clear();
+			moduleMap.clear();
+			properties.clear();
 			readOnlyProperties = null;
 			singleton = null;
 			

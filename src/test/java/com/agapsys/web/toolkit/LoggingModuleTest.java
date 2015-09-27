@@ -16,6 +16,7 @@
 
 package com.agapsys.web.toolkit;
 
+import com.agapsys.Utils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -46,16 +47,22 @@ public class LoggingModuleTest {
 	
 	@Test(expected = IllegalArgumentException.class)
 	public void nullLogType() {
+		Utils.printCurrentMethod();
+		
 		module.log(null, "msg");
 	}
 	
 	@Test(expected = IllegalArgumentException.class)
 	public void nullMessage() {
+		Utils.printCurrentMethod();
+		
 		module.log("info", null);
 	}
 	
 	@Test
 	public void logWhileNotRunning() {
+		Utils.printCurrentMethod();
+		
 		Assert.assertFalse(module.isRunning());
 		module.log("info", "test");
 		Assert.assertFalse(module.methodCalled);
@@ -63,6 +70,8 @@ public class LoggingModuleTest {
 	
 	@Test
 	public void logWhileRunning() {
+		Utils.printCurrentMethod();
+		
 		module.start();
 		module.log("info", "test");
 		Assert.assertTrue(module.methodCalled);

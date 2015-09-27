@@ -33,6 +33,8 @@ import javax.mail.internet.InternetAddress;
 
 public class DefaultSmtpModule extends SmtpModule {
 	// CLASS SCOPE =============================================================
+	private static final String LOGGING_MODULE_ID = com.agapsys.web.toolkit.application.WebApplication.LOGGING_MODULE_ID;
+	
 	public static final String KEY_SMTP_MAIL_SENDER = "com.agapsys.web.smtp.sender";
 	
 	public static final String DEFAULT_SMTP_SENDER   = "no-reply@email.com";
@@ -57,30 +59,45 @@ public class DefaultSmtpModule extends SmtpModule {
 		DEFAULT_PROPERTIES.setProperty(SmtpSettings.KEY_SECURITY, DEFAULT_SMTP_SECURITY);
 		DEFAULT_PROPERTIES.setProperty(SmtpSettings.KEY_PORT,     DEFAULT_SMTP_PORT);
 	}
-	
 	// =========================================================================
 
 	// INSTANCE SCOPE ==========================================================
 	private SmtpSender      smtpSender = null;
 	private InternetAddress sender     = null;
-	private final Set<String> optionalDependencies = new LinkedHashSet<>();
 
 	public DefaultSmtpModule(WebApplication application) {
 		super(application);
-		optionalDependencies.add(com.agapsys.web.toolkit.application.WebApplication.LOGGING_MODULE_ID);
-
 	}
 
+	protected String getLoggingModuleId() {
+		return LOGGING_MODULE_ID;
+	}
+	
 	@Override
 	protected Set<String> getOptionalDependencies() {
-		return optionalDependencies;
+		Set<String> deps = new LinkedHashSet<>();
+		deps.add(getLoggingModuleId());
+		return deps;
+	}
+	
+	private LoggingModule getLoggingModule() {
+		return (LoggingModule) getApplication().getModuleInstance(getLoggingModuleId());
+	}
+	
+	protected void log(String logType, String message) {
+		LoggingModule loggingModule = getLoggingModule();
+		
+		if (loggingModule != null) {
+			loggingModule.log(logType, message);
+		} else {
+			DefaultLoggingModule.defaultLog(logType, message);
+		}
 	}
 	
 	@Override
 	protected void onStart() {
-		WebApplication app = getApplication();
 		java.util.Properties props = new java.util.Properties();
-		props.putAll(WebApplication.getInstance().getProperties().getEntries());
+		props.putAll(getApplication().getProperties().getEntries());
 		
 		SmtpSettings settings = new SmtpSettings(props);
 		smtpSender = new SmtpSender(settings);
@@ -117,9 +134,7 @@ public class DefaultSmtpModule extends SmtpModule {
 				}
 				smtpSender.sendMessage(message);
 			} catch (MessagingException ex) {
-				LoggingModule loggingModule = (LoggingModule) WebApplication.getInstance().getModuleInstance(com.agapsys.web.toolkit.application.WebApplication.LOGGING_MODULE_ID);
-				if (loggingModule != null)
-					loggingModule.log(LoggingModule.LOG_TYPE_ERROR, "Error sending message: " + ex.getMessage());
+				log(LoggingModule.LOG_TYPE_ERROR, "Error sending message: " + ex.getMessage());
 				throw new RuntimeException(ex);
 			}
 		}

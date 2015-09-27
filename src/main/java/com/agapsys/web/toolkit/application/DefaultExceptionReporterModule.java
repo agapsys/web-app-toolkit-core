@@ -30,15 +30,13 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 /**
- * Default implementation of a crash reporter module.
- * 
- * When an error happens in the application and erroneous request is handled by
- * this module, application logs the error.
- * 
+ * Default implementation of an exception reporter module.
  * @author Leandro Oliveira (leandro@agapsys.com)
  */
 public class DefaultExceptionReporterModule extends ExceptionReporterModule {
 	// CLASS SCOPE =============================================================
+	private static final String LOGGING_MODULE_ID = com.agapsys.web.toolkit.application.WebApplication.LOGGING_MODULE_ID;
+
 	public static final int DEFAULT_STACKTRACE_HISTORY_SIZE = 5;
 	
 	public static final String KEY_NODE_NAME = "com.agapsys.web.nodeName";
@@ -55,26 +53,31 @@ public class DefaultExceptionReporterModule extends ExceptionReporterModule {
 
 	// INSTANCE SCOPE ==========================================================
 	private String nodeName = null;
+	
 	private final List<String> stacktraceHistory = new LinkedList<>();
-	private final Set<String> mandatoryDependencies = new LinkedHashSet<>();
 
 	public DefaultExceptionReporterModule(WebApplication application) {
 		super(application);
-		mandatoryDependencies.add(com.agapsys.web.toolkit.application.WebApplication.LOGGING_MODULE_ID);
 	}
 
-	@Override
-	protected Set<String> getMandatoryDependencies() {
-		return mandatoryDependencies;
-	}
-	
 	protected int getStacktraceHistorySize() {
 		return DEFAULT_STACKTRACE_HISTORY_SIZE;
 	}
 
+	protected String getLoggingModuleId() {
+		return LOGGING_MODULE_ID;
+	}
+	
+	@Override
+	protected Set<String> getOptionalDependencies() {
+		Set<String> deps = new LinkedHashSet<>();
+		deps.add(getLoggingModuleId());
+		return deps;
+	}
+	
 	@Override
 	protected void onStart() {
-		nodeName = WebApplication.getInstance().getProperties().getProperty(KEY_NODE_NAME, DEFAULT_NODE_NAME);
+		nodeName = getApplication().getProperties().getProperty(KEY_NODE_NAME, DEFAULT_NODE_NAME);
 	}
 
 	@Override
@@ -87,6 +90,25 @@ public class DefaultExceptionReporterModule extends ExceptionReporterModule {
 		return DEFAULT_PROPERTIES;
 	}
 	
+	private LoggingModule getLoggingModule() {
+		return (LoggingModule) getApplication().getModuleInstance(getLoggingModuleId());
+	}
+	
+	/** 
+	 * Logs messages in this module.
+	 * Default implementation just prints given message to console
+	 * @param logType log type
+	 * @param message message to be logged.
+	 */
+	protected void log(String logType, String message) {
+		LoggingModule loggingModule = getLoggingModule();
+		
+		if (loggingModule != null)
+			loggingModule.log(logType, message);
+		else		
+			DefaultLoggingModule.defaultLog(logType, message);
+	}
+
 	/** 
 	 * Returns the message generated for error report.
 	 * @param statusCode HTTP status code of the error
@@ -104,8 +126,8 @@ public class DefaultExceptionReporterModule extends ExceptionReporterModule {
 		String msg =
 			"An error was detected"
 			+ "\n\n"
-			+ "Application: " + WebApplication.getInstance().getName() + "\n"
-			+ "Application version: " + WebApplication.getInstance().getVersion() + "\n"
+			+ "Application: " + getApplication().getName() + "\n"
+			+ "Application version: " + getApplication().getVersion() + "\n"
 			+ "Node name: " + nodeName + "\n\n"
 			+ "Server timestamp: " + DateUtils.getLocalTimestamp() + "\n"
 			+ "Status code: " + statusCode + "\n"
@@ -118,17 +140,13 @@ public class DefaultExceptionReporterModule extends ExceptionReporterModule {
 		
 		return msg;
 	}
-	
-	protected LoggingModule getLoggingModule() {
-		return (LoggingModule) getApplication().getModuleInstance(com.agapsys.web.toolkit.application.WebApplication.LOGGING_MODULE_ID);
-	}
-	
+		
 	/** 
 	 * Logs the error.
 	 * @param message complete error message
 	 */
 	protected void reportError(String message) {
-		getLoggingModule().log(LoggingModule.LOG_TYPE_ERROR, String.format("Application error:\n----\n%s\n----", message));
+		log(LoggingModule.LOG_TYPE_ERROR, String.format("Application error:\n----\n%s\n----", message));
 	}
 	
 	/**
@@ -141,9 +159,9 @@ public class DefaultExceptionReporterModule extends ExceptionReporterModule {
 		if (stacktraceHistory.contains(stacktrace)) {
 			return true;
 		} else {
-			if (stacktraceHistory.size() == getStacktraceHistorySize()) {
+			if (stacktraceHistory.size() == getStacktraceHistorySize())
 				stacktraceHistory.remove(0); // Remove oldest
-			}
+			
 			stacktraceHistory.add(stacktrace);
 			return false;
 		}
@@ -165,10 +183,10 @@ public class DefaultExceptionReporterModule extends ExceptionReporterModule {
 				if (!skipErrorReport(throwable))
 					reportError(getErrorMessage(statusCode, throwable, exceptionType, exceptionMessage, requestUri, userAgent, clientIp));
 				else
-					getLoggingModule().log(LoggingModule.LOG_TYPE_WARNING, "Application error (already reported): " + throwable.getMessage());
+					log(LoggingModule.LOG_TYPE_WARNING, "Application error (already reported): " + throwable.getMessage());
 			} else {
 				String extraInfo = String.format("User-agent: %s\nClient IP:%s, Request URL: %s", userAgent, clientIp, requestUri);
-				getLoggingModule().log(LoggingModule.LOG_TYPE_ERROR, String.format("Bad request for maintenance module:\n----\n%s\n----", extraInfo));
+				log(LoggingModule.LOG_TYPE_ERROR, String.format("Bad request for maintenance module:\n----\n%s\n----", extraInfo));
 				resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 			}
 		}

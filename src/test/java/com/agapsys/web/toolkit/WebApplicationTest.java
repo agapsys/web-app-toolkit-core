@@ -16,6 +16,7 @@
 
 package com.agapsys.web.toolkit;
 
+import com.agapsys.Utils;
 import com.agapsys.web.toolkit.application.DefaultPersistenceModule;
 import com.agapsys.web.toolkit.application.DefaultLoggingModule;
 import com.agapsys.web.toolkit.application.DefaultExceptionReporterModule;
@@ -27,17 +28,19 @@ import org.junit.Test;
 public class WebApplicationTest  {
 	// CLASS SCOPE =============================================================
 	private static class CustomPersistenceModule extends DefaultPersistenceModule {
-		public CustomPersistenceModule(WebApplicationBase application) {
+		public CustomPersistenceModule(WebApplication application) {
 			super(application);
 		}
 
 		@Override
 		protected void onStart() {
+			super.onStart();
 			((WebApplicationBase)getApplication()).onPersistenceModuleStartCalled = true;
 		}
 
 		@Override
 		protected void onStop() {
+			super.onStop();
 			((WebApplicationBase)getApplication()).onPersistenceModuleStopCalled = true;
 		}
 	}
@@ -50,11 +53,13 @@ public class WebApplicationTest  {
 
 		@Override
 		protected void onStart() {
+			super.onStart();
 			((WebApplicationBase)getApplication()).onLogginModuleStartCalled = true;
 		}
 
 		@Override
 		protected void onStop() {
+			super.onStop();
 			((WebApplicationBase)getApplication()).onLoggingModuleStopCalled = true;
 		}
 	}
@@ -67,11 +72,13 @@ public class WebApplicationTest  {
 
 		@Override
 		protected void onStart() {
+			super.onStart();
 			((WebApplicationBase)getApplication()).onExceptionReporterModuleStartCalled = true;
 		}
 
 		@Override
 		protected void onStop() {
+			super.onStop();
 			((WebApplicationBase)getApplication()).onExceptionReporterModuleStopCalled = true;
 		}
 	}
@@ -84,11 +91,13 @@ public class WebApplicationTest  {
 
 		@Override
 		protected void onStart() {
+			super.onStart();
 			((WebApplicationBase)getApplication()).onSmtpModuleStartCalled = true;
 		}
 
 		@Override
 		protected void onStop() {
+			super.onStop();
 			((WebApplicationBase)getApplication()).onSmtpModuleStopCalled = true;
 		}
 	}
@@ -219,6 +228,11 @@ public class WebApplicationTest  {
 		protected Class<? extends ExceptionReporterModule> getExceptionReporterModuleClass() {
 			return CustomExceptionReporterModule.class;
 		}
+
+		@Override
+		protected Class<? extends LoggingModule> getLoggingModuleClass() {
+			return CustomLoggingModule.class;
+		}
 	}
 	
 	private static class WebApplicationWithSmtpSender extends WebApplicationBase {
@@ -233,6 +247,8 @@ public class WebApplicationTest  {
 	// INSTANCE SCOPE ==========================================================
 	@Test
 	public void Simple_web_application_start_stop_test() {
+		Utils.printCurrentMethod();
+		
 		WebApplicationBase webApp = new WebApplicationBase();
 		webApp.start();
 		Assert.assertTrue(webApp.isOnApplicationStartCalled());
@@ -252,6 +268,9 @@ public class WebApplicationTest  {
 	
 	@Test(expected = IllegalStateException.class)
 	public void Simple_web_application_getName_test() {
+		Utils.printCurrentMethod();
+		
+		
 		WebApplication webApp = new WebApplicationBase();
 		webApp.start();
 		Assert.assertEquals(Defs.APP_NAME, WebApplication.getInstance().getName());
@@ -261,6 +280,8 @@ public class WebApplicationTest  {
 	
 	@Test(expected = IllegalStateException.class)
 	public void Simple_web_application_getVersion_test() {
+		Utils.printCurrentMethod();
+		
 		WebApplication webApp = new WebApplicationBase();
 		webApp.start();
 		Assert.assertEquals(Defs.APP_VERSION, WebApplication.getInstance().getVersion());
@@ -271,6 +292,8 @@ public class WebApplicationTest  {
 	
 	@Test(expected = IllegalStateException.class)
 	public void Simple_web_application_getEnvironment_test() {
+		Utils.printCurrentMethod();
+		
 		WebApplication webApp = new WebApplicationBase();
 		webApp.start();
 		Assert.assertEquals(Defs.ENVIRONMENT, WebApplication.getInstance().getEnvironment());
@@ -281,6 +304,8 @@ public class WebApplicationTest  {
 	
 	@Test(expected = IllegalStateException.class)
 	public void Simple_web_application_getAppFolder_test() {
+		Utils.printCurrentMethod();
+		
 		WebApplication webApp = new WebApplicationBase();
 		webApp.start();
 		
@@ -293,23 +318,27 @@ public class WebApplicationTest  {
 	
 	@Test (expected = IllegalStateException.class)
 	public void Simple_web_application_getEntityManager_test() {
+		Utils.printCurrentMethod();
+		
 		WebApplication webApp = new WebApplicationBase();
 		webApp.start();
 		
-		Assert.assertNull(((TestApplication)WebApplication.getInstance()).getEntityManager());
+		Assert.assertNull(WebApplicationBase.getEntityManager());
 		
 		webApp.stop();
-		((TestApplication)WebApplication.getInstance()).getEntityManager();
+		WebApplicationBase.getEntityManager();
 	}
 	
 	
 	@Test
 	public void Web_application_with_persistence_test() {
+		Utils.printCurrentMethod();
+		
 		WebApplicationBase webApp = new WebApplicationWithPersistence();
 		webApp.start();
 		Assert.assertTrue(webApp.isOnPersistenceModuleStartCalled());
 		
-		Assert.assertNotNull(((TestApplication)WebApplication.getInstance()).getEntityManager());
+		Assert.assertNotNull(WebApplicationBase.getEntityManager());
 		
 		webApp.stop();
 		Assert.assertTrue(webApp.isOnPersistenceModuleStopCalled());
@@ -317,6 +346,8 @@ public class WebApplicationTest  {
 	
 	@Test
 	public void Web_application_with_logging_test() {
+		Utils.printCurrentMethod();
+		
 		WebApplicationBase webApp = new WebApplicationWithLogging();
 		webApp.start();
 		Assert.assertTrue(webApp.isOnLogginModuleStartCalled());
@@ -327,6 +358,8 @@ public class WebApplicationTest  {
 	
 	@Test
 	public void Web_application_with_error_report_test() {
+		Utils.printCurrentMethod();
+		
 		WebApplicationBase webApp = new WebApplicationWithErrorReport();
 		webApp.start();
 		Assert.assertTrue(webApp.isOnExceptionReporterModuleStartCalled());
@@ -337,6 +370,8 @@ public class WebApplicationTest  {
 	
 	@Test
 	public void Web_application_with_smtp_sender_test() {
+		Utils.printCurrentMethod();
+		
 		WebApplicationBase webApp = new WebApplicationWithSmtpSender();
 		webApp.start();
 		Assert.assertTrue(webApp.isOnSmtpModuleStartCalled());
