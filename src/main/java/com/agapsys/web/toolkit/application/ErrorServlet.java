@@ -16,6 +16,7 @@
 
 package com.agapsys.web.toolkit.application;
 
+import com.agapsys.web.toolkit.ExceptionReporterModule;
 import java.io.IOException;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -36,7 +37,8 @@ public class ErrorServlet extends HttpServlet {
 	// INSTANCE SCOPE ==========================================================		
 	@Override
 	protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-		WebApplication.reportErroneousRequest(req, resp);
+		if (ExceptionReporterModule.getException(req) != null)
+			WebApplication.reportErroneousRequest(req, resp);
 	}
 	// =========================================================================
 }
