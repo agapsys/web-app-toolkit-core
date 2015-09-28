@@ -24,8 +24,8 @@ import com.agapsys.mail.SmtpSender;
 import com.agapsys.mail.SmtpSettings;
 import com.agapsys.web.toolkit.LoggingModule;
 import com.agapsys.web.toolkit.SmtpModule;
-import com.agapsys.web.toolkit.utils.Properties;
 import java.util.LinkedHashSet;
+import java.util.Properties;
 import java.util.Set;
 import javax.mail.MessagingException;
 import javax.mail.internet.AddressException;
@@ -97,7 +97,7 @@ public class DefaultSmtpModule extends SmtpModule {
 	@Override
 	protected void onStart() {
 		java.util.Properties props = new java.util.Properties();
-		props.putAll(getApplication().getProperties().getEntries());
+		props.putAll(getApplication().getProperties());
 		
 		SmtpSettings settings = new SmtpSettings(props);
 		smtpSender = new SmtpSender(settings);

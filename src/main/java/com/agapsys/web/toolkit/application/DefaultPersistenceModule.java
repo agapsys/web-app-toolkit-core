@@ -18,9 +18,9 @@ package com.agapsys.web.toolkit.application;
 
 import com.agapsys.web.toolkit.WebApplication;
 import com.agapsys.web.toolkit.PersistenceModule;
-import com.agapsys.web.toolkit.utils.Properties;
 import com.agapsys.web.toolkit.utils.RuntimeJarLoader;
 import java.io.File;
+import java.util.Properties;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
@@ -133,7 +133,7 @@ public class DefaultPersistenceModule extends PersistenceModule {
 		}
 		
 		java.util.Properties props = new java.util.Properties();
-		props.putAll(appProperties.getEntries());
+		props.putAll(appProperties);
 		emf = Persistence.createEntityManagerFactory(getDefaultPersistenceUnitName(), props);
 	}
 	

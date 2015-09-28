@@ -15,7 +15,7 @@
  */
 package com.agapsys.web.toolkit;
 
-import com.agapsys.web.toolkit.utils.Properties;
+import java.util.Properties;
 import java.util.Set;
 
 /**

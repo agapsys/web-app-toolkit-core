@@ -21,8 +21,8 @@ import com.agapsys.mail.MessageBuilder;
 import com.agapsys.web.toolkit.LoggingModule;
 import com.agapsys.web.toolkit.SmtpModule;
 import com.agapsys.web.toolkit.WebApplication;
-import com.agapsys.web.toolkit.utils.Properties;
 import java.util.LinkedHashSet;
+import java.util.Properties;
 import java.util.Set;
 import javax.mail.MessagingException;
 

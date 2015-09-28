@@ -18,8 +18,9 @@ package com.agapsys.web.toolkit;
 
 import com.agapsys.utils.console.Console;
 import com.agapsys.web.toolkit.utils.FileUtils;
-import com.agapsys.web.toolkit.utils.Properties;
+import com.agapsys.web.toolkit.utils.PropertyGroup;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.lang.reflect.InvocationTargetException;
@@ -28,6 +29,7 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
@@ -64,8 +66,6 @@ public abstract class WebApplication implements ServletContextListener {
 	private final List<Module>        loadedModules      = new LinkedList<>();
 	private final Properties          properties         = new Properties();
 	
-	private Properties readOnlyProperties = null;
-
 	/** @return a boolean indicating if debug messages shall be printed. */
 	protected boolean isDebugEnabled() {
 		return ManagementFactory.getRuntimeMXBean().getInputArguments().toString().indexOf("-agentlib:jdwp") > 0;
@@ -130,10 +130,7 @@ public abstract class WebApplication implements ServletContextListener {
 	
 	/** @return application properties. */
 	public final Properties getProperties() {
-		if (readOnlyProperties == null)
-			readOnlyProperties = properties.getUnmodifiableProperties();
-
-		return readOnlyProperties;
+		return properties;
 	}
 	
 	/** 
@@ -142,7 +139,6 @@ public abstract class WebApplication implements ServletContextListener {
 	 */
 	private void loadSettings() throws IOException {
 		properties.clear();
-		readOnlyProperties = null;
 		
 		String environment = getEnvironment();
 		
@@ -154,30 +150,29 @@ public abstract class WebApplication implements ServletContextListener {
 		if (settingsFile.exists()) {
 			debug("\tLoading settings file...");
 
-			// Load settings from file...
-			properties.load(settingsFile);
+			try (FileInputStream fis = new FileInputStream(settingsFile)) {
+				properties.load(fis);
+			}
 		}
 
-		int i = 0;
+		List<PropertyGroup> propertyGroups = new LinkedList<>();
 		for (Map.Entry<String, Module> entry : moduleMap.entrySet()) {
 			Module moduleInstance = entry.getValue();
 			
 			Properties defaultModuleProperties = moduleInstance.getDefaultSettings();
 			
 			if (defaultModuleProperties != null && !defaultModuleProperties.isEmpty()) {
-				if (i > 0)
-					properties.addEmptyLine();
+				propertyGroups.add(new PropertyGroup(defaultModuleProperties, moduleInstance.getDescription()));
 				
-				properties.addComment(moduleInstance.getDescription());
-				properties.append(defaultModuleProperties, true);
-				
-				i++;
+				for (Map.Entry<Object, Object> defaultEntry : defaultModuleProperties.entrySet()) {
+					properties.putIfAbsent(defaultEntry.getKey(), defaultEntry.getValue());
+				}
 			}
 		}
 		
 		if (!settingsFile.exists()) {
 			debug("\tCreating default settings file...");
-			properties.store(settingsFile);
+			PropertyGroup.writeToFile(settingsFile, propertyGroups);
 		}
 	}	
 
@@ -356,7 +351,6 @@ public abstract class WebApplication implements ServletContextListener {
 			loadedModules.clear();
 			moduleMap.clear();
 			properties.clear();
-			readOnlyProperties = null;
 			singleton = null;
 			
 			afterApplicationStop();
