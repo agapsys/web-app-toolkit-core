@@ -32,9 +32,9 @@ public class DefaultExceptionReporterModuleTest {
 		}
 
 		@Override
-		protected int getStacktraceHistorySize() {
+		public int getStacktraceHistorySize() {
 			return STACK_TRACE_HISTORY_SIZE;
-		}		
+		}
 		
 		@Override
 		public boolean skipErrorReport(Throwable t) {
@@ -49,6 +49,7 @@ public class DefaultExceptionReporterModuleTest {
 		Utils.printCurrentMethod();
 		
 		TestModule module = new TestModule(new TestApplication());
+		
 		RuntimeException re1 = new RuntimeException();
 		RuntimeException re2 = new RuntimeException();
 		RuntimeException re3 = new RuntimeException();

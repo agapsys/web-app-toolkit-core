@@ -34,57 +34,15 @@ public abstract class WebApplication extends com.agapsys.web.toolkit.WebApplicat
 	static final String EXCEPTION_REPORTER_MODULE_ID = WebApplication.class.getPackage().getName() + ".exceptionReporter";
 	static final String SMTP_MODULE_ID               = WebApplication.class.getPackage().getName() + ".smtp";
 	static final String LOGGING_MODULE_ID            = WebApplication.class.getPackage().getName() + ".logging";
-		
-	public static EntityManager getEntityManager() throws IllegalStateException {
-		PersistenceModule persistenceModule = (PersistenceModule) getInstance().getModuleInstance(PERSISTENCE_MODULE_ID);
-		
-		if (persistenceModule != null)
-			return persistenceModule.getEntityManager();
-		else
-			return null;
-	}
 	
-	public static void reportErroneousRequest(HttpServletRequest req, HttpServletResponse resp) {
-		ExceptionReporterModule exceptionReporterModule = (ExceptionReporterModule) getInstance().getModuleInstance(EXCEPTION_REPORTER_MODULE_ID);
-		
-		if (exceptionReporterModule != null)
-			exceptionReporterModule.reportErroneousRequest(req, resp);
-	}
-	
-	public static void sendMessage(Message message) {
-		SmtpModule smtpModule = (SmtpModule) getInstance().getModuleInstance(SMTP_MODULE_ID);
-		
-		if (smtpModule != null)
-			smtpModule.sendMessage(message);
-	}
-	
-	public static void log(String logType, String message) {
-		LoggingModule loggingModule = (LoggingModule) getInstance().getModuleInstance(LOGGING_MODULE_ID);
-		
-		if (loggingModule != null)
-			loggingModule.log(logType, message);
+	public static WebApplication getInstance() {
+		return (WebApplication) com.agapsys.web.toolkit.WebApplication.getInstance();
 	}
 	// =========================================================================
 
 	// INSTANCE SCOPE ==========================================================
-	protected Class<? extends PersistenceModule> getPersistenceModuleClass() {
-		return DefaultPersistenceModule.class;
-	}
-	
-	protected Class<? extends ExceptionReporterModule> getExceptionReporterModuleClass() {
-		return DefaultSmtpExceptionReporterModule.class;
-	}
-
-	protected Class<? extends SmtpModule> getSmtpModuleClass() {
-		return DefaultSmtpModule.class;
-	}
-	
-	protected Class<? extends LoggingModule> getLoggingModuleClass() {
-		return DefaultLoggingModule.class;
-	}
-
 	@Override
-	protected Map<String, Class<? extends Module>> getModules() {
+	protected Map<String, Class<? extends Module>> getModuleClassMap() {
 		Map<String, Class<? extends Module>> moduleMap = new LinkedHashMap<>();
 
 		Class<? extends Module> persistenceModuleClass       = getPersistenceModuleClass();
@@ -105,6 +63,52 @@ public abstract class WebApplication extends com.agapsys.web.toolkit.WebApplicat
 			moduleMap.put(LOGGING_MODULE_ID, getLoggingModuleClass());
 		
 		return moduleMap;
+	}
+	
+	protected Class<? extends PersistenceModule> getPersistenceModuleClass() {
+		return DefaultPersistenceModule.class;
+	}
+	
+	protected Class<? extends ExceptionReporterModule> getExceptionReporterModuleClass() {
+		return DefaultSmtpExceptionReporterModule.class;
+	}
+
+	protected Class<? extends SmtpModule> getSmtpModuleClass() {
+		return DefaultSmtpModule.class;
+	}
+	
+	protected Class<? extends LoggingModule> getLoggingModuleClass() {
+		return DefaultLoggingModule.class;
+	}
+
+	public EntityManager getEntityManager() throws IllegalStateException {
+		PersistenceModule persistenceModule = (PersistenceModule) getModuleInstance(PERSISTENCE_MODULE_ID);
+		
+		if (persistenceModule != null)
+			return persistenceModule.getEntityManager();
+		else
+			return null;
+	}
+	
+	public void reportErroneousRequest(HttpServletRequest req, HttpServletResponse resp) {
+		ExceptionReporterModule exceptionReporterModule = (ExceptionReporterModule) getModuleInstance(EXCEPTION_REPORTER_MODULE_ID);
+		
+		if (exceptionReporterModule != null)
+			exceptionReporterModule.reportErroneousRequest(req, resp);
+	}
+	
+	public void sendMessage(Message message) {
+		SmtpModule smtpModule = (SmtpModule) getModuleInstance(SMTP_MODULE_ID);
+		
+		if (smtpModule != null)
+			smtpModule.sendMessage(message);
+	}
+	
+	public void log(String logType, String message) {
+		LoggingModule loggingModule = (LoggingModule) getModuleInstance(LOGGING_MODULE_ID);
+		
+		if (loggingModule != null)
+			loggingModule.log(logType, message);
 	}
 	// =========================================================================
 }

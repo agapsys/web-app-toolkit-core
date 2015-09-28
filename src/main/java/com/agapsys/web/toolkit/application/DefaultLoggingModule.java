@@ -23,14 +23,12 @@ import com.agapsys.web.toolkit.utils.DateUtils;
 
 /**
  * Default logging module implementation.
- * 
  * All logs messages will be printed to console
- * 
  * @author Leandro Oliveira (leandro@agapsys.com)
  */
 public class DefaultLoggingModule extends LoggingModule {
 	// CLASS SCOPE =============================================================
-	static void defaultLog(String logType, String message) {
+	public static void logToConsole(String logType, String message) {
 		Console.println(String.format("[%s] [%s] %s", DateUtils.getLocalTimestamp(), logType, message));
 	}
 	// =========================================================================
@@ -42,7 +40,7 @@ public class DefaultLoggingModule extends LoggingModule {
 
 	@Override
 	protected void onLog(String logType, String message) {
-		Console.println(String.format("[%s] [%s] %s", DateUtils.getLocalTimestamp(), logType, message));
+		logToConsole(logType, message);
 	}
 	// =========================================================================
 }

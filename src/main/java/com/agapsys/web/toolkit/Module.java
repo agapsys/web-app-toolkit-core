@@ -19,7 +19,7 @@ import com.agapsys.web.toolkit.utils.Properties;
 import java.util.Set;
 
 /**
- * Basic module interface
+ * Basic module
  * @author Leandro Oliveira (leandro@agapsys.com)
  */
 public abstract class Module {

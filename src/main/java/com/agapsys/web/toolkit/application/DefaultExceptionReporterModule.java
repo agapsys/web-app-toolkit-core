@@ -37,22 +37,16 @@ public class DefaultExceptionReporterModule extends ExceptionReporterModule {
 	// CLASS SCOPE =============================================================
 	private static final String LOGGING_MODULE_ID = com.agapsys.web.toolkit.application.WebApplication.LOGGING_MODULE_ID;
 
-	public static final int DEFAULT_STACKTRACE_HISTORY_SIZE = 5;
+	public static final String KEY_NODE_NAME               = "com.agapsys.web.nodeName";
+	public static final String KEY_STACKTRACE_HISTORY_SIZE = "com.agapsys.web.stacktraceHistorySize";
 	
-	public static final String KEY_NODE_NAME = "com.agapsys.web.nodeName";
-	
+	public static final int    DEFAULT_STACKTRACE_HISTORY_SIZE = 5;
 	public static final String DEFAULT_NODE_NAME = "node-01";
-	
-	private static final Properties DEFAULT_PROPERTIES;
-		
-	static {
-		DEFAULT_PROPERTIES = new Properties();
-		DEFAULT_PROPERTIES.setProperty(KEY_NODE_NAME, DEFAULT_NODE_NAME);
-	}
 	// =========================================================================
 
 	// INSTANCE SCOPE ==========================================================
 	private String nodeName = null;
+	private int stacktraceHistorySize = 0;
 	
 	private final List<String> stacktraceHistory = new LinkedList<>();
 
@@ -60,12 +54,42 @@ public class DefaultExceptionReporterModule extends ExceptionReporterModule {
 		super(application);
 	}
 
-	protected int getStacktraceHistorySize() {
+	protected int getDefaultStacktraceHistorySize() {
 		return DEFAULT_STACKTRACE_HISTORY_SIZE;
 	}
 
+	protected String getDefaultNodeName() {
+		return DEFAULT_NODE_NAME;
+	}
+	
 	protected String getLoggingModuleId() {
 		return LOGGING_MODULE_ID;
+	}
+	
+	public String getNodeName() {
+		return nodeName;
+	}
+	
+	public int getStacktraceHistorySize() {
+		return stacktraceHistorySize;
+	}
+	
+	@Override
+	public Properties getDefaultSettings() {
+		Properties properties = new Properties();
+		
+		String defaultNodeName = getDefaultNodeName();
+		if (defaultNodeName == null)
+			defaultNodeName = DEFAULT_NODE_NAME;
+		
+		int defaultStacktraceHistorySize = getDefaultStacktraceHistorySize();
+		if (defaultStacktraceHistorySize < 0)
+			defaultStacktraceHistorySize = 0;
+		
+		properties.setProperty(KEY_NODE_NAME, defaultNodeName);
+		properties.setProperty(KEY_STACKTRACE_HISTORY_SIZE, "" + defaultStacktraceHistorySize);
+		
+		return properties;
 	}
 	
 	@Override
@@ -77,17 +101,16 @@ public class DefaultExceptionReporterModule extends ExceptionReporterModule {
 	
 	@Override
 	protected void onStart() {
-		nodeName = getApplication().getProperties().getProperty(KEY_NODE_NAME, DEFAULT_NODE_NAME);
+		WebApplication app = getApplication();
+		nodeName = app.getProperties().getProperty(KEY_NODE_NAME, DEFAULT_NODE_NAME);
+		stacktraceHistorySize = Integer.parseInt(app.getProperties().getProperty(KEY_STACKTRACE_HISTORY_SIZE, "" + DEFAULT_STACKTRACE_HISTORY_SIZE));
 	}
 
 	@Override
 	protected void onStop() {
 		nodeName = null;
-	}
-
-	@Override
-	public Properties getDefaultSettings() {
-		return DEFAULT_PROPERTIES;
+		stacktraceHistorySize = 0;
+		stacktraceHistory.clear();
 	}
 	
 	private LoggingModule getLoggingModule() {
@@ -96,7 +119,7 @@ public class DefaultExceptionReporterModule extends ExceptionReporterModule {
 	
 	/** 
 	 * Logs messages in this module.
-	 * Default implementation just prints given message to console
+	 * If there is no logging module, just prints given message to console.
 	 * @param logType log type
 	 * @param message message to be logged.
 	 */
@@ -106,7 +129,7 @@ public class DefaultExceptionReporterModule extends ExceptionReporterModule {
 		if (loggingModule != null)
 			loggingModule.log(logType, message);
 		else		
-			DefaultLoggingModule.defaultLog(logType, message);
+			DefaultLoggingModule.logToConsole(logType, message);
 	}
 
 	/** 
@@ -128,7 +151,7 @@ public class DefaultExceptionReporterModule extends ExceptionReporterModule {
 			+ "\n\n"
 			+ "Application: " + getApplication().getName() + "\n"
 			+ "Application version: " + getApplication().getVersion() + "\n"
-			+ "Node name: " + nodeName + "\n\n"
+			+ "Node name: " + getNodeName() + "\n\n"
 			+ "Server timestamp: " + DateUtils.getLocalTimestamp() + "\n"
 			+ "Status code: " + statusCode + "\n"
 			+ "Exception type: " +(exceptionType != null ? exceptionType.getName() : "null") + "\n"
@@ -169,26 +192,24 @@ public class DefaultExceptionReporterModule extends ExceptionReporterModule {
 	
 	@Override
 	protected void onReportErroneousRequest(HttpServletRequest req, HttpServletResponse resp) {
-		if (isRunning()) {
-			Integer statusCode      = ExceptionReporterModule.getStatusCode(req);
-			Class exceptionType     = ExceptionReporterModule.getExceptionType(req);
-			String exceptionMessage = ExceptionReporterModule.getExceptionMessage(req);
-			String requestUri       = ExceptionReporterModule.getRequestUri(req);
-			Throwable throwable     = ExceptionReporterModule.getException(req);
-			
-			String userAgent = HttpUtils.getOriginUserAgent(req);
-			String clientIp = HttpUtils.getOriginIp(req);
+		Integer statusCode      = ExceptionReporterModule.getStatusCode(req);
+		Class exceptionType     = ExceptionReporterModule.getExceptionType(req);
+		String exceptionMessage = ExceptionReporterModule.getExceptionMessage(req);
+		String requestUri       = ExceptionReporterModule.getRequestUri(req);
+		Throwable throwable     = ExceptionReporterModule.getException(req);
 
-			if (throwable != null) {
-				if (!skipErrorReport(throwable))
-					reportError(getErrorMessage(statusCode, throwable, exceptionType, exceptionMessage, requestUri, userAgent, clientIp));
-				else
-					log(LoggingModule.LOG_TYPE_WARNING, "Application error (already reported): " + throwable.getMessage());
-			} else {
-				String extraInfo = String.format("User-agent: %s\nClient IP:%s, Request URL: %s", userAgent, clientIp, requestUri);
-				log(LoggingModule.LOG_TYPE_ERROR, String.format("Bad request for exception reporter module:\n----\n%s\n----", extraInfo));
-				resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-			}
+		String userAgent = HttpUtils.getOriginUserAgent(req);
+		String clientIp = HttpUtils.getOriginIp(req);
+
+		if (throwable != null) {
+			if (!skipErrorReport(throwable))
+				reportError(getErrorMessage(statusCode, throwable, exceptionType, exceptionMessage, requestUri, userAgent, clientIp));
+			else
+				log(LoggingModule.LOG_TYPE_WARNING, "Application error (already reported): " + throwable.getMessage());
+		} else {
+			String extraInfo = String.format("User-agent: %s\nClient IP:%s, Request URL: %s", userAgent, clientIp, requestUri);
+			log(LoggingModule.LOG_TYPE_ERROR, String.format("Bad request for exception reporter module:\n----\n%s\n----", extraInfo));
+			resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 		}
 	}
 	// =========================================================================

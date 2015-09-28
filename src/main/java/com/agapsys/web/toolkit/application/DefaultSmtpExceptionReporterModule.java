@@ -36,21 +36,11 @@ public class DefaultSmtpExceptionReporterModule extends DefaultExceptionReporter
 	
 	public static final String KEY_ERR_MAIL_RECIPIENTS   = "com.agapsys.web.errMailRecipients";
 	public static final String KEY_ERR_MAIL_SUBJECT      = "com.agapsys.web.errSubject";
-	public static final String RECIPIENT_DELIMITER = ",";
 	
 	public static final String DEFAULT_ERR_SUBJECT    = "[%s][System report] Error report";
 	public static final String DEFAULT_ERR_RECIPIENTS = "user@email.com";
-	public static final String DEFAULT_ERR_SENDER     = "no-reply@email.com";
 	
-	private static final Properties DEFAULT_PROPERTIES;
-	
-	static {
-		DEFAULT_PROPERTIES = new Properties();
-		DEFAULT_PROPERTIES.setProperty(KEY_NODE_NAME, DEFAULT_NODE_NAME);
-		DEFAULT_PROPERTIES.setProperty(KEY_ERR_MAIL_RECIPIENTS, DEFAULT_ERR_RECIPIENTS);
-		DEFAULT_PROPERTIES.setProperty(KEY_ERR_MAIL_SUBJECT,    DEFAULT_ERR_SUBJECT);
-	}
-	
+	public static final String RECIPIENT_DELIMITER = ",";
 	// =========================================================================
 
 	// INSTANCE SCOPE ==========================================================
@@ -77,6 +67,33 @@ public class DefaultSmtpExceptionReporterModule extends DefaultExceptionReporter
 		return deps;
 	}
 	
+	protected String getDefaultErrMailSubject() {
+		return DEFAULT_ERR_SUBJECT;
+	}
+	
+	protected String getDefaultErrRecipients() {
+		return DEFAULT_ERR_RECIPIENTS;
+	}
+		
+	@Override
+	public Properties getDefaultSettings() {
+		Properties properties = new Properties();
+		
+		String defaultErrMailSubject = getDefaultErrMailSubject();
+		if (defaultErrMailSubject == null || defaultErrMailSubject.trim().isEmpty())
+			defaultErrMailSubject = DEFAULT_ERR_SUBJECT;
+		
+		String defaultErrRecipients = getDefaultErrRecipients();
+		if (defaultErrMailSubject == null || defaultErrRecipients.trim().isEmpty())
+			defaultErrRecipients = DEFAULT_ERR_RECIPIENTS;
+		
+		
+		properties.setProperty(KEY_ERR_MAIL_SUBJECT,    defaultErrMailSubject);
+		properties.setProperty(KEY_ERR_MAIL_RECIPIENTS, defaultErrRecipients);
+		
+		return properties;
+	}
+	
 	@Override
 	protected void onStart() {
 		super.onStart();
@@ -99,31 +116,32 @@ public class DefaultSmtpExceptionReporterModule extends DefaultExceptionReporter
 		msgRecipients = null;
 		msgSubject = null;
 	}
-	
-	@Override
-	public Properties getDefaultSettings() {
-		return DEFAULT_PROPERTIES;
-	}
 
+	public String[] getMsgRecipients() {
+		return msgRecipients;
+	}
+	
+	public String getMsgSubject() {
+		return msgSubject;
+	}
+	
 	private SmtpModule getSmtpModule() {
 		return (SmtpModule) getApplication().getModuleInstance(getSmtpModuleId());
 	}
 
 	@Override
 	protected void reportError(String message) {
-		if (isRunning()) {
-			super.reportError(message);
+		super.reportError(message);
 
-			try {
-				Message msg = new MessageBuilder(getApplication().getProperties().getProperty(DefaultSmtpModule.KEY_SMTP_MAIL_SENDER), msgRecipients)
-					.setSubject(msgSubject)
-					.setText(message)
-					.build();
-				getSmtpModule().sendMessage(msg);
-			} catch (MessagingException ex) {
-				log(LoggingModule.LOG_TYPE_ERROR, String.format("Error sending error report:\n----\n%s\n----", DefaultExceptionReporterModule.getStackTrace(ex)));
-				throw new RuntimeException(ex);
-			}
+		try {
+			Message msg = new MessageBuilder(getApplication().getProperties().getProperty(DefaultSmtpModule.KEY_SMTP_MAIL_SENDER), getMsgRecipients())
+				.setSubject(getMsgSubject())
+				.setText(message)
+				.build();
+			getSmtpModule().sendMessage(msg);
+		} catch (MessagingException ex) {
+			log(LoggingModule.LOG_TYPE_ERROR, String.format("Error sending error report:\n----\n%s\n----", DefaultExceptionReporterModule.getStackTrace(ex)));
+			throw new RuntimeException(ex);
 		}
 	}
 	// =========================================================================

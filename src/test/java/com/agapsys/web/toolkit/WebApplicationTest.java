@@ -368,10 +368,10 @@ public class WebApplicationTest  {
 		WebApplication webApp = new WebApplicationBase();
 		webApp.start();
 		
-		Assert.assertNull(WebApplicationBase.getEntityManager());
+		Assert.assertNull(WebApplicationBase.getInstance().getEntityManager());
 		
 		webApp.stop();
-		WebApplicationBase.getEntityManager();
+		WebApplicationBase.getInstance().getEntityManager();
 	}
 	
 	
@@ -383,7 +383,7 @@ public class WebApplicationTest  {
 		webApp.start();
 		Assert.assertTrue(webApp.isOnPersistenceModuleStartCalled());
 		
-		Assert.assertNotNull(WebApplicationBase.getEntityManager());
+		Assert.assertNotNull(WebApplicationBase.getInstance().getEntityManager());
 		
 		webApp.stop();
 		Assert.assertTrue(webApp.isOnPersistenceModuleStopCalled());

@@ -29,33 +29,87 @@ public class DefaultPersistenceModule extends PersistenceModule {
 	// CLASS SCOPE =============================================================
 	public static final String DEFAULT_PERSISTENCE_UNIT_NAME = "default";
 	
-	public static final String DEFAULT_JDBC_DRIVER       = "org.h2.Driver";
-	public static final String DEFAULT_JDBC_URL          = "jdbc:h2:mem:";
-	public static final String DEFAULT_JDBC_USER         = "sa";
-	public static final String DEFAULT_JDBC_PASSWORD     = "sa";
+	public static final String KEY_JDBC_DRIVER_FILENAME = "com.agapsys.jdbc.driverFile";
+	public static final String KEY_JDBC_DRIVER_CLASS    = "javax.persistence.jdbc.driver";
+	public static final String KEY_JDBC_URL             = "javax.persistence.jdbc.url";
+	public static final String KEY_JDBC_USER            = "javax.persistence.jdbc.user";
+	public static final String KEY_JDBC_PASSWORD        = "javax.persistence.jdbc.password";
+
+	public static final String DEFAULT_JDBC_DRIVER_FILENAME = "h2.jar";
+	public static final String DEFAULT_JDBC_DRIVER_CLASS    = "org.h2.Driver";
+	public static final String DEFAULT_JDBC_URL             = "jdbc:h2:mem:";
+	public static final String DEFAULT_JDBC_USER            = "sa";
+	public static final String DEFAULT_JDBC_PASSWORD        = "sa";
 	
-	public static final String KEY_JDBC_DRIVER_FILE = "com.agapsys.jdbc.driverFile";
-	
-	private static final Properties DEFAULT_PROPERTIES;
-	
-	static {
-		DEFAULT_PROPERTIES = new Properties();
-		DEFAULT_PROPERTIES.setProperty("javax.persistence.jdbc.driver",   DEFAULT_JDBC_DRIVER);
-		DEFAULT_PROPERTIES.setProperty("javax.persistence.jdbc.url",      DEFAULT_JDBC_URL);
-		DEFAULT_PROPERTIES.setProperty("javax.persistence.jdbc.user",     DEFAULT_JDBC_USER);
-		DEFAULT_PROPERTIES.setProperty("javax.persistence.jdbc.password", DEFAULT_JDBC_PASSWORD);
-	}
 
 	// INSTANCE SCOPE ==========================================================
 	private EntityManagerFactory emf = null;
 
+	/**
+	 * Return the name of default persistence unit name. 
+	 * @return the name of default persistence unit name. Default implementation 
+	 * returns {@linkplain DefaultPersistenceModule#DEFAULT_PERSISTENCE_UNIT_NAME} 
+	 */
+	protected String getDefaultPersistenceUnitName() {
+		return DEFAULT_PERSISTENCE_UNIT_NAME;
+	}
+	
+	protected String getDefaultJdbcDriverFilename() {
+		return DEFAULT_JDBC_DRIVER_FILENAME;
+	}
+	
+	protected String getDefaultJdbcDriverClass() {
+		return DEFAULT_JDBC_DRIVER_CLASS;
+	}
+	
+	protected String getDefaultJdbcUrl() {
+		return DEFAULT_JDBC_URL;
+	}
+	
+	protected String getDefaultJdbcUser() {
+		return DEFAULT_JDBC_USER;
+	}
+	
+	protected String getDefaultJdbcPassword() {
+		return DEFAULT_JDBC_PASSWORD;
+		
+	}
+	
 	public DefaultPersistenceModule(WebApplication application) {
 		super(application);
 	}
 	
 	@Override
 	public Properties getDefaultSettings() {
-		return DEFAULT_PROPERTIES;
+		Properties properties = new Properties();
+		
+		String defaultJdbcDriverFilename = getDefaultJdbcDriverFilename();
+		if (defaultJdbcDriverFilename == null || defaultJdbcDriverFilename.trim().isEmpty())
+			defaultJdbcDriverFilename = DEFAULT_JDBC_DRIVER_FILENAME;
+		
+		String defaultJdbcDriverClass = getDefaultJdbcDriverClass();
+		if (defaultJdbcDriverClass == null || defaultJdbcDriverClass.trim().isEmpty())
+			defaultJdbcDriverClass = DEFAULT_JDBC_DRIVER_CLASS;
+		
+		String defaultJdbcUrl = getDefaultJdbcUrl();
+		if (defaultJdbcUrl == null || defaultJdbcUrl.trim().isEmpty())
+			defaultJdbcUrl = DEFAULT_JDBC_URL;
+		
+		String defaultJdbcUser = getDefaultJdbcUser();
+		if (defaultJdbcUser == null || defaultJdbcUser.trim().isEmpty())
+			defaultJdbcUser = DEFAULT_JDBC_USER;
+		
+		String defaultJdbcPassword = getDefaultJdbcPassword();
+		if (defaultJdbcPassword == null || defaultJdbcPassword.trim().isEmpty())
+			defaultJdbcPassword = DEFAULT_JDBC_PASSWORD;
+			
+		properties.setProperty(KEY_JDBC_DRIVER_FILENAME, defaultJdbcDriverFilename);
+		properties.setProperty(KEY_JDBC_DRIVER_CLASS,    defaultJdbcDriverClass);
+		properties.setProperty(KEY_JDBC_URL,             defaultJdbcUrl);
+		properties.setProperty(KEY_JDBC_USER,            defaultJdbcUser);
+		properties.setProperty(KEY_JDBC_PASSWORD,        defaultJdbcPassword);
+		
+		return properties;
 	}
 	
 	@Override
@@ -64,8 +118,8 @@ public class DefaultPersistenceModule extends PersistenceModule {
 		Properties appProperties = application.getProperties();
 		
 		// If a JDBC driver file was set load it
-		String jdbcDriverFilename = appProperties.getProperty(KEY_JDBC_DRIVER_FILE);
-		String jdbcDriverClass = appProperties.getProperty("javax.persistence.jdbc.driver");
+		String jdbcDriverFilename = appProperties.getProperty(KEY_JDBC_DRIVER_FILENAME);
+		String jdbcDriverClass = appProperties.getProperty(KEY_JDBC_DRIVER_CLASS);
 		
 		if (jdbcDriverFilename != null) {
 			if (jdbcDriverFilename.trim().isEmpty())
@@ -91,19 +145,7 @@ public class DefaultPersistenceModule extends PersistenceModule {
 	
 	@Override
 	protected EntityManager getAppEntityManager() throws IllegalStateException {
-		if (!isRunning())
-			throw new IllegalStateException("Module is not running");
-		
 		return emf.createEntityManager();
-	}
-	
-	/**
-	 * Return the name of default persistence unit name. 
-	 * @return the name of default persistence unit name. Default implementation 
-	 * returns {@linkplain DefaultPersistenceModule#DEFAULT_PERSISTENCE_UNIT_NAME} 
-	 */
-	protected String getDefaultPersistenceUnitName() {
-		return DEFAULT_PERSISTENCE_UNIT_NAME;
 	}
 	// =========================================================================
 }

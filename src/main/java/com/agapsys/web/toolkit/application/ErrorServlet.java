@@ -38,7 +38,7 @@ public class ErrorServlet extends HttpServlet {
 	@Override
 	protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		if (ExceptionReporterModule.getException(req) != null)
-			WebApplication.reportErroneousRequest(req, resp);
+			WebApplication.getInstance().reportErroneousRequest(req, resp);
 	}
 	// =========================================================================
 }

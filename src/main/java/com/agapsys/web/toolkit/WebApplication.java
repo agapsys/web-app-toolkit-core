@@ -114,12 +114,13 @@ public abstract class WebApplication implements ServletContextListener {
 		return DEFAULT_ENVIRONMENT;
 	}
 	
-	/** @return the modules used by this application. */
-	protected Map<String, Class<? extends Module>> getModules() {
+	/** @return the module classes used by this application. Default implementation returns null (no modules) */
+	protected Map<String, Class<? extends Module>> getModuleClassMap() {
 		return null;
 	}
 	
-	/** Returns a module registered with this application.
+	/** 
+	 * Returns a module registered with this application.
 	 * @param moduleId module ID
 	 * @return registered module instance or null if there is no such module.
 	 */
@@ -131,11 +132,14 @@ public abstract class WebApplication implements ServletContextListener {
 	public final Properties getProperties() {
 		if (readOnlyProperties == null)
 			readOnlyProperties = properties.getUnmodifiableProperties();
-		
+
 		return readOnlyProperties;
 	}
 	
-	
+	/** 
+	 * Load application settings.
+	 * @throws IOException if there is an error reading settings file.
+	 */
 	private void loadSettings() throws IOException {
 		properties.clear();
 		readOnlyProperties = null;
@@ -148,29 +152,40 @@ public abstract class WebApplication implements ServletContextListener {
 		File settingsFile = new File(getFolder(), getSettingsFilenamePrefix() + strDelimiter + strEnvironment + getSettingsFilenameSuffix());
 
 		if (settingsFile.exists()) {
-			debug("Loading settings file...");
+			debug("\tLoading settings file...");
 
 			// Load settings from file...
 			properties.load(settingsFile);
 		}
 
+		int i = 0;
 		for (Map.Entry<String, Module> entry : moduleMap.entrySet()) {
 			Module moduleInstance = entry.getValue();
 			
 			Properties defaultModuleProperties = moduleInstance.getDefaultSettings();
 			
-			if (defaultModuleProperties != null) {
+			if (defaultModuleProperties != null && !defaultModuleProperties.isEmpty()) {
+				if (i > 0)
+					properties.addEmptyLine();
+				
 				properties.addComment(moduleInstance.getDescription());
 				properties.append(defaultModuleProperties, true);
+				
+				i++;
 			}
 		}
 		
 		if (!settingsFile.exists()) {
-			debug("Creating default settings file...");
+			debug("\tCreating default settings file...");
 			properties.store(settingsFile);
 		}
 	}	
 
+	/** 
+	 * Creates a instance of given module
+	 * @param moduleClass module class
+	 * @return module instance.
+	 */
 	private Module instantiateModule(Class<? extends Module> moduleClass)  {
 		try {
 			return moduleClass.getConstructor(WebApplication.class).newInstance(this);
@@ -178,7 +193,13 @@ public abstract class WebApplication implements ServletContextListener {
 			throw new RuntimeException(ex);
 		}
 	}
-		
+	
+	/**
+	 * Starts a module and all the dependencies
+	 * @param moduleId ID of the module to be initialized
+	 * @param mandatory defines if given module is mandatory
+	 * @param callerModules list of recursive callers (initial call may be null)
+	 */
 	private void startModule(String moduleId, boolean mandatory, List<String> callerModules)  {
 		if (callerModules == null)
 			callerModules = new LinkedList<>();
@@ -230,12 +251,13 @@ public abstract class WebApplication implements ServletContextListener {
 			}
 
 			moduleInstance.start();
-			debug("\tModule loaded: %s", moduleInstance.getDescription());
+			debug("\tModule initialized: %s", moduleInstance.getDescription());
 
 			loadedModules.add(moduleInstance);
 		}
 	}
 	
+	/** Shutdown initialized modules in appropriate sequence. */
 	private void shutdownModules() {
 		for (int i = loadedModules.size() - 1; i >= 0; i--) {
 			loadedModules.get(i).stop();
@@ -246,17 +268,15 @@ public abstract class WebApplication implements ServletContextListener {
 	 * Puts application into running state.
 	 * In a web environment, this method is intended to be called by 
 	 * 'contextInitialized' in application's {@linkplain ServletContextListener context listener}. 
+	 * @throws IllegalStateException if application is already running;
 	 */
-	public final void start() {
-		if (!isRunning()) {
+	public final void start() throws IllegalStateException {
+		if (singleton == null) {
 			String name = getName();
 			if (name != null)
 				name = name.trim();
 			if (name == null || name.isEmpty())
 				throw new IllegalStateException("Missing application name");
-			
-			debug("====== AGAPSYS WEB TOOLKIT INITIALIZATION: %s ======", name);
-			beforeApplicationStart();
 			
 			String version = getVersion();
 			if (version != null)
@@ -270,9 +290,10 @@ public abstract class WebApplication implements ServletContextListener {
 			if (environment == null || environment.isEmpty())
 				throw new IllegalStateException("Missing environment");
 			
-			debug("Environment set: %s", environment);
+			debug("====== AGAPSYS WEB TOOLKIT INITIALIZATION: %s (%s) ======", name, environment);
+			beforeApplicationStart();
 			
-			Map<String, Class<? extends Module>> moduleClassMap = getModules();
+			Map<String, Class<? extends Module>> moduleClassMap = getModuleClassMap();
 			
 			// Instantiate all modules...
 			for (Map.Entry<String, Class<? extends Module>> entry : moduleClassMap.entrySet()) {
@@ -288,7 +309,7 @@ public abstract class WebApplication implements ServletContextListener {
 
 			// Starts all modules
 			if (moduleMap.size() > 0) {
-				debug("Loading modules...");
+				debug("Starting modules...");
 				for (Map.Entry<String, Module> entry : moduleMap.entrySet()) {
 					if (!entry.getValue().isRunning()) {
 						startModule(entry.getKey(), true, null);
@@ -299,11 +320,13 @@ public abstract class WebApplication implements ServletContextListener {
 			singleton = this;
 			afterApplicationStart();
 			debug("====== AGAPSYS WEB TOOLKIT IS READY! ======");
+		} else {
+			throw new IllegalStateException("Application is already running: " + singleton.getName());
 		}
 	}
 
 	@Override
-	public void contextInitialized(ServletContextEvent sce) {
+	public final void contextInitialized(ServletContextEvent sce) {
 		start();
 	}
 	
@@ -325,7 +348,7 @@ public abstract class WebApplication implements ServletContextListener {
 	 * 'contextDestroyed' in application's {@linkplain ServletContextListener context listener}.
 	 */
 	public final void stop() {
-		if (isRunning()) {
+		if (singleton != null) {
 			debug("====== AGAPSYS WEB TOOLKIT SHUTDOWN ======");
 			beforeApplicationStop();
 			
@@ -342,7 +365,7 @@ public abstract class WebApplication implements ServletContextListener {
 	}
 	
 	@Override
-	public void contextDestroyed(ServletContextEvent sce) {
+	public final void contextDestroyed(ServletContextEvent sce) {
 		stop();
 	}
 	

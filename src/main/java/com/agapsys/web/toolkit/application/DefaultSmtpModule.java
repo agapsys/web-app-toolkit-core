@@ -90,7 +90,7 @@ public class DefaultSmtpModule extends SmtpModule {
 		if (loggingModule != null) {
 			loggingModule.log(logType, message);
 		} else {
-			DefaultLoggingModule.defaultLog(logType, message);
+			DefaultLoggingModule.logToConsole(logType, message);
 		}
 	}
 	
