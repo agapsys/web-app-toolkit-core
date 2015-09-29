@@ -26,10 +26,10 @@ import org.junit.Test;
 
 public class SmtpModuleTest {
 	// CLASS SCOPE =============================================================
-	private static class TestSmtpModule extends SmtpModule {
+	private static class TestSmtpModule extends AbstractSmtpModule {
 		private boolean methodCalled = false;
 
-		public TestSmtpModule(WebApplication application) {
+		public TestSmtpModule(AbstractWebApplication application) {
 			super(application);
 		}
 		

@@ -22,14 +22,14 @@ import java.util.Set;
  * Basic module
  * @author Leandro Oliveira (leandro@agapsys.com)
  */
-public abstract class Module {
-	private final WebApplication application;
+public abstract class AbstractModule {
+	private final AbstractWebApplication application;
 	private boolean running = false;
 	/**
 	 * Creates a module instance
 	 * @param application application owning this module
 	 */
-	public Module(WebApplication application) {
+	public AbstractModule(AbstractWebApplication application) {
 		if (application == null)
 			throw new IllegalArgumentException("Null application");
 		
@@ -37,7 +37,7 @@ public abstract class Module {
 	}
 	
 	/** @return the application owning this module. */
-	public final WebApplication getApplication() {
+	public final AbstractWebApplication getApplication() {
 		return application;
 	}
 		

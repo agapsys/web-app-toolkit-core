@@ -23,10 +23,10 @@ import org.junit.Test;
 
 public class LoggingModuleTest {
 	// CLASS SCOPE =============================================================
-	private static class TestLoggingModule extends LoggingModule {
+	private static class TestLoggingModule extends AbstractLoggingModule {
 		private boolean methodCalled = false;
 
-		public TestLoggingModule(WebApplication application) {
+		public TestLoggingModule(AbstractWebApplication application) {
 			super(application);
 		}
 

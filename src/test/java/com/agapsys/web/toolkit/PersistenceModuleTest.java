@@ -24,10 +24,10 @@ import org.junit.Test;
 
 public class PersistenceModuleTest {
 	// CLASS SCOPE =============================================================
-	private static class TestPersistenceModule extends PersistenceModule {
+	private static class TestPersistenceModule extends AbstractPersistenceModule {
 		private boolean methodCalled = false;
 
-		public TestPersistenceModule(WebApplication application) {
+		public TestPersistenceModule(AbstractWebApplication application) {
 			super(application);
 		}
 		

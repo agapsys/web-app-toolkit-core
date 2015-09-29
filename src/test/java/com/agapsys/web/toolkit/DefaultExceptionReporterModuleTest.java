@@ -17,7 +17,6 @@
 package com.agapsys.web.toolkit;
 
 import com.agapsys.Utils;
-import com.agapsys.web.toolkit.application.DefaultExceptionReporterModule;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -25,9 +24,9 @@ public class DefaultExceptionReporterModuleTest {
 	// CLASS SCOPE =============================================================
 	private static final int STACK_TRACE_HISTORY_SIZE = 2;
 	
-	private static class TestModule extends DefaultExceptionReporterModule {
+	private static class TestModule extends ExceptionReporterModule {
 		
-		public TestModule(WebApplication application) {
+		public TestModule(AbstractWebApplication application) {
 			super(application);
 		}
 

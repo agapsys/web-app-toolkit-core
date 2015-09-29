@@ -17,18 +17,14 @@
 package com.agapsys.web.toolkit;
 
 import com.agapsys.Utils;
-import com.agapsys.web.toolkit.application.DefaultPersistenceModule;
-import com.agapsys.web.toolkit.application.DefaultLoggingModule;
-import com.agapsys.web.toolkit.application.DefaultExceptionReporterModule;
-import com.agapsys.web.toolkit.application.DefaultSmtpModule;
 import java.io.File;
 import org.junit.Assert;
 import org.junit.Test;
 
 public class WebApplicationTest  {
 	// CLASS SCOPE =============================================================
-	private static class CustomPersistenceModule extends DefaultPersistenceModule {
-		public CustomPersistenceModule(WebApplication application) {
+	private static class CustomPersistenceModule extends PersistenceModule {
+		public CustomPersistenceModule(AbstractWebApplication application) {
 			super(application);
 		}
 
@@ -45,9 +41,9 @@ public class WebApplicationTest  {
 		}
 	}
 	
-	private static class CustomLoggingModule extends DefaultLoggingModule {
+	private static class CustomLoggingModule extends LoggingModule {
 
-		public CustomLoggingModule(WebApplication application) {
+		public CustomLoggingModule(AbstractWebApplication application) {
 			super(application);
 		}
 
@@ -64,9 +60,9 @@ public class WebApplicationTest  {
 		}
 	}
 
-	private static class CustomExceptionReporterModule extends DefaultExceptionReporterModule {
+	private static class CustomExceptionReporterModule extends ExceptionReporterModule {
 
-		public CustomExceptionReporterModule(WebApplication application) {
+		public CustomExceptionReporterModule(AbstractWebApplication application) {
 			super(application);
 		}
 
@@ -83,9 +79,9 @@ public class WebApplicationTest  {
 		}
 	}
 		
-	private static class CustomSmtpModule extends DefaultSmtpModule {
+	private static class CustomSmtpModule extends SmtpModule {
 
-		public CustomSmtpModule(WebApplication application) {
+		public CustomSmtpModule(AbstractWebApplication application) {
 			super(application);
 		}
 
@@ -103,7 +99,7 @@ public class WebApplicationTest  {
 	}
 	
 	
-	private static class WebApplicationBase extends com.agapsys.web.toolkit.application.WebApplication {
+	private static class WebApplicationBase extends com.agapsys.web.toolkit.WebApplication {
 		private boolean beforeApplicationStopCalled = false;
 		private boolean beforeApplicationStartCalled = false;
 		
@@ -183,7 +179,7 @@ public class WebApplicationTest  {
 		}
 		
 		@Override
-		protected Class<? extends PersistenceModule> getPersistenceModuleClass() {
+		protected Class<? extends AbstractPersistenceModule> getPersistenceModuleClass() {
 			return null;
 		}
 
@@ -198,7 +194,7 @@ public class WebApplicationTest  {
 		}
 		
 		@Override
-		protected Class<? extends SmtpModule> getSmtpModuleClass() {
+		protected Class<? extends AbstractSmtpModule> getSmtpModuleClass() {
 			return null;
 		}		
 		
@@ -226,7 +222,7 @@ public class WebApplicationTest  {
 	private static class WebApplicationWithPersistence extends WebApplicationBase {
 
 		@Override
-		protected Class<? extends PersistenceModule> getPersistenceModuleClass() {
+		protected Class<? extends AbstractPersistenceModule> getPersistenceModuleClass() {
 			return CustomPersistenceModule.class;
 		}
 	}
@@ -255,7 +251,7 @@ public class WebApplicationTest  {
 	private static class WebApplicationWithSmtpSender extends WebApplicationBase {
 
 		@Override
-		protected Class<? extends SmtpModule> getSmtpModuleClass() {
+		protected Class<? extends AbstractSmtpModule> getSmtpModuleClass() {
 			return CustomSmtpModule.class;
 		}
 	}
@@ -263,7 +259,7 @@ public class WebApplicationTest  {
 	private static class FullFledgedApplication extends WebApplicationBase {
 
 		@Override
-		protected Class<? extends PersistenceModule> getPersistenceModuleClass() {
+		protected Class<? extends AbstractPersistenceModule> getPersistenceModuleClass() {
 			return CustomPersistenceModule.class;
 		}
 
@@ -273,7 +269,7 @@ public class WebApplicationTest  {
 		}
 
 		@Override
-		protected Class<? extends SmtpModule> getSmtpModuleClass() {
+		protected Class<? extends AbstractSmtpModule> getSmtpModuleClass() {
 			return CustomSmtpModule.class;
 		}
 
@@ -316,56 +312,56 @@ public class WebApplicationTest  {
 		Utils.printCurrentMethod();
 		
 		
-		WebApplication webApp = new WebApplicationBase();
+		AbstractWebApplication webApp = new WebApplicationBase();
 		webApp.start();
-		Assert.assertEquals(Defs.APP_NAME, WebApplication.getInstance().getName());
+		Assert.assertEquals(Defs.APP_NAME, AbstractWebApplication.getInstance().getName());
 		webApp.stop();
-		WebApplication.getInstance().getName();
+		AbstractWebApplication.getInstance().getName();
 	}
 	
 	@Test(expected = IllegalStateException.class)
 	public void Simple_web_application_getVersion_test() {
 		Utils.printCurrentMethod();
 		
-		WebApplication webApp = new WebApplicationBase();
+		AbstractWebApplication webApp = new WebApplicationBase();
 		webApp.start();
-		Assert.assertEquals(Defs.APP_VERSION, WebApplication.getInstance().getVersion());
+		Assert.assertEquals(Defs.APP_VERSION, AbstractWebApplication.getInstance().getVersion());
 		
 		webApp.stop();
-		WebApplication.getInstance().getVersion();
+		AbstractWebApplication.getInstance().getVersion();
 	}
 	
 	@Test(expected = IllegalStateException.class)
 	public void Simple_web_application_getEnvironment_test() {
 		Utils.printCurrentMethod();
 		
-		WebApplication webApp = new WebApplicationBase();
+		AbstractWebApplication webApp = new WebApplicationBase();
 		webApp.start();
-		Assert.assertEquals(Defs.ENVIRONMENT, WebApplication.getInstance().getEnvironment());
+		Assert.assertEquals(Defs.ENVIRONMENT, AbstractWebApplication.getInstance().getEnvironment());
 		
 		webApp.stop();
-		WebApplication.getInstance().getEnvironment();
+		AbstractWebApplication.getInstance().getEnvironment();
 	}
 	
 	@Test(expected = IllegalStateException.class)
 	public void Simple_web_application_getAppFolder_test() {
 		Utils.printCurrentMethod();
 		
-		WebApplication webApp = new WebApplicationBase();
+		AbstractWebApplication webApp = new WebApplicationBase();
 		webApp.start();
 		
-		File appFolder = new File(System.getProperty("user.home"), String.format(".%s", WebApplication.getInstance().getName()));
-		Assert.assertEquals(appFolder.getAbsolutePath(), WebApplication.getInstance().getFolder().getAbsolutePath());
+		File appFolder = new File(System.getProperty("user.home"), String.format(".%s", AbstractWebApplication.getInstance().getName()));
+		Assert.assertEquals(appFolder.getAbsolutePath(), AbstractWebApplication.getInstance().getFolder().getAbsolutePath());
 		
 		webApp.stop();
-		WebApplication.getInstance().getFolder();
+		AbstractWebApplication.getInstance().getFolder();
 	}
 	
 	@Test (expected = IllegalStateException.class)
 	public void Simple_web_application_getEntityManager_test() {
 		Utils.printCurrentMethod();
 		
-		WebApplication webApp = new WebApplicationBase();
+		AbstractWebApplication webApp = new WebApplicationBase();
 		webApp.start();
 		
 		Assert.assertNull(WebApplicationBase.getInstance().getEntityManager());

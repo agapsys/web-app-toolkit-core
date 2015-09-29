@@ -13,56 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.agapsys.web.toolkit;
 
+import com.agapsys.web.toolkit.AbstractLoggingModule;
+import com.agapsys.web.toolkit.AbstractWebApplication;
+
 /**
- * Represents a logging module
+ * Default logging module implementation.
+ * All logs messages will be printed to console
  * @author Leandro Oliveira (leandro@agapsys.com)
  */
-public abstract class LoggingModule extends Module {
-	// CLASS SCOPE =============================================================
-	private static final String DESCRIPTION = "Logging module";
-	
-	public static final String LOG_TYPE_ERROR   = "error";
-	public static final String LOG_TYPE_INFO    = "info";
-	public static final String LOG_TYPE_WARNING = "warning";
-	// =========================================================================
-	
-	// INSTANCE SCOPE ==========================================================
-	public LoggingModule(WebApplication application) {
+public class LoggingModule extends AbstractLoggingModule {
+	public LoggingModule(AbstractWebApplication application) {
 		super(application);
 	}
 
 	@Override
-	public String getDescription() {
-		return DESCRIPTION;
+	protected void onLog(String logType, String message) {
+		logToConsole(logType, message);
 	}
-
-	/**
-	 * Actual log code.
-	 * This method will be called only when module is running.
-	 * @param logType log type
-	 * @param message log message
-	 */
-	protected abstract void onLog(String logType, String message);
-	
-	/**
-	 * Logs a message.
-	 * If module is not running, nothing happens.
-	 * @param logType message type
-	 * @param message message to be logged
-	 * @throws IllegalArgumentException if either logType is null/empty of message is null/empty
-	 */
-	public final void log(String logType, String message) throws IllegalArgumentException {
-		if (logType == null)
-			throw new IllegalArgumentException("logType == null");
-		
-		if (message == null || message.trim().isEmpty())
-			throw new IllegalArgumentException("Null/Empty message");
-						
-		if (isRunning()) {
-			onLog(logType, message);
-		}
-	}
-	// =========================================================================
 }

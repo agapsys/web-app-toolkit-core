@@ -23,11 +23,11 @@ import org.junit.Test;
 
 public class ModuleTest {
 	// CLASS SCOPE =============================================================
-	private static class TestModule extends Module {
+	private static class TestModule extends AbstractModule {
 		private boolean isStartCalled = false;
 		private boolean isStopCalled = false;
 
-		public TestModule(WebApplication application) {
+		public TestModule(AbstractWebApplication application) {
 			super(application);
 		}
 

@@ -15,7 +15,6 @@
  */
 
 package com.agapsys.web.toolkit;
-import com.agapsys.web.toolkit.application.WebApplication;
 
 public class TestApplication extends WebApplication{
 	@Override

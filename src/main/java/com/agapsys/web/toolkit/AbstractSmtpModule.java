@@ -13,34 +13,49 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.agapsys.web.toolkit;
 
-package com.agapsys.web.toolkit.application;
-
-import com.agapsys.utils.console.Console;
-import com.agapsys.web.toolkit.LoggingModule;
-import com.agapsys.web.toolkit.WebApplication;
-import com.agapsys.web.toolkit.utils.DateUtils;
+import com.agapsys.mail.Message;
 
 /**
- * Default logging module implementation.
- * All logs messages will be printed to console
+ * E-mail sender module
  * @author Leandro Oliveira (leandro@agapsys.com)
  */
-public class DefaultLoggingModule extends LoggingModule {
+public abstract class AbstractSmtpModule extends AbstractModule {
 	// CLASS SCOPE =============================================================
-	public static void logToConsole(String logType, String message) {
-		Console.println(String.format("[%s] [%s] %s", DateUtils.getLocalTimestamp(), logType, message));
-	}
+	private static final String DESCRIPTION = "SMTP module";
 	// =========================================================================
 	
 	// INSTANCE SCOPE ==========================================================
-	public DefaultLoggingModule(WebApplication application) {
+	public AbstractSmtpModule(AbstractWebApplication application) {
 		super(application);
 	}
 
 	@Override
-	protected void onLog(String logType, String message) {
-		logToConsole(logType, message);
+	public String getDescription() {
+		return DESCRIPTION;
+	}
+	
+	/** 
+	 * Actual message sending code. 
+	 * This method will be called only when module is running.
+	 * @param message message to be sent
+	 */
+	protected abstract void onSendMessage(Message message);
+	
+	/** 
+	 * Sends a email message.
+	 * If module is not running, nothing happens.
+	 * @param message message to be sent
+	 * @throws IllegalArgumentException if message == null
+	 */
+	public final void sendMessage(Message message) throws IllegalArgumentException {
+		if (message == null)
+			throw new IllegalArgumentException("message == null");
+				
+		if (isRunning()) {
+			onSendMessage(message);
+		}
 	}
 	// =========================================================================
 }

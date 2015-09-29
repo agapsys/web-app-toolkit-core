@@ -47,10 +47,10 @@ import org.junit.Test;
 
 public class ExceptionReporterModuleTest {
 	// CLASS SCOPE =============================================================
-	private static class TestExceptionReporterModule extends ExceptionReporterModule {
+	private static class TestExceptionReporterModule extends AbstractExceptionReporterModule {
 		private boolean methodCalled = false;
 
-		public TestExceptionReporterModule(WebApplication application) {
+		public TestExceptionReporterModule(AbstractWebApplication application) {
 			super(application);
 		}
 

@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package com.agapsys.web.toolkit.application;
+package com.agapsys.web.toolkit;
 
-import com.agapsys.web.toolkit.ExceptionReporterModule;
+import com.agapsys.web.toolkit.AbstractExceptionReporterModule;
 import java.io.IOException;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -37,7 +37,7 @@ public class ErrorServlet extends HttpServlet {
 	// INSTANCE SCOPE ==========================================================		
 	@Override
 	protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-		if (ExceptionReporterModule.getException(req) != null)
+		if (AbstractExceptionReporterModule.getException(req) != null)
 			WebApplication.getInstance().reportErroneousRequest(req, resp);
 	}
 	// =========================================================================
