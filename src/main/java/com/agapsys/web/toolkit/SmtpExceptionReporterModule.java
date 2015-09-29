@@ -36,7 +36,7 @@ public class SmtpExceptionReporterModule extends ExceptionReporterModule {
 	public static final String KEY_SUBJECT      = "agapsys.webtoolkit.smtpExceptionReporter.subject";
 	// -------------------------------------------------------------------------
 	
-	public static final String APP_NAME_TOKEN = "%appName%";
+	public static final String APP_NAME_TOKEN = "@appName";
 	
 	public static final String DEFAULT_SUBJECT    = String.format("[%s][System report] Error report", APP_NAME_TOKEN);
 	public static final String DEFAULT_RECIPIENTS = "user@email.com";

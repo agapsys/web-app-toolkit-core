@@ -25,10 +25,10 @@ import javax.servlet.http.HttpServletResponse;
 
 public abstract class WebApplication extends AbstractWebApplication {
 	// CLASS SCOPE =============================================================
-	static final String PERSISTENCE_MODULE_ID        = "agapsys.webtoolkit.persistence";
-	static final String EXCEPTION_REPORTER_MODULE_ID = "agapsys.webtoolkit.exceptionReporter";
-	static final String SMTP_MODULE_ID               = "agapsys.webtoolkit.smtp";
-	static final String LOGGING_MODULE_ID            = "agapsys.webtoolkit.logging";
+	public static final String PERSISTENCE_MODULE_ID        = "agapsys.webtoolkit.persistence";
+	public static final String EXCEPTION_REPORTER_MODULE_ID = "agapsys.webtoolkit.exceptionReporter";
+	public static final String SMTP_MODULE_ID               = "agapsys.webtoolkit.smtp";
+	public static final String LOGGING_MODULE_ID            = "agapsys.webtoolkit.logging";
 	
 	public static WebApplication getInstance() {
 		return (WebApplication) com.agapsys.web.toolkit.AbstractWebApplication.getInstance();
@@ -79,31 +79,37 @@ public abstract class WebApplication extends AbstractWebApplication {
 	public EntityManager getEntityManager() throws IllegalStateException {
 		AbstractPersistenceModule persistenceModule = (AbstractPersistenceModule) getModuleInstance(PERSISTENCE_MODULE_ID);
 		
-		if (persistenceModule != null)
-			return persistenceModule.getEntityManager();
-		else
-			return null;
+		if (persistenceModule == null)
+			throw new RuntimeException("There is no persistence module");
+		
+		return persistenceModule.getEntityManager();
 	}
 	
 	public void reportErroneousRequest(HttpServletRequest req, HttpServletResponse resp) {
 		AbstractExceptionReporterModule exceptionReporterModule = (AbstractExceptionReporterModule) getModuleInstance(EXCEPTION_REPORTER_MODULE_ID);
 		
-		if (exceptionReporterModule != null)
-			exceptionReporterModule.reportErroneousRequest(req, resp);
+		if (exceptionReporterModule == null)
+			throw new RuntimeException("There is no exception reporter module");
+		
+		exceptionReporterModule.reportErroneousRequest(req, resp);
 	}
 	
 	public void sendMessage(Message message) {
 		AbstractSmtpModule smtpModule = (AbstractSmtpModule) getModuleInstance(SMTP_MODULE_ID);
 		
-		if (smtpModule != null)
-			smtpModule.sendMessage(message);
+		if (smtpModule == null)
+			throw new RuntimeException("There is no SMTP module");
+		
+		smtpModule.sendMessage(message);
 	}
 	
 	public void log(String logType, String message) {
 		AbstractLoggingModule loggingModule = (AbstractLoggingModule) getModuleInstance(LOGGING_MODULE_ID);
 		
-		if (loggingModule != null)
-			loggingModule.log(logType, message);
+		if (loggingModule == null)
+			throw new RuntimeException("There is no logging module");
+		
+		loggingModule.log(logType, message);
 	}
 	// =========================================================================
 }

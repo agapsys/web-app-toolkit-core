@@ -144,6 +144,10 @@ public class SmtpModule extends AbstractSmtpModule {
 		return (AbstractLoggingModule) getApplication().getModuleInstance(getLoggingModuleId());
 	}
 	
+	public InternetAddress getSender() {
+		return sender;
+	}
+	
 	protected void log(String logType, String message) {
 		AbstractLoggingModule loggingModule = getLoggingModule();
 		

@@ -357,14 +357,18 @@ public class WebApplicationTest  {
 		AbstractWebApplication.getInstance().getFolder();
 	}
 	
-	@Test (expected = IllegalStateException.class)
+	@Test(expected = IllegalStateException.class)
 	public void Simple_web_application_getEntityManager_test() {
 		Utils.printCurrentMethod();
 		
 		AbstractWebApplication webApp = new WebApplicationBase();
 		webApp.start();
 		
-		Assert.assertNull(WebApplicationBase.getInstance().getEntityManager());
+		try {
+			WebApplicationBase.getInstance().getEntityManager();
+		} catch (RuntimeException ex) {
+			Assert.assertTrue(ex.getMessage().contains("There is no persistence module"));
+		}
 		
 		webApp.stop();
 		WebApplicationBase.getInstance().getEntityManager();

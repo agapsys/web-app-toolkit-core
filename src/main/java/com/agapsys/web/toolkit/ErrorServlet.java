@@ -36,8 +36,13 @@ public class ErrorServlet extends HttpServlet {
 	// INSTANCE SCOPE ==========================================================		
 	@Override
 	protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-		if (AbstractExceptionReporterModule.getException(req) != null)
-			WebApplication.getInstance().reportErroneousRequest(req, resp);
+		if (AbstractExceptionReporterModule.getException(req) != null) {
+			AbstractExceptionReporterModule exceptionReporterModule = (AbstractExceptionReporterModule) WebApplication.getInstance().getModuleInstance(WebApplication.EXCEPTION_REPORTER_MODULE_ID);
+			
+			if (exceptionReporterModule != null) {
+				exceptionReporterModule.reportErroneousRequest(req, resp);
+			}
+		}
 	}
 	// =========================================================================
 }
