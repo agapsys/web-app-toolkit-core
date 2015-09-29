@@ -17,12 +17,6 @@
 package com.agapsys.web.toolkit;
 
 import com.agapsys.mail.Message;
-import com.agapsys.web.toolkit.AbstractExceptionReporterModule;
-import com.agapsys.web.toolkit.AbstractLoggingModule;
-import com.agapsys.web.toolkit.AbstractModule;
-import com.agapsys.web.toolkit.AbstractPersistenceModule;
-import com.agapsys.web.toolkit.AbstractSmtpModule;
-import com.agapsys.web.toolkit.AbstractWebApplication;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import javax.persistence.EntityManager;

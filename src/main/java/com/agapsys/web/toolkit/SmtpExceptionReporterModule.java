@@ -18,10 +18,6 @@ package com.agapsys.web.toolkit;
 
 import com.agapsys.mail.Message;
 import com.agapsys.mail.MessageBuilder;
-import com.agapsys.web.toolkit.AbstractExceptionReporterModule;
-import com.agapsys.web.toolkit.AbstractLoggingModule;
-import com.agapsys.web.toolkit.AbstractSmtpModule;
-import com.agapsys.web.toolkit.AbstractWebApplication;
 import java.util.LinkedHashSet;
 import java.util.Properties;
 import java.util.Set;

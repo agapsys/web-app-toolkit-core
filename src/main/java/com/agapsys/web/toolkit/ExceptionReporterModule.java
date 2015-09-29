@@ -16,9 +16,6 @@
 
 package com.agapsys.web.toolkit;
 
-import com.agapsys.web.toolkit.AbstractExceptionReporterModule;
-import com.agapsys.web.toolkit.AbstractLoggingModule;
-import com.agapsys.web.toolkit.AbstractWebApplication;
 import com.agapsys.web.toolkit.utils.HttpUtils;
 import com.agapsys.web.toolkit.utils.DateUtils;
 import java.util.LinkedHashSet;

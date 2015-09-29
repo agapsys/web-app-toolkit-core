@@ -16,8 +16,6 @@
 
 package com.agapsys.web.toolkit;
 
-import com.agapsys.web.toolkit.AbstractWebApplication;
-import com.agapsys.web.toolkit.AbstractPersistenceModule;
 import com.agapsys.web.toolkit.utils.RuntimeJarLoader;
 import java.io.File;
 import java.util.Properties;

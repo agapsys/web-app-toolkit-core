@@ -16,9 +16,6 @@
 
 package com.agapsys.web.toolkit;
 
-import com.agapsys.web.toolkit.AbstractLoggingModule;
-import com.agapsys.web.toolkit.AbstractWebApplication;
-
 /**
  * Default logging module implementation.
  * All logs messages will be printed to console

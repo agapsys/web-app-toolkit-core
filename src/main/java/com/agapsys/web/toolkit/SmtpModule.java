@@ -16,14 +16,11 @@
 
 package com.agapsys.web.toolkit;
 
-import com.agapsys.web.toolkit.AbstractWebApplication;
 import com.agapsys.mail.Message;
 import com.agapsys.mail.MessageBuilder;
 import com.agapsys.mail.SecurityType;
 import com.agapsys.mail.SmtpSender;
 import com.agapsys.mail.SmtpSettings;
-import com.agapsys.web.toolkit.AbstractLoggingModule;
-import com.agapsys.web.toolkit.AbstractSmtpModule;
 import java.util.LinkedHashSet;
 import java.util.Properties;
 import java.util.Set;
