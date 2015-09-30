@@ -153,12 +153,27 @@ public class HttpUtils {
 	 * @param object object to be sent
 	 * @throws IOException if there is an I/O error while processing the request
 	 */
-	public static void sendJsonData(HttpServletResponse resp, Object object) throws IllegalArgumentException, IOException {
+	public static void sendJsonData(HttpServletResponse resp, Object object) throws IOException {
 		resp.setContentType(JSON_CONTENT_TYPE);
 		resp.setCharacterEncoding(JSON_ENCODING);
 		
 		PrintWriter out = resp.getWriter();
 		String json = getGson().toJson(object);
+		out.write(json);
+	}
+	
+	/**
+	 * Sends an object as a json
+	 * @param resp HTTP response
+	 * @param object object to be sent
+	 * @param type type of given object
+	 * @throws IOException if there is an I/O error while processing the request
+	 */
+	public static void sendJsonData(HttpServletResponse resp, Object object, Type type) throws IOException {
+		resp.setContentType(JSON_CONTENT_TYPE);
+		resp.setCharacterEncoding(JSON_ENCODING);
+		PrintWriter out = resp.getWriter();
+		String json = getGson().toJson(object, type);
 		out.write(json);
 	}
 	
