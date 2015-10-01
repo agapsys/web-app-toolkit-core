@@ -116,8 +116,10 @@ public class PersistenceModule extends AbstractPersistenceModule {
 		AbstractWebApplication application = getApplication();
 		Properties properties = application.getProperties();
 		
-		File jdbcDriverFile = new File(application.getFolder(), properties.getProperty(KEY_JDBC_DRIVER_FILENAME));
-		RuntimeJarLoader.loadJar(jdbcDriverFile);
+		if (properties.containsKey(KEY_JDBC_DRIVER_FILENAME)) {
+			File jdbcDriverFile = new File(application.getFolder(), properties.getProperty(KEY_JDBC_DRIVER_FILENAME));
+			RuntimeJarLoader.loadJar(jdbcDriverFile);
+		}
 		
 		emf = Persistence.createEntityManagerFactory(getDefaultPersistenceUnitName(), properties);
 	}
