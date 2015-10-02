@@ -19,8 +19,6 @@ Web Core Toolkit project requires Java 7 compatible runtime and depends on the f
 
 Testing dependencies:
 * Agapsys Java Logging Framework (https://github.com/agapsys/logger)
-* Agapsys Servlet Testing Framework (https://github.com/agapsys/servlet-testing-framework)
-* H2 Database (http://www.h2database.com)
 * JUnit (http://junit.org/)
 * Hibernate JPA (http://hibernate.org/orm/)
 
