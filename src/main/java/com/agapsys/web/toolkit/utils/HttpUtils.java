@@ -65,7 +65,7 @@ public class HttpUtils {
 	}
 	
 	// Check if given request is valid for GSON parsing
-	private static void checkJsonContent(HttpServletRequest req) throws BadRequestException {
+	private static void checkJsonContentType(HttpServletRequest req) throws BadRequestException {
 		String reqContentType = req.getContentType();
 		
 		if(!reqContentType.startsWith(JSON_CONTENT_TYPE))
@@ -86,7 +86,7 @@ public class HttpUtils {
 		if (clazz == null)
 			throw new IllegalArgumentException("Null clazz");
 		
-		checkJsonContent(req);
+		checkJsonContentType(req);
 				
 		try {
 			return getGson().fromJson(req.getReader(), clazz);
@@ -135,7 +135,7 @@ public class HttpUtils {
 	 * @throws IOException if there is an I/O error while processing the request
 	 */	
 	public static <T> List<T> getJsonList(HttpServletRequest req, Class<T> elementType) throws BadRequestException, IOException {
-		checkJsonContent(req);
+		checkJsonContentType(req);
 		
 		try {
 			ListType lt = new ListType(elementType);
