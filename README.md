@@ -17,11 +17,6 @@ Web Core Toolkit project requires Java 7 compatible runtime and depends on the f
 * Agapsys Console Utilities (https://github.com/agapsys/console-utils)
 * GSON (https://github.com/google/gson)
 
-Testing dependencies:
-* Agapsys Java Logging Framework (https://github.com/agapsys/logger)
-* JUnit (http://junit.org/)
-* Hibernate JPA (http://hibernate.org/orm/)
-
 For detailed information on external dependencies please see *pom.xml*.
 
 ## Licensing
