@@ -17,6 +17,7 @@
 package com.agapsys.web.toolkit;
 
 import com.agapsys.utils.console.Console;
+import com.agapsys.web.toolkit.utils.DateUtils;
 import com.agapsys.web.toolkit.utils.FileUtils;
 import com.agapsys.web.toolkit.utils.PropertyGroup;
 import java.io.File;
@@ -47,6 +48,10 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	private static final String SETTINGS_FILENAME_SUFFIX    = ".conf";
 	private static final String SETTINGS_FILENAME_ENVIRONMENT_DELIMITER = "-";
 	
+	public static final String LOG_TYPE_ERROR   = "error";
+	public static final String LOG_TYPE_INFO    = "info";
+	public static final String LOG_TYPE_WARNING = "warning";
+	
 	public static AbstractWebApplication singleton = null;
 	
 	public static boolean isRunning() {
@@ -58,6 +63,10 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 			throw new IllegalStateException("Application is not running");
 		
 		return singleton;
+	}
+	
+	public static void logToConsole(String logType, String message) {
+		Console.println(String.format("[%s] [%s] %s", DateUtils.getLocalTimestamp(), logType, message));
 	}
 	// =========================================================================
 	

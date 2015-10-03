@@ -64,14 +64,8 @@ limitations under the License.
 		<!-- Test dependencies -->
 		<dependency>
 			<groupId>com.agapsys.libs</groupId>
-			<artifactId>logger</artifactId>
-			<version>3.0.0-RC1-SNAPSHOT</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.agapsys.libs</groupId>
 			<artifactId>servlet-testing-framework</artifactId>
-			<version>1.0.0-RC1</version>
+			<version>2.0.0-RC1-SNAPSHOT</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -95,11 +89,11 @@ limitations under the License.
 			<scope>provided</scope>
 		</dependency>
 		
-		<!-- Compile dependencies-->		
+		<!-- Compile dependencies-->								
 		<dependency>
 			<groupId>com.agapsys.libs</groupId>
 			<artifactId>smtp-sender</artifactId>
-			<version>2.0.0-RC1-SNAPHOT</version>
+			<version>2.0.0-RC1-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>com.agapsys.libs</groupId>

@@ -21,17 +21,19 @@ import com.agapsys.mail.MessageBuilder;
 import com.agapsys.mail.SecurityType;
 import com.agapsys.mail.SmtpSender;
 import com.agapsys.mail.SmtpSettings;
-import java.util.LinkedHashSet;
+import com.agapsys.web.toolkit.utils.DateUtils;
+import com.agapsys.web.toolkit.utils.HttpUtils;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintStream;
 import java.util.Properties;
-import java.util.Set;
 import javax.mail.MessagingException;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 
 public class SmtpModule extends AbstractSmtpModule {
 	// CLASS SCOPE =============================================================
-	private static final String LOGGING_MODULE_ID = WebApplication.LOGGING_MODULE_ID;
-	
 	// SETTINGS ----------------------------------------------------------------
 	public static final String KEY_SENDER = "agapsys.webtoolkit.smtp.sender";
 	
@@ -42,6 +44,8 @@ public class SmtpModule extends AbstractSmtpModule {
 	public static final String KEY_SECURITY_TYPE = SmtpSettings.KEY_SECURITY;
 	public static final String KEY_PORT          = SmtpSettings.KEY_PORT;
 	// -------------------------------------------------------------------------
+	
+	public static final String SMTP_ERR_LOG_FILENAME = "smtp-errors.log";
 	
 	public static final String       DEFAULT_SENDER        = "no-reply@email.com";
 	public static final String       DEFAULT_SERVER        = "smtp.server.com";
@@ -60,30 +64,66 @@ public class SmtpModule extends AbstractSmtpModule {
 		super(application);
 	}
 
+	/**
+	 * Returns the name of the log file used to store errors in SMTP module
+	 * @return log error filename. Default implementation returns {@linkplain SmtpModule#SMTP_ERR_LOG_FILENAME}.
+	 */
+	protected String getSmtpErrorLogFilename() {
+		return SMTP_ERR_LOG_FILENAME;
+	}
+	
+	/**
+	 * Return the default sender address when there is no definition.
+	 * @return default sender address
+	 */
 	protected String getDefaultSender() {
 		return DEFAULT_SENDER;
 	}
 	
+	/**
+	 * Return the default SMTP server address when there is no definition.
+	 * @return default SMTP server address
+	 */
 	protected String getDefaultServer() {
 		return DEFAULT_SERVER;
 	}
 	
+	/**
+	 * Return the default property defining if authentication is required.
+	 * @return default property defining if authentication is required.
+	 */
 	protected boolean getDefaultAuthEnabled() {
 		return DEFAULT_AUTH_ENABLED;
 	}
 	
+	/**
+	 * Return the default SMTP server username credential if there is no definition.
+	 * @return default SMTP server username
+	 */
 	protected String getDefaultUsername() {
 		return DEFAULT_USERNAME;
 	}
 	
+	/**
+	 * Return the default SMTP server password credential if there is no definition.
+	 * @return default SMTP server password
+	 */
 	protected String getDefaultPassword() {
 		return DEFAULT_PASSWORD;
 	}
 	
+	/**
+	 * Return the default SMTP server security type when there is no definition.
+	 * @return default SMTP server security type when there is no definition.
+	 */
 	protected SecurityType getDefaultSecurityType() {
 		return DEFAULT_SECURITY_TYPE;
 	}
 	
+	/**
+	 * Return the default SMTP server port when there is no definition.
+	 * @return default SMTP server port when there is no definition.
+	 */
 	protected int getDefaultPort() {
 		return DEFAULT_PORT;
 	}
@@ -128,34 +168,12 @@ public class SmtpModule extends AbstractSmtpModule {
 		return properties;
 	}
 	
-	
-	protected String getLoggingModuleId() {
-		return LOGGING_MODULE_ID;
-	}
-	
-	@Override
-	protected Set<String> getOptionalDependencies() {
-		Set<String> deps = new LinkedHashSet<>();
-		deps.add(getLoggingModuleId());
-		return deps;
-	}
-	
-	private AbstractLoggingModule getLoggingModule() {
-		return (AbstractLoggingModule) getApplication().getModuleInstance(getLoggingModuleId());
-	}
-	
+	/**
+	 * Returns the sender address defined in application settings
+	 * @return sender address
+	 */
 	public InternetAddress getSender() {
 		return sender;
-	}
-	
-	protected void log(String logType, String message) {
-		AbstractLoggingModule loggingModule = getLoggingModule();
-		
-		if (loggingModule != null) {
-			loggingModule.log(logType, message);
-		} else {
-			AbstractLoggingModule.logToConsole(logType, message);
-		}
 	}
 	
 	@Override
@@ -198,9 +216,43 @@ public class SmtpModule extends AbstractSmtpModule {
 				}
 				smtpSender.sendMessage(message);
 			} catch (MessagingException ex) {
-				log(AbstractLoggingModule.LOG_TYPE_ERROR, "Error sending message: " + ex.getMessage());
-				throw new RuntimeException(ex);
+				onError(ex, message);
 			}
 		}
+	}
+	
+	/**
+	 * Called when there is an error while sending a message.
+	 * Default implementation writes the error in a log file (see {@linkplain SmtpModule#getSmtpErrorLogFilename()})
+	 * @param ex error
+	 * @param message message
+	 */
+	protected void onError(MessagingException ex, Message message) {
+		try (PrintStream ps = new PrintStream(new FileOutputStream(new File(getApplication().getFolder(), getSmtpErrorLogFilename()), true))) {
+			ps.print(getErrorString(ex, message));
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+	
+	/**
+	 * Returns the error message which will be used by {@linkplain SmtpModule#onError(MessagingException, Message)}
+	 * @param ex error
+	 * @param message message
+	 * @return error message string
+	 */
+	protected String getErrorString(MessagingException ex, Message message) {
+		String errMsg =
+			"[%s] [%s] Error sending message:\n" +
+			"--------- Error ---------\n" +
+			ExceptionReporterModule.getStackTrace(ex) + "\n" +
+			"-------------------------\n\n" +
+			"-------- Message --------\n" +
+			message.toString() +
+			"-------------------------\n";
+		
+		errMsg = String.format(errMsg, DateUtils.getLocalTimestamp(), this.getClass().getName());
+		
+		return errMsg;
 	}
 }

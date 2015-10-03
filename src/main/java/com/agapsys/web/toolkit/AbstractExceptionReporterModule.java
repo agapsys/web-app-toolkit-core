@@ -15,10 +15,7 @@
  */
 package com.agapsys.web.toolkit;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 /**
  * Represents an error reporter
@@ -27,43 +24,6 @@ import javax.servlet.http.HttpServletResponse;
 public abstract class AbstractExceptionReporterModule extends AbstractModule {
 	// CLASS SCOPE =============================================================
 	private static final String DESCRIPTION = "Exception reporter module";
-	
-	private static final String ATTR_STATUS_CODE    = "javax.servlet.error.status_code";
-	private static final String ATTR_EXCEPTION_TYPE = "javax.servlet.error.exception_type";
-	private static final String ATTR_MESSAGE        = "javax.servlet.error.message";
-	private static final String ATTR_REQUEST_URI    = "javax.servlet.error.request_uri";
-	private static final String ATTR_EXCEPTION      = "javax.servlet.error.exception";
-	
-	public static int getStatusCode(HttpServletRequest req) {
-		return (Integer) req.getAttribute(ATTR_STATUS_CODE);
-	}
-	
-	public static Class<?> getExceptionType(HttpServletRequest req) {
-		return (Class) req.getAttribute(ATTR_EXCEPTION_TYPE);
-	}
-	
-	public static String getExceptionMessage(HttpServletRequest req) {
-		return (String) req.getAttribute(ATTR_MESSAGE);
-	}
-	
-	public static String getRequestUri(HttpServletRequest req) {
-		return (String) req.getAttribute(ATTR_REQUEST_URI);
-	}
-	
-	public static Throwable getException(HttpServletRequest req) {
-		return (Throwable) req.getAttribute(ATTR_EXCEPTION);
-	}
-	
-	/** 
-	 * Return a string representation of a stack trace for given error
-	 * @return a string representation of a stack trace for given error
-	 * @param throwable error
-	 */
-	public static String getStackTrace(Throwable throwable) {
-		StringWriter stringWriter = new StringWriter();
-		throwable.printStackTrace(new PrintWriter(stringWriter));
-		return stringWriter.toString();
-	}
 	// =========================================================================
 	
 	// INSTANCE SCOPE ==========================================================
@@ -79,27 +39,26 @@ public abstract class AbstractExceptionReporterModule extends AbstractModule {
 	/**
 	 * Actual error report code.
 	 * This method will be called only when module is running.
-	 * @param req HTTP request
-	 * @param resp HTTP response
+	 * @param t exception to be reported
+	 * @param req HTTP request which thrown the exception
 	 */
-	protected abstract void onReportErroneousRequest(HttpServletRequest req, HttpServletResponse resp);
+	protected abstract void onExceptionReport(Throwable t, HttpServletRequest req);
 	
 	/**
 	 * Handles an erroneous request.
 	 * If module is not running, nothing happens.
-	 * @param req HTTP request
-	 * @param resp HTTP response
-	 * @throws IllegalArgumentException if either req == null or resp == null.
+	 * @param t exception to be reported
+	 * @param req HTTP request which thrown the exception
 	 */
-	public final void reportErroneousRequest(HttpServletRequest req, HttpServletResponse resp) throws IllegalArgumentException {
-		if (req == null)
-			throw new IllegalArgumentException("req == null");
+	public final void reportException(Throwable t, HttpServletRequest req) throws IllegalArgumentException {
+		if (t == null)
+			throw new IllegalArgumentException("null throwable");
 		
-		if (resp == null)
-			throw new IllegalArgumentException("resp == null");
+		if (req == null)
+			throw new IllegalArgumentException("Null request");
 		
 		if (isRunning()) {
-			onReportErroneousRequest(req, resp);
+			onExceptionReport(t, req);
 		}
 	}
 	// =========================================================================

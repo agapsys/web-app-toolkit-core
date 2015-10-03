@@ -21,7 +21,7 @@ import com.agapsys.mail.MessageBuilder;
 import java.util.LinkedHashSet;
 import java.util.Properties;
 import java.util.Set;
-import javax.mail.MessagingException;
+import javax.mail.internet.AddressException;
 
 /**
  * Default crash reporter module with SMTP sending capabilities
@@ -29,8 +29,6 @@ import javax.mail.MessagingException;
  */
 public class SmtpExceptionReporterModule extends ExceptionReporterModule {
 	// CLASS SCOPE =============================================================
-	private static final String SMTP_MODULE_ID = WebApplication.SMTP_MODULE_ID;
-	
 	// SETTINGS ----------------------------------------------------------------
 	public static final String KEY_RECIPIENTS   = "agapsys.webtoolkit.smtpExceptionReporter.recipients";
 	public static final String KEY_SUBJECT      = "agapsys.webtoolkit.smtpExceptionReporter.subject";
@@ -52,10 +50,18 @@ public class SmtpExceptionReporterModule extends ExceptionReporterModule {
 		super(application);
 	}
 	
+	/**
+	 * Returns the default subject for messaged sent by the module
+	 * @return the default subject for messaged sent by the module
+	 */
 	protected String getDefaultSubject() {
 		return DEFAULT_SUBJECT;
 	}
 	
+	/**
+	 * Returns the default recipients for messages sent by the module
+	 * @return the default recipients for messages sent by the module
+	 */
 	protected String getDefaultRecipients() {
 		return DEFAULT_RECIPIENTS;
 	}
@@ -78,8 +84,12 @@ public class SmtpExceptionReporterModule extends ExceptionReporterModule {
 		return properties;
 	}
 	
+	/**
+	 * Return the SMTP module ID used by application
+	 * @return the SMTP module ID used by application. Default implementation returns {@linkplain WebApplication#SMTP_MODULE_ID}
+	 */
 	protected String getSmtpModuleId() {
-		return SMTP_MODULE_ID;
+		return WebApplication.SMTP_MODULE_ID;
 	}
 	
 	@Override
@@ -126,11 +136,18 @@ public class SmtpExceptionReporterModule extends ExceptionReporterModule {
 		subject = null;
 	}
 
-	
+	/**
+	 * Returns message recipients defined in application settings
+	 * @return message recipients defined in application settings
+	 */
 	public String[] getRecipients() {
 		return recipients;
 	}
 	
+	/**
+	 * Returns message subject defined in application settings
+	 * @return message subject defined in application settings
+	 */
 	public String getSubject() {
 		return subject;
 	}
@@ -140,18 +157,16 @@ public class SmtpExceptionReporterModule extends ExceptionReporterModule {
 	}
 
 	@Override
-	protected void reportError(String message) {
-		super.reportError(message);
-
+	protected void reportErrorMessage(String message) {
+		super.reportErrorMessage(message);
 		try {
-			Message msg = new MessageBuilder(getApplication().getProperties().getProperty(SmtpModule.KEY_SENDER), getRecipients())
-				.setSubject(getSubject())
-				.setText(message)
-				.build();
-			
+			Message msg = new MessageBuilder(
+				getApplication().getProperties().getProperty(SmtpModule.KEY_SENDER), 
+				getRecipients()
+			).setSubject(getSubject()).setText(message).build();
+
 			getSmtpModule().sendMessage(msg);
-		} catch (MessagingException ex) {
-			log(AbstractLoggingModule.LOG_TYPE_ERROR, String.format("Error sending error report:\n----\n%s\n----", AbstractExceptionReporterModule.getStackTrace(ex)));
+		} catch (AddressException ex) {
 			throw new RuntimeException(ex);
 		}
 	}

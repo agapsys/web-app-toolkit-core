@@ -18,11 +18,13 @@ package com.agapsys.web.toolkit;
 
 import com.agapsys.Utils;
 import java.io.File;
+import javax.persistence.EntityManager;
 import org.junit.Assert;
 import org.junit.Test;
 
 public class WebApplicationTest  {
 	// CLASS SCOPE =============================================================
+	// Custom modules ----------------------------------------------------------
 	private static class CustomPersistenceModule extends PersistenceModule {
 		public CustomPersistenceModule(AbstractWebApplication application) {
 			super(application);
@@ -41,25 +43,6 @@ public class WebApplicationTest  {
 		}
 	}
 	
-	private static class CustomLoggingModule extends LoggingModule {
-
-		public CustomLoggingModule(AbstractWebApplication application) {
-			super(application);
-		}
-
-		@Override
-		protected void onStart() {
-			super.onStart();
-			((WebApplicationBase)getApplication()).onLogginModuleStartCalled = true;
-		}
-
-		@Override
-		protected void onStop() {
-			super.onStop();
-			((WebApplicationBase)getApplication()).onLoggingModuleStopCalled = true;
-		}
-	}
-
 	private static class CustomExceptionReporterModule extends ExceptionReporterModule {
 
 		public CustomExceptionReporterModule(AbstractWebApplication application) {
@@ -97,9 +80,10 @@ public class WebApplicationTest  {
 			((WebApplicationBase)getApplication()).onSmtpModuleStopCalled = true;
 		}
 	}
+	// -------------------------------------------------------------------------
 	
-	
-	private static class WebApplicationBase extends com.agapsys.web.toolkit.WebApplication {
+	// Custom applications -----------------------------------------------------	
+	private static class WebApplicationBase extends WebApplication {
 		private boolean beforeApplicationStopCalled = false;
 		private boolean beforeApplicationStartCalled = false;
 		
@@ -128,16 +112,6 @@ public class WebApplicationTest  {
 		}
 		public boolean isOnPersistenceModuleStopCalled() {
 			return onPersistenceModuleStopCalled;
-		}
-		
-		private boolean onLogginModuleStartCalled = false;
-		private boolean onLoggingModuleStopCalled = false;
-
-		public boolean isOnLogginModuleStartCalled() {
-			return onLogginModuleStartCalled;
-		}
-		public boolean isOnLoggingModuleStopCalled() {
-			return onLoggingModuleStopCalled;
 		}
 		
 		private boolean onExceptionReporterModuleStartCalled = false;
@@ -184,11 +158,6 @@ public class WebApplicationTest  {
 		}
 
 		@Override
-		protected Class<? extends LoggingModule> getLoggingModuleClass() {
-			return null;
-		}
-
-		@Override
 		protected Class<? extends ExceptionReporterModule> getExceptionReporterModuleClass() {
 			return null;
 		}
@@ -227,24 +196,11 @@ public class WebApplicationTest  {
 		}
 	}
 	
-	private static class WebApplicationWithLogging extends WebApplicationBase {
-
-		@Override
-		protected Class<? extends LoggingModule> getLoggingModuleClass() {
-			return CustomLoggingModule.class;
-		}
-	}
-	
 	private static class WebApplicationWithErrorReport extends WebApplicationBase {
 
 		@Override
 		protected Class<? extends ExceptionReporterModule> getExceptionReporterModuleClass() {
 			return CustomExceptionReporterModule.class;
-		}
-
-		@Override
-		protected Class<? extends LoggingModule> getLoggingModuleClass() {
-			return CustomLoggingModule.class;
 		}
 	}
 	
@@ -264,11 +220,6 @@ public class WebApplicationTest  {
 		}
 
 		@Override
-		protected Class<? extends LoggingModule> getLoggingModuleClass() {
-			return CustomLoggingModule.class;
-		}
-
-		@Override
 		protected Class<? extends AbstractSmtpModule> getSmtpModuleClass() {
 			return CustomSmtpModule.class;
 		}
@@ -278,6 +229,7 @@ public class WebApplicationTest  {
 			return CustomExceptionReporterModule.class;
 		}
 	}
+	// -------------------------------------------------------------------------
 	// =========================================================================
 
 	// INSTANCE SCOPE ==========================================================
@@ -290,7 +242,6 @@ public class WebApplicationTest  {
 		Assert.assertTrue(webApp.isBeforeApplicationStartCalled());
 		Assert.assertTrue(WebApplicationBase.isRunning());
 		Assert.assertFalse(webApp.isOnPersistenceModuleStartCalled());
-		Assert.assertFalse(webApp.isOnLogginModuleStartCalled());
 		Assert.assertFalse(webApp.isOnExceptionReporterModuleStartCalled());
 		Assert.assertFalse(webApp.isOnSmtpModuleStartCalled());
 		Assert.assertTrue(webApp.isAfterApplicationStartCalled());
@@ -300,7 +251,6 @@ public class WebApplicationTest  {
 		webApp.stop();
 		Assert.assertTrue(webApp.isBeforeApplicationStopCalled());
 		Assert.assertFalse(webApp.isOnPersistenceModuleStopCalled());
-		Assert.assertFalse(webApp.isOnLoggingModuleStopCalled());
 		Assert.assertFalse(webApp.isOnExceptionReporterModuleStopCalled());
 		Assert.assertFalse(webApp.isOnSmtpModuleStopCalled());
 		Assert.assertFalse(WebApplicationBase.isRunning());
@@ -357,21 +307,16 @@ public class WebApplicationTest  {
 		AbstractWebApplication.getInstance().getFolder();
 	}
 	
-	@Test(expected = IllegalStateException.class)
+	@Test
 	public void Simple_web_application_getEntityManager_test() {
 		Utils.printCurrentMethod();
 		
 		AbstractWebApplication webApp = new WebApplicationBase();
 		webApp.start();
 		
-		try {
-			WebApplicationBase.getInstance().getEntityManager();
-		} catch (RuntimeException ex) {
-			Assert.assertTrue(ex.getMessage().contains("There is no persistence module"));
-		}
-		
+		AbstractPersistenceModule persistenceModule = (AbstractPersistenceModule) WebApplicationBase.getInstance().getModuleInstance(WebApplication.PERSISTENCE_MODULE_ID);
+		Assert.assertNull(persistenceModule);
 		webApp.stop();
-		WebApplicationBase.getInstance().getEntityManager();
 	}
 	
 	
@@ -383,22 +328,12 @@ public class WebApplicationTest  {
 		webApp.start();
 		Assert.assertTrue(webApp.isOnPersistenceModuleStartCalled());
 		
-		Assert.assertNotNull(WebApplicationBase.getInstance().getEntityManager());
+		
+		AbstractPersistenceModule persistenceModule = (AbstractPersistenceModule) WebApplicationBase.getInstance().getModuleInstance(WebApplication.PERSISTENCE_MODULE_ID);
+		Assert.assertNotNull(persistenceModule.getEntityManager());
 		
 		webApp.stop();
 		Assert.assertTrue(webApp.isOnPersistenceModuleStopCalled());
-	}
-	
-	@Test
-	public void Web_application_with_logging_test() {
-		Utils.printCurrentMethod();
-		
-		WebApplicationBase webApp = new WebApplicationWithLogging();
-		webApp.start();
-		Assert.assertTrue(webApp.isOnLogginModuleStartCalled());
-				
-		webApp.stop();
-		Assert.assertTrue(webApp.isOnLoggingModuleStopCalled());
 	}
 	
 	@Test
@@ -433,13 +368,11 @@ public class WebApplicationTest  {
 		webApp.start();
 		
 		Assert.assertTrue(webApp.isOnPersistenceModuleStartCalled());
-		Assert.assertTrue(webApp.isOnLogginModuleStartCalled());
 		Assert.assertTrue(webApp.isOnSmtpModuleStartCalled());
 		Assert.assertTrue(webApp.isOnExceptionReporterModuleStartCalled());
 		
 		webApp.stop();
 		Assert.assertTrue(webApp.isOnPersistenceModuleStopCalled());
-		Assert.assertTrue(webApp.isOnLoggingModuleStopCalled());
 		Assert.assertTrue(webApp.isOnSmtpModuleStopCalled());
 		Assert.assertTrue(webApp.isOnExceptionReporterModuleStopCalled());
 	}

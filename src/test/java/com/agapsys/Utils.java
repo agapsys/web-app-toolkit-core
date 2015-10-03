@@ -21,7 +21,7 @@ public class Utils {
 	public static void printCurrentMethod() {
 		StackTraceElement ste = Thread.currentThread().getStackTrace()[2];
 		String[] classNameTokens = ste.getClassName().split("\\.");
-		System.out.println(String.format("========= %s::%s =========", classNameTokens[classNameTokens.length - 1], ste.getMethodName()));
+		System.out.println(String.format("[%s::%s]", classNameTokens[classNameTokens.length - 1], ste.getMethodName()));
 	}
 	// =========================================================================
 

@@ -13,49 +13,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.agapsys.web.toolkit;
 
-import com.agapsys.mail.Message;
-import javax.mail.MessagingException;
+import com.agapsys.web.toolkit.utils.HttpUtils;
+import java.io.IOException;
+import javax.servlet.Filter;
+import javax.servlet.FilterChain;
+import javax.servlet.FilterConfig;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
+import javax.servlet.annotation.WebFilter;
+import javax.servlet.http.HttpServletRequest;
 
-/**
- * E-mail sender module
- * @author Leandro Oliveira (leandro@agapsys.com)
- */
-public abstract class AbstractSmtpModule extends AbstractModule {
+@WebFilter("/*")
+public class RequestFilter implements Filter {
 	// CLASS SCOPE =============================================================
-	private static final String DESCRIPTION = "SMTP module";
+	public static final String ATTR_ORIGINAL_REQUEST_URL = "com.agapsys.web.toolkit.originalRequestUrl";
 	// =========================================================================
-	
+
 	// INSTANCE SCOPE ==========================================================
-	public AbstractSmtpModule(AbstractWebApplication application) {
-		super(application);
+	@Override
+	public void init(FilterConfig filterConfig) throws ServletException {}
+
+	@Override
+	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+		request.setAttribute(ATTR_ORIGINAL_REQUEST_URL, HttpUtils.getRequestUrl((HttpServletRequest) request));
+		chain.doFilter(request, response);
 	}
 
 	@Override
-	public String getDescription() {
-		return DESCRIPTION;
-	}
-	
-	/** 
-	 * Actual message sending code. 
-	 * This method will be called only when module is running.
-	 * @param message message to be sent
-	 */
-	protected abstract void onSendMessage(Message message);
-	
-	/** 
-	 * Sends a email message.
-	 * If module is not running, nothing happens.
-	 * @param message message to be sent
-	 */
-	public final void sendMessage(Message message) {
-		if (message == null)
-			throw new IllegalArgumentException("null message");
-				
-		if (isRunning()) {
-			onSendMessage(message);
-		}
-	}
+	public void destroy() {}
 	// =========================================================================
 }

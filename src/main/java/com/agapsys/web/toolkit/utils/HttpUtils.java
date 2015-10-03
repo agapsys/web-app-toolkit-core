@@ -196,6 +196,18 @@ public class HttpUtils {
 	public static String getOriginUserAgent(HttpServletRequest req) {
 		return req.getHeader("user-agent");
 	}
+	
+	/**
+	 * @return request URL.
+	 * @param req HTTP request
+	 */
+	public static String getRequestUrl(HttpServletRequest req) {
+		StringBuffer requestUrl = req.getRequestURL();
+		if (req.getQueryString() != null)
+			requestUrl.append("?").append(req.getQueryString());
+		
+		return requestUrl.toString();
+	}
 	// =========================================================================
 
 	// INSTANCE SCOPE ==========================================================

@@ -14,20 +14,21 @@
  * limitations under the License.
  */
 
-package com.agapsys.web.toolkit;
+package com.agapsys.web.toolkit.integration;
 
-/**
- * Default logging module implementation.
- * All logs messages will be printed to console
- * @author Leandro Oliveira (leandro@agapsys.com)
- */
-public class LoggingModule extends AbstractLoggingModule {
-	public LoggingModule(AbstractWebApplication application) {
-		super(application);
-	}
+import java.io.IOException;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
+@WebServlet(ExceptionServlet.URL)
+public class ExceptionServlet extends HttpServlet{
+	public static final String URL = "/exception";
+	
 	@Override
-	protected void onLog(String logType, String message) {
-		logToConsole(logType, message);
+	protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+		throw new RuntimeException("Test error");
 	}
 }

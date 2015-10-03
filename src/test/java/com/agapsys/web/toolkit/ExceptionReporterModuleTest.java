@@ -55,7 +55,7 @@ public class ExceptionReporterModuleTest {
 		}
 
 		@Override
-		protected void onReportErroneousRequest(HttpServletRequest req, HttpServletResponse resp) {
+		protected void onExceptionReport(Throwable t, HttpServletRequest req) {
 			methodCalled = true;
 		}
 	}
@@ -605,34 +605,34 @@ public class ExceptionReporterModuleTest {
 	}
 	
 	@Test(expected = IllegalArgumentException.class)
-	public void nullRequest() {
+	public void nullThrowable() {
 		Utils.printCurrentMethod();
 		
-		module.reportErroneousRequest(null, resp);
+		module.reportException(null, req);
 	}
 	
 	@Test(expected = IllegalArgumentException.class)
-	public void nullResponse() {
+	public void nullRequest() {
 		Utils.printCurrentMethod();
-		
-		module.reportErroneousRequest(req, null);
+		Throwable t = new Throwable();
+		module.reportException(t, null);
 	}
 	
 	@Test
 	public void reportWhileNotRunning() {
 		Utils.printCurrentMethod();
-		
+		Throwable t = new Throwable();
 		Assert.assertFalse(module.isRunning());
-		module.reportErroneousRequest(req, resp);
+		module.reportException(t, req);
 		Assert.assertFalse(module.methodCalled);
 	}
 	
 	@Test
-	public void logWhileRunning() {
+	public void reportWhileRunning() {
 		Utils.printCurrentMethod();
-		
+		Throwable t = new Throwable();
 		module.start();
-		module.reportErroneousRequest(req, resp);
+		module.reportException(t, req);
 		Assert.assertTrue(module.methodCalled);
 	}
 	// =========================================================================

@@ -16,19 +16,14 @@
 
 package com.agapsys.web.toolkit;
 
-import com.agapsys.mail.Message;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import javax.persistence.EntityManager;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 public abstract class WebApplication extends AbstractWebApplication {
 	// CLASS SCOPE =============================================================
 	public static final String PERSISTENCE_MODULE_ID        = "agapsys.webtoolkit.persistence";
 	public static final String EXCEPTION_REPORTER_MODULE_ID = "agapsys.webtoolkit.exceptionReporter";
 	public static final String SMTP_MODULE_ID               = "agapsys.webtoolkit.smtp";
-	public static final String LOGGING_MODULE_ID            = "agapsys.webtoolkit.logging";
 	
 	public static WebApplication getInstance() {
 		return (WebApplication) com.agapsys.web.toolkit.AbstractWebApplication.getInstance();
@@ -43,7 +38,6 @@ public abstract class WebApplication extends AbstractWebApplication {
 		Class<? extends AbstractModule> persistenceModuleClass       = getPersistenceModuleClass();
 		Class<? extends AbstractModule> exceptionReporterModuleClass = getExceptionReporterModuleClass();
 		Class<? extends AbstractModule> smtpModuleClass              = getSmtpModuleClass();
-		Class<? extends AbstractModule> loggingModuleClass           = getLoggingModuleClass();
 		
 		if (persistenceModuleClass != null)
 			moduleMap.put(PERSISTENCE_MODULE_ID, getPersistenceModuleClass());
@@ -54,62 +48,31 @@ public abstract class WebApplication extends AbstractWebApplication {
 		if (smtpModuleClass != null)
 			moduleMap.put(SMTP_MODULE_ID, getSmtpModuleClass());
 		
-		if (loggingModuleClass != null)
-			moduleMap.put(LOGGING_MODULE_ID, getLoggingModuleClass());
-		
 		return moduleMap;
 	}
 	
+	/**
+	 * Return the persistence module used by application
+	 * @return Persistence module class. Default implementation returns {@linkplain PersistenceModule} class.
+	 */
 	protected Class<? extends AbstractPersistenceModule> getPersistenceModuleClass() {
 		return PersistenceModule.class;
 	}
 	
+	/**
+	 * Return the exception reporter module used by application.
+	 * @return Exception reporter module class. Default implementation returns {@linkplain SmtpExceptionReporterModule} class
+	 */
 	protected Class<? extends AbstractExceptionReporterModule> getExceptionReporterModuleClass() {
 		return SmtpExceptionReporterModule.class;
 	}
 
+	/**
+	 * Returns the SMTP module used by application.
+	 * @return SMTP module class. Default implementation returns {@linkplain SmtpModule} class
+	 */
 	protected Class<? extends AbstractSmtpModule> getSmtpModuleClass() {
 		return SmtpModule.class;
-	}
-	
-	protected Class<? extends AbstractLoggingModule> getLoggingModuleClass() {
-		return LoggingModule.class;
-	}
-
-	public EntityManager getEntityManager() throws IllegalStateException {
-		AbstractPersistenceModule persistenceModule = (AbstractPersistenceModule) getModuleInstance(PERSISTENCE_MODULE_ID);
-		
-		if (persistenceModule == null)
-			throw new RuntimeException("There is no persistence module");
-		
-		return persistenceModule.getEntityManager();
-	}
-	
-	public void reportErroneousRequest(HttpServletRequest req, HttpServletResponse resp) {
-		AbstractExceptionReporterModule exceptionReporterModule = (AbstractExceptionReporterModule) getModuleInstance(EXCEPTION_REPORTER_MODULE_ID);
-		
-		if (exceptionReporterModule == null)
-			throw new RuntimeException("There is no exception reporter module");
-		
-		exceptionReporterModule.reportErroneousRequest(req, resp);
-	}
-	
-	public void sendMessage(Message message) {
-		AbstractSmtpModule smtpModule = (AbstractSmtpModule) getModuleInstance(SMTP_MODULE_ID);
-		
-		if (smtpModule == null)
-			throw new RuntimeException("There is no SMTP module");
-		
-		smtpModule.sendMessage(message);
-	}
-	
-	public void log(String logType, String message) {
-		AbstractLoggingModule loggingModule = (AbstractLoggingModule) getModuleInstance(LOGGING_MODULE_ID);
-		
-		if (loggingModule == null)
-			throw new RuntimeException("There is no logging module");
-		
-		loggingModule.log(logType, message);
 	}
 	// =========================================================================
 }

@@ -18,13 +18,12 @@ package com.agapsys.web.toolkit;
 
 import com.agapsys.web.toolkit.utils.HttpUtils;
 import com.agapsys.web.toolkit.utils.DateUtils;
-import java.util.LinkedHashSet;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
-import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 /**
  * Default implementation of an exception reporter module.
@@ -32,8 +31,6 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class ExceptionReporterModule extends AbstractExceptionReporterModule {
 	// CLASS SCOPE =============================================================
-	private static final String LOGGING_MODULE_ID = WebApplication.LOGGING_MODULE_ID;
-
 	// SETTINGS ----------------------------------------------------------------
 	public static final String KEY_MODULE_ENABLED          = "agapsys.webtoolkit.exceptionReporter.enabled";
 	public static final String KEY_NODE_NAME               = "agapsys.webtoolkit.exceptionReporter.nodeName";
@@ -43,6 +40,17 @@ public class ExceptionReporterModule extends AbstractExceptionReporterModule {
 	public static final int     DEFAULT_STACKTRACE_HISTORY_SIZE = 5;
 	public static final String  DEFAULT_NODE_NAME               = "node-01";
 	public static final boolean DEFAULT_MODULE_ENABLED          = true;
+	
+	/** 
+	 * Return a string representation of a stack trace for given error
+	 * @return a string representation of a stack trace for given error
+	 * @param throwable error
+	 */
+	protected static String getStackTrace(Throwable throwable) {
+		StringWriter stringWriter = new StringWriter();
+		throwable.printStackTrace(new PrintWriter(stringWriter));
+		return stringWriter.toString();
+	}
 	// =========================================================================
 
 	// INSTANCE SCOPE ==========================================================
@@ -53,19 +61,30 @@ public class ExceptionReporterModule extends AbstractExceptionReporterModule {
 	
 	private final List<String> stacktraceHistory = new LinkedList<>();
 	// -------------------------------------------------------------------------
-	
 	public ExceptionReporterModule(AbstractWebApplication application) {
 		super(application);
 	}
 
+	/**
+	 * Returns the default stacktrace history size
+	 * @return default stacktrace history size
+	 */
 	protected int getDefaultStacktraceHistorySize() {
 		return DEFAULT_STACKTRACE_HISTORY_SIZE;
 	}
 
+	/**
+	 * Returns the default node name
+	 * @return default node name
+	 */
 	protected String getDefaultNodeName() {
 		return DEFAULT_NODE_NAME;
 	}
 	
+	/**
+	 * Returns the default enabling status of the module
+	 * @return default enabling status
+	 */
 	protected boolean getDefaultModuleEnableStatus() {
 		return DEFAULT_MODULE_ENABLED;
 	}
@@ -89,17 +108,6 @@ public class ExceptionReporterModule extends AbstractExceptionReporterModule {
 		properties.setProperty(KEY_MODULE_ENABLED, "" + defaultModuleEnabled);
 		
 		return properties;
-	}
-	
-	protected String getLoggingModuleId() {
-		return LOGGING_MODULE_ID;
-	}
-
-	@Override
-	protected Set<String> getOptionalDependencies() {
-		Set<String> deps = new LinkedHashSet<>();
-		deps.add(getLoggingModuleId());
-		return deps;
 	}
 
 	@Override
@@ -139,85 +147,66 @@ public class ExceptionReporterModule extends AbstractExceptionReporterModule {
 		enabled = DEFAULT_MODULE_ENABLED;
 	}	
 	
-	
+	/**
+	 * Returns the stacktrace history size defined in application settings
+	 * @return stacktrace history size defined in application settings
+	 */
 	public int getStacktraceHistorySize() {
 		return stacktraceHistorySize;
 	}
 	
+	/**
+	 * Returns the node name defined in application settings.
+	 * @return the node name defined in application settings.
+	 */
 	public String getNodeName() {
 		return nodeName;
 	}
 	
+	/**
+	 * Returns a boolean status indicating if module is enabled
+	 * @return a boolean status indicating if module is enabled (this property is defined in application settings).
+	 */
 	public boolean isModuleEnabled() {
 		return enabled;
 	}
 	
-
-	private AbstractLoggingModule getLoggingModule() {
-		return (AbstractLoggingModule) getApplication().getModuleInstance(getLoggingModuleId());
-	}
-	
-	/** 
-	 * Logs messages in this module.
-	 * If there is no logging module, just prints given message to console.
-	 * @param logType log type
-	 * @param message message to be logged.
-	 */
-	protected void log(String logType, String message) {
-		AbstractLoggingModule loggingModule = getLoggingModule();
-		
-		if (loggingModule != null)
-			loggingModule.log(logType, message);
-		else		
-			AbstractLoggingModule.logToConsole(logType, message);
-	}
-
 	/** 
 	 * Returns the message generated for error report.
-	 * @param statusCode HTTP status code of the error
 	 * @param throwable exception instance
-	 * @param exceptionType class of the exception
-	 * @param exceptionMessage exception message
-	 * @param requestUri related URL
-	 * @param userAgent client user-agent
-	 * @param clientIp client IP address
+	 * @param req HTTP request which thrown the exception
 	 * @return error message
 	 */
-	protected String getErrorMessage(Integer statusCode, Throwable throwable, Class<?> exceptionType, String exceptionMessage, String requestUri, String userAgent, String clientIp) {
-		String stacktrace = ExceptionReporterModule.getStackTrace(throwable);
-
+	protected String getErrorMessage(Throwable throwable, HttpServletRequest req) {
+		String stacktrace = getStackTrace(throwable);
+		
+		String originalRequestUrl = (String) req.getAttribute(RequestFilter.ATTR_ORIGINAL_REQUEST_URL);
+		if (originalRequestUrl == null) {
+			originalRequestUrl = HttpUtils.getRequestUrl(req);
+		}
+		
 		String msg =
 			"An error was detected"
 			+ "\n\n"
-			+ "Application: " + getApplication().getName() + "\n"
+			+ "Application: "         + getApplication().getName() + "\n"
 			+ "Application version: " + getApplication().getVersion() + "\n"
-			+ "Node name: " + getNodeName() + "\n\n"
-			+ "Server timestamp: " + DateUtils.getLocalTimestamp() + "\n"
-			+ "Status code: " + statusCode + "\n"
-			+ "Exception type: " +(exceptionType != null ? exceptionType.getName() : "null") + "\n"
-			+ "Error message: " + exceptionMessage + "\n"
-			+ "Request URI: " + requestUri + "\n"
-			+ "User-agent: " + userAgent + "\n"
-			+ "Client id: " + clientIp + "\n"
-			+ "Stacktrace:\n" + stacktrace;
+			+ "Node name: "           + getNodeName() + "\n\n"
+			+ "Server timestamp: "    + DateUtils.getLocalTimestamp() + "\n"
+			+ "Error message: "       + throwable.getMessage() + "\n"
+			+ "Request URI: "         + originalRequestUrl + "\n"
+			+ "User-agent: "          + HttpUtils.getOriginUserAgent(req) + "\n"
+			+ "Client id: "           + HttpUtils.getOriginIp(req) + "\n"
+			+ "Stacktrace:\n"         + stacktrace;
 		
 		return msg;
 	}
 		
-	/** 
-	 * Logs the error.
-	 * @param message complete error message
-	 */
-	protected void reportError(String message) {
-		log(LoggingModule.LOG_TYPE_ERROR, String.format("Application error:\n----\n%s\n----", message));
-	}
-	
 	/**
 	 * @param t error to test
 	 * @return a boolean indicating if report shall be skipped for given error
 	 */
 	protected boolean skipErrorReport(Throwable t) {
-		String stacktrace = ExceptionReporterModule.getStackTrace(t);
+		String stacktrace = getStackTrace(t);
 		
 		if (stacktraceHistory.contains(stacktrace)) {
 			return true;
@@ -231,28 +220,25 @@ public class ExceptionReporterModule extends AbstractExceptionReporterModule {
 	}
 	
 	@Override
-	protected void onReportErroneousRequest(HttpServletRequest req, HttpServletResponse resp) {
+	protected void onExceptionReport(Throwable t, HttpServletRequest req) {
 		if (enabled) {
-			Integer statusCode      = ExceptionReporterModule.getStatusCode(req);
-			Class exceptionType     = ExceptionReporterModule.getExceptionType(req);
-			String exceptionMessage = ExceptionReporterModule.getExceptionMessage(req);
-			String requestUri       = ExceptionReporterModule.getRequestUri(req);
-			Throwable throwable     = ExceptionReporterModule.getException(req);
-
-			String userAgent = HttpUtils.getOriginUserAgent(req);
-			String clientIp = HttpUtils.getOriginIp(req);
-
-			if (throwable != null) {
-				if (!skipErrorReport(throwable))
-					reportError(getErrorMessage(statusCode, throwable, exceptionType, exceptionMessage, requestUri, userAgent, clientIp));
-				else
-					log(LoggingModule.LOG_TYPE_WARNING, "Application error (already reported): " + throwable.getMessage());
+			if (!skipErrorReport(t)) {
+				reportErrorMessage(getErrorMessage(t, req));
 			} else {
-				String extraInfo = String.format("User-agent: %s\nClient IP:%s, Request URL: %s", userAgent, clientIp, requestUri);
-				log(LoggingModule.LOG_TYPE_ERROR, String.format("Bad request for exception reporter module:\n----\n%s\n----", extraInfo));
-				resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+				AbstractWebApplication.logToConsole(
+					AbstractWebApplication.LOG_TYPE_WARNING, 
+					String.format("Application error (already reported): " + t.getMessage())
+				);
 			}
 		}
+	}
+	
+	/** 
+	 * Report the error message.
+	 * @param message complete error message
+	 */
+	protected void reportErrorMessage(String message) {
+		AbstractWebApplication.logToConsole(AbstractWebApplication.LOG_TYPE_ERROR, String.format("Application error:\n----\n%s\n----", message));
 	}
 	// =========================================================================
 }
