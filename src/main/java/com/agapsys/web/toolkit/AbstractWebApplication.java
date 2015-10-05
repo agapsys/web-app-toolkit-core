@@ -44,8 +44,8 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	// CLASS SCOPE =============================================================
 	public static final String DEFAULT_ENVIRONMENT = "production";
 	
-	private static final String SETTINGS_FILENAME_PREFIX    = "settings";
-	private static final String SETTINGS_FILENAME_SUFFIX    = ".conf";
+	private static final String SETTINGS_FILENAME_PREFIX    = "application";
+	private static final String SETTINGS_FILENAME_SUFFIX    = ".properties";
 	private static final String SETTINGS_FILENAME_ENVIRONMENT_DELIMITER = "-";
 	
 	public static final String LOG_TYPE_ERROR   = "error";
@@ -171,27 +171,22 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 		return true;
 	}
 	
-	/** 
-	 * @return the properties stored in a file.
-	 * @throws IOException if there is an I/O error while reading the file
+	/**
+	 * Returns application default settings.
+	 * @return application default settings. Default implementation returns null
 	 */
-	protected Properties getProperties(File settingsFile) throws IOException {
-		Properties fileProperties = new Properties();
-		
-		try (FileInputStream fis = new FileInputStream(settingsFile)) {
-			fileProperties.load(fis);
-		}
-		
-		return fileProperties;
+	protected Properties getDefaultProperties() {
+		return null;
 	}
-	
+		
 	/** 
 	 * Load application settings.
 	 * @throws IOException if there is an error reading settings file.
 	 */
 	private void loadSettings() throws IOException {
 		properties.clear();
-		
+
+		// Load properties from settings file...
 		String environment = getEnvironment();
 		
 		String strDelimiter   = environment.equals(DEFAULT_ENVIRONMENT) ? "" : getSettingsFilenameEnvironmentDelimiter();
@@ -201,9 +196,21 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 
 		if (settingsFile.exists()) {
 			debug("\tLoading settings file...");
-			properties.putAll(getProperties(settingsFile));
+			
+			try (FileInputStream fis = new FileInputStream(settingsFile)) {
+				properties.load(fis);
+			}
+		}
+		
+		// Apply application default properties (keeping existing)...
+		Properties defaultProperties = getDefaultProperties();
+		if (defaultProperties != null) {
+			for (Map.Entry<Object, Object> entry : defaultProperties.entrySet()) {
+				properties.putIfAbsent(entry.getKey(), entry.getValue());
+			}
 		}
 
+		// Apply modules default properties (keeping existing)...
 		List<PropertyGroup> propertyGroups = new LinkedList<>();
 		for (Map.Entry<String, AbstractModule> entry : moduleMap.entrySet()) {
 			AbstractModule moduleInstance = entry.getValue();
@@ -219,6 +226,7 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 			}
 		}
 		
+		// Write properties to disk...
 		if (!settingsFile.exists() && createDefaultSettingsFile()) {
 			debug("\tCreating default settings file...");
 			PropertyGroup.writeToFile(settingsFile, propertyGroups);
