@@ -34,10 +34,10 @@ public class ExceptionReporterModule extends AbstractExceptionReporterModule {
 	// SETTINGS ----------------------------------------------------------------
 	public static final String KEY_MODULE_ENABLED          = "agapsys.webtoolkit.exceptionReporter.enabled";
 	public static final String KEY_NODE_NAME               = "agapsys.webtoolkit.exceptionReporter.nodeName";
-	public static final String KEY_STACKTRACE_HISTORY_SIZE = "agapsys.webtoolkit.exceptionReporter.stacktraceHistorySize";
+	public static final String KEY_STACK_TRACE_HISTORY_SIZE = "agapsys.webtoolkit.exceptionReporter.stackTraceHistorySize";
 	// -------------------------------------------------------------------------
 	
-	public static final int     DEFAULT_STACKTRACE_HISTORY_SIZE = 5;
+	public static final int     DEFAULT_STACK_TRACE_HISTORY_SIZE = 5;
 	public static final String  DEFAULT_NODE_NAME               = "node-01";
 	public static final boolean DEFAULT_MODULE_ENABLED          = true;
 	
@@ -55,26 +55,26 @@ public class ExceptionReporterModule extends AbstractExceptionReporterModule {
 
 	// INSTANCE SCOPE ==========================================================
 	// Fields --------------------------------------------------------------
-	private String nodeName = null;
-	private int stacktraceHistorySize = 0;
-	private boolean enabled = DEFAULT_MODULE_ENABLED;
+	private String  nodeName              = null;
+	private int     stackTraceHistorySize = 0;
+	private boolean enabled               = DEFAULT_MODULE_ENABLED;
 	
-	private final List<String> stacktraceHistory = new LinkedList<>();
+	private final List<String> stackTraceHistory = new LinkedList<>();
 	// -------------------------------------------------------------------------
 	public ExceptionReporterModule(AbstractWebApplication application) {
 		super(application);
 	}
 
 	/**
-	 * Returns the default stacktrace history size
-	 * @return default stacktrace history size
+	 * Returns the default stack trace history size when there is no definition.
+	 * @return default stack trace history size
 	 */
 	protected int getDefaultStacktraceHistorySize() {
-		return DEFAULT_STACKTRACE_HISTORY_SIZE;
+		return DEFAULT_STACK_TRACE_HISTORY_SIZE;
 	}
 
 	/**
-	 * Returns the default node name
+	 * Returns the default node name when there is no definition.
 	 * @return default node name
 	 */
 	protected String getDefaultNodeName() {
@@ -82,7 +82,7 @@ public class ExceptionReporterModule extends AbstractExceptionReporterModule {
 	}
 	
 	/**
-	 * Returns the default enabling status of the module
+	 * Returns the default enabling status of the module when there is no definition
 	 * @return default enabling status
 	 */
 	protected boolean getDefaultModuleEnableStatus() {
@@ -95,17 +95,17 @@ public class ExceptionReporterModule extends AbstractExceptionReporterModule {
 		
 		String defaultNodeName = getDefaultNodeName();
 		if (defaultNodeName == null || defaultNodeName.trim().isEmpty())
-			defaultNodeName = DEFAULT_NODE_NAME;
+			throw new RuntimeException("Null/Empty default node name");
 		
-		int defaultStacktraceHistorySize = getDefaultStacktraceHistorySize();
-		if (defaultStacktraceHistorySize < 0)
-			defaultStacktraceHistorySize = 0;
+		int defaultStackTraceHistorySize = getDefaultStacktraceHistorySize();
+		if (defaultStackTraceHistorySize < 0)
+			throw new RuntimeException("Invalid default stack trace history size: " + defaultStackTraceHistorySize);
 		
 		boolean defaultModuleEnabled = getDefaultModuleEnableStatus();
 		
-		properties.setProperty(KEY_NODE_NAME, defaultNodeName);
-		properties.setProperty(KEY_STACKTRACE_HISTORY_SIZE, "" + defaultStacktraceHistorySize);
-		properties.setProperty(KEY_MODULE_ENABLED, "" + defaultModuleEnabled);
+		properties.setProperty(KEY_NODE_NAME,               defaultNodeName);
+		properties.setProperty(KEY_STACK_TRACE_HISTORY_SIZE, "" + defaultStackTraceHistorySize);
+		properties.setProperty(KEY_MODULE_ENABLED,          "" + defaultModuleEnabled);
 		
 		return properties;
 	}
@@ -116,7 +116,7 @@ public class ExceptionReporterModule extends AbstractExceptionReporterModule {
 		
 		String val;
 		
-		// isEnabled?
+		// isEnabled
 		val = appProperties.getProperty(KEY_MODULE_ENABLED);
 		if (val == null || val.trim().isEmpty()) {
 			val = "" + getDefaultModuleEnableStatus();
@@ -131,28 +131,28 @@ public class ExceptionReporterModule extends AbstractExceptionReporterModule {
 			nodeName = val;
 		}
 		
-		// stacktraceHistorySize
-		val = appProperties.getProperty(KEY_STACKTRACE_HISTORY_SIZE);
+		// stackTraceHistorySize
+		val = appProperties.getProperty(KEY_STACK_TRACE_HISTORY_SIZE);
 		if (val == null || val.trim().isEmpty()) {
 			val = "" + getDefaultStacktraceHistorySize();
 		}
-		stacktraceHistorySize = Integer.parseInt(val);
+		stackTraceHistorySize = Integer.parseInt(val);
 	}
 
 	@Override
 	protected void onStop() {
 		nodeName = null;
-		stacktraceHistorySize = 0;
-		stacktraceHistory.clear();
+		stackTraceHistorySize = 0;
+		stackTraceHistory.clear();
 		enabled = DEFAULT_MODULE_ENABLED;
 	}	
 	
 	/**
-	 * Returns the stacktrace history size defined in application settings
-	 * @return stacktrace history size defined in application settings
+	 * Returns the stack trace history size defined in application settings
+	 * @return stack trace history size defined in application settings
 	 */
 	public int getStacktraceHistorySize() {
-		return stacktraceHistorySize;
+		return stackTraceHistorySize;
 	}
 	
 	/**
@@ -172,15 +172,15 @@ public class ExceptionReporterModule extends AbstractExceptionReporterModule {
 	}
 	
 	/** 
-	 * Returns the message generated for error report.
+	 * Returns the message generated for exception report.
 	 * @param throwable exception instance
 	 * @param req HTTP request which thrown the exception
 	 * @return error message
 	 */
 	protected String getErrorMessage(Throwable throwable, HttpServletRequest req) {
-		String stacktrace = getStackTrace(throwable);
+		String stackTrace = getStackTrace(throwable);
 		
-		String originalRequestUrl = (String) req.getAttribute(RequestFilter.ATTR_ORIGINAL_REQUEST_URL);
+		String originalRequestUrl = (String) req.getAttribute(OriginalRequestKeepFilter.ATTR_ORIGINAL_REQUEST_URL);
 		if (originalRequestUrl == null) {
 			originalRequestUrl = HttpUtils.getRequestUrl(req);
 		}
@@ -196,7 +196,7 @@ public class ExceptionReporterModule extends AbstractExceptionReporterModule {
 			+ "Request URI: "         + originalRequestUrl + "\n"
 			+ "User-agent: "          + HttpUtils.getOriginUserAgent(req) + "\n"
 			+ "Client id: "           + HttpUtils.getOriginIp(req) + "\n"
-			+ "Stacktrace:\n"         + stacktrace;
+			+ "Stacktrace:\n"         + stackTrace;
 		
 		return msg;
 	}
@@ -206,26 +206,26 @@ public class ExceptionReporterModule extends AbstractExceptionReporterModule {
 	 * @return a boolean indicating if report shall be skipped for given error
 	 */
 	protected boolean skipErrorReport(Throwable t) {
-		String stacktrace = getStackTrace(t);
+		String stackTrace = getStackTrace(t);
 		
-		if (stacktraceHistory.contains(stacktrace)) {
+		if (stackTraceHistory.contains(stackTrace)) {
 			return true;
 		} else {
-			if (stacktraceHistory.size() == getStacktraceHistorySize())
-				stacktraceHistory.remove(0); // Remove oldest
+			if (stackTraceHistory.size() == getStacktraceHistorySize())
+				stackTraceHistory.remove(0); // Remove oldest
 			
-			stacktraceHistory.add(stacktrace);
+			stackTraceHistory.add(stackTrace);
 			return false;
 		}
 	}
 	
 	@Override
 	protected void onExceptionReport(Throwable t, HttpServletRequest req) {
-		if (enabled) {
+		if (isModuleEnabled()) {
 			if (!skipErrorReport(t)) {
 				reportErrorMessage(getErrorMessage(t, req));
 			} else {
-				AbstractWebApplication.logToConsole(
+				getApplication().log(
 					AbstractWebApplication.LOG_TYPE_WARNING, 
 					String.format("Application error (already reported): " + t.getMessage())
 				);
@@ -238,7 +238,7 @@ public class ExceptionReporterModule extends AbstractExceptionReporterModule {
 	 * @param message complete error message
 	 */
 	protected void reportErrorMessage(String message) {
-		AbstractWebApplication.logToConsole(AbstractWebApplication.LOG_TYPE_ERROR, String.format("Application error:\n----\n%s\n----", message));
+		getApplication().log(AbstractWebApplication.LOG_TYPE_ERROR, String.format("Application error:\n----\n%s\n----", message));
 	}
 	// =========================================================================
 }

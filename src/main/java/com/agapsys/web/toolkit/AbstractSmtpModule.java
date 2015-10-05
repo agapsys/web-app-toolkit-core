@@ -16,7 +16,6 @@
 package com.agapsys.web.toolkit;
 
 import com.agapsys.mail.Message;
-import javax.mail.MessagingException;
 
 /**
  * E-mail sender module
@@ -46,16 +45,17 @@ public abstract class AbstractSmtpModule extends AbstractModule {
 	
 	/** 
 	 * Sends a email message.
-	 * If module is not running, nothing happens.
 	 * @param message message to be sent
+	 * @throws IllegalStateException if module is not running
 	 */
-	public final void sendMessage(Message message) {
+	public final void sendMessage(Message message) throws IllegalStateException {
 		if (message == null)
 			throw new IllegalArgumentException("null message");
-				
-		if (isRunning()) {
-			onSendMessage(message);
-		}
+			
+		if (!isRunning())
+			throw new IllegalStateException("Module is not running");
+		
+		onSendMessage(message);
 	}
 	// =========================================================================
 }

@@ -18,7 +18,7 @@ package com.agapsys.web.toolkit;
 import javax.servlet.http.HttpServletRequest;
 
 /**
- * Represents an error reporter
+ * Represents an exception reporter
  * @author Leandro Oliveira (leandro@agapsys.com)
  */
 public abstract class AbstractExceptionReporterModule extends AbstractModule {
@@ -37,7 +37,7 @@ public abstract class AbstractExceptionReporterModule extends AbstractModule {
 	}
 	
 	/**
-	 * Actual error report code.
+	 * Actual exception report code.
 	 * This method will be called only when module is running.
 	 * @param t exception to be reported
 	 * @param req HTTP request which thrown the exception
@@ -45,21 +45,22 @@ public abstract class AbstractExceptionReporterModule extends AbstractModule {
 	protected abstract void onExceptionReport(Throwable t, HttpServletRequest req);
 	
 	/**
-	 * Handles an erroneous request.
-	 * If module is not running, nothing happens.
+	 * Reports an error in the application.
 	 * @param t exception to be reported
 	 * @param req HTTP request which thrown the exception
+	 * @throws IllegalStateException if module is not running
 	 */
-	public final void reportException(Throwable t, HttpServletRequest req) throws IllegalArgumentException {
+	public final void reportException(Throwable t, HttpServletRequest req) throws IllegalStateException {
 		if (t == null)
 			throw new IllegalArgumentException("null throwable");
 		
 		if (req == null)
 			throw new IllegalArgumentException("Null request");
 		
-		if (isRunning()) {
-			onExceptionReport(t, req);
-		}
+		if (!isRunning())
+			throw new IllegalStateException("Module is not running");
+		
+		onExceptionReport(t, req);
 	}
 	// =========================================================================
 }

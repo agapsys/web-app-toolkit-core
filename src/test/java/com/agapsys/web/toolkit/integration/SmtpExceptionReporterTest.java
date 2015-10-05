@@ -21,7 +21,7 @@ import com.agapsys.sevlet.test.HttpResponse;
 import com.agapsys.sevlet.test.ServletContainer;
 import com.agapsys.web.toolkit.Defs;
 import com.agapsys.web.toolkit.ErrorServlet;
-import com.agapsys.web.toolkit.RequestFilter;
+import com.agapsys.web.toolkit.OriginalRequestKeepFilter;
 import com.agapsys.web.toolkit.WebApplication;
 import javax.servlet.annotation.WebListener;
 import javax.servlet.http.HttpServletResponse;
@@ -35,6 +35,11 @@ public class SmtpExceptionReporterTest {
 	@WebListener
 	public static class Application extends WebApplication {
 
+		@Override
+		protected boolean isDebugEnabled() {
+			return true;
+		}
+		
 		@Override
 		public String getName() {
 			return Defs.APP_NAME;
@@ -68,7 +73,7 @@ public class SmtpExceptionReporterTest {
 		context.registerServlet(ErrorServlet.class);
 		context.registerServlet(ExceptionServlet.class);
 		context.registerEventListener(new Application());
-		context.registerFilter(RequestFilter.class);
+		context.registerFilter(OriginalRequestKeepFilter.class);
 		context.registerErrorPage(500, ErrorServlet.URL);
 		
 		sc.registerContext(context);

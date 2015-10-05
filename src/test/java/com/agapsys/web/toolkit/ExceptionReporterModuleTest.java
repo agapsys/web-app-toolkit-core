@@ -618,13 +618,12 @@ public class ExceptionReporterModuleTest {
 		module.reportException(t, null);
 	}
 	
-	@Test
+	@Test(expected = IllegalStateException.class)
 	public void reportWhileNotRunning() {
 		Utils.printCurrentMethod();
 		Throwable t = new Throwable();
 		Assert.assertFalse(module.isRunning());
 		module.reportException(t, req);
-		Assert.assertFalse(module.methodCalled);
 	}
 	
 	@Test

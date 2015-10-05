@@ -26,7 +26,7 @@ public abstract class WebApplication extends AbstractWebApplication {
 	public static final String SMTP_MODULE_ID               = "agapsys.webtoolkit.smtp";
 	
 	public static WebApplication getInstance() {
-		return (WebApplication) com.agapsys.web.toolkit.AbstractWebApplication.getInstance();
+		return (WebApplication) AbstractWebApplication.getInstance();
 	}
 	// =========================================================================
 

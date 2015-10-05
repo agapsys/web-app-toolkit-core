@@ -22,12 +22,13 @@ import com.agapsys.mail.SecurityType;
 import com.agapsys.mail.SmtpSender;
 import com.agapsys.mail.SmtpSettings;
 import com.agapsys.web.toolkit.utils.DateUtils;
-import com.agapsys.web.toolkit.utils.HttpUtils;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Properties;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.mail.MessagingException;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
@@ -54,6 +55,31 @@ public class SmtpModule extends AbstractSmtpModule {
 	public static final String       DEFAULT_PASSWORD      = "password";
 	public static final SecurityType DEFAULT_SECURITY_TYPE = SecurityType.NONE;
 	public static final int          DEFAULT_PORT          = 25;
+	
+	/** 
+	 * Returns appropriate instance of sender address.
+	 * @param senderAddrStr string representing sender address
+	 * @return instance of {@linkplain InternetAddress} representing sender address
+	 */
+	private static InternetAddress getSenderFromString(String senderAddrStr) {
+		if (senderAddrStr == null || senderAddrStr.trim().isEmpty())
+			throw new RuntimeException("Null/Empty sender address");
+		
+		try {
+			return new InternetAddress(senderAddrStr);
+		} catch (AddressException ex) {
+			throw new RuntimeException("Invalid address: " + senderAddrStr, ex);
+		}
+	}
+	
+	/**
+	 * Returns appropriate string representation of given sender address
+	 * @param senderAddress sender address
+	 * @return string representation of given sender address
+	 */
+	private static String getSenderString(InternetAddress senderAddress) {
+		return senderAddress.toString();
+	}
 	// =========================================================================
 
 	// INSTANCE SCOPE ==========================================================
@@ -76,8 +102,8 @@ public class SmtpModule extends AbstractSmtpModule {
 	 * Return the default sender address when there is no definition.
 	 * @return default sender address
 	 */
-	protected String getDefaultSender() {
-		return DEFAULT_SENDER;
+	protected InternetAddress getDefaultSender() {
+		return getSenderFromString(DEFAULT_SENDER);
 	}
 	
 	/**
@@ -132,39 +158,40 @@ public class SmtpModule extends AbstractSmtpModule {
 	public Properties getDefaultSettings() {
 		Properties properties = new Properties();
 		
-		String defaultSender = getDefaultSender();
-		if (defaultSender == null || defaultSender.trim().isEmpty())
-			defaultSender = DEFAULT_SENDER;
+		InternetAddress defaultSender = getDefaultSender();
+		if (defaultSender == null)
+			throw new RuntimeException("Null default sender address");
 		
 		String defaultServer = getDefaultServer();
 		if (defaultServer == null || defaultServer.trim().isEmpty())
-			defaultServer = DEFAULT_SERVER;
+			throw new RuntimeException("Null/Empty default server address/host");
 		
 		boolean defaultAuthEnabled = getDefaultAuthEnabled();
 		
 		String defaultUsername = getDefaultUsername();
 		if (defaultUsername == null || defaultUsername.trim().isEmpty())
-			defaultUsername = DEFAULT_USERNAME;
+			throw new RuntimeException("Null/Empty default username");
 		
 		String defaultPassword = getDefaultPassword();
 		if (defaultPassword == null || defaultPassword.trim().isEmpty())
-			defaultPassword = DEFAULT_PASSWORD;
+			throw new RuntimeException("Null/Empty default password");
 		
 		SecurityType defaultSecurityType = getDefaultSecurityType();
 		if (defaultSecurityType == null)
-			defaultSecurityType = DEFAULT_SECURITY_TYPE;
-		
+			throw new RuntimeException("Null/Empty default security type");
+
 		int defaultPort = getDefaultPort();
 		if (defaultPort < 1)
 			throw new RuntimeException("Invalid port: " + defaultPort);
 		
-		properties.put(KEY_SENDER, defaultSender);
-		properties.put(KEY_SERVER, defaultServer);
-		properties.put(KEY_AUTH_ENABLED, "" + defaultAuthEnabled);
-		properties.put(KEY_USERNAME, defaultUsername);
-		properties.put(KEY_PASSWORD, defaultPassword);
-		properties.put(KEY_SECURITY_TYPE, defaultSecurityType.name());
-		properties.put(KEY_PORT, "" + defaultPort);
+		properties.setProperty(KEY_SENDER,       getSenderString(defaultSender));
+		properties.setProperty(KEY_SERVER,       defaultServer);
+		properties.setProperty(KEY_AUTH_ENABLED,  "" + defaultAuthEnabled);
+		properties.setProperty(KEY_USERNAME,      defaultUsername);
+		properties.setProperty(KEY_PASSWORD,      defaultPassword);
+		properties.setProperty(KEY_SECURITY_TYPE, defaultSecurityType.name());
+		properties.setProperty(KEY_PORT,          "" + defaultPort);
+		
 		return properties;
 	}
 	
@@ -182,18 +209,7 @@ public class SmtpModule extends AbstractSmtpModule {
 		
 		SmtpSettings settings = new SmtpSettings(properties);
 		smtpSender = new SmtpSender(settings);
-		
-		try {
-			String val;
-			val = properties.getProperty(KEY_SENDER);
-			if (val == null || val.trim().isEmpty())
-				val = getDefaultSender();
-			
-			sender = new InternetAddress(val);
-			
-		} catch (AddressException ex) {
-			throw new RuntimeException(ex);
-		}
+		sender = getSenderFromString(properties.getProperty(KEY_SENDER));
 	}
 
 	@Override

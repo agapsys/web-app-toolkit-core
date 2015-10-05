@@ -52,21 +52,24 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	public static final String LOG_TYPE_INFO    = "info";
 	public static final String LOG_TYPE_WARNING = "warning";
 	
-	public static AbstractWebApplication singleton = null;
+	/** Singleton instance. */
+	protected static AbstractWebApplication singleton = null;
 	
+	/** @return a boolean indicating if application is running. */
 	public static boolean isRunning() {
 		return singleton != null;
 	}
 	
+	/**
+	 * Returns a singleton instance.
+	 * @return singleton instance.
+	 * @throws IllegalStateException if application is not running
+	 */
 	public static AbstractWebApplication getInstance() throws IllegalStateException {
 		if (singleton == null)
 			throw new IllegalStateException("Application is not running");
 		
 		return singleton;
-	}
-	
-	public static void logToConsole(String logType, String message) {
-		Console.println(String.format("[%s] [%s] %s", DateUtils.getLocalTimestamp(), logType, message));
 	}
 	// =========================================================================
 	
@@ -74,6 +77,17 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	private final Map<String, AbstractModule> moduleMap          = new LinkedHashMap<>();
 	private final List<AbstractModule>        loadedModules      = new LinkedList<>();
 	private final Properties          properties         = new Properties();
+	
+	
+	/**
+	 * Log application messages.
+	 * Default implementation just prints to console.
+	 * @param logType log type
+	 * @param message message to be logged
+	 */
+	public void log(String logType, String message) {
+		Console.println(String.format("[%s] [%s] %s", DateUtils.getLocalTimestamp(), logType, message));
+	}
 	
 	/** @return a boolean indicating if debug messages shall be printed. */
 	protected boolean isDebugEnabled() {
@@ -99,8 +113,8 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	 * Prints debug messages if debug is enabled.
 	 * @param message message to be printed
 	 * @param args arguments if message is a formatted string
+	 * @see AbstractWebApplication#isDebugEnabled()
 	 * @see String#format(String, Object...)
-	 * @see AbstractWebApplication#start()
 	 */
 	protected void debug(String message, Object...args) {
 		if (isDebugEnabled())
@@ -270,8 +284,7 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	
 	/** 
 	 * Puts application into running state.
-	 * In a web environment, this method is intended to be called by 
-	 * 'contextInitialized' in application's {@linkplain ServletContextListener context listener}. 
+	 * In a web environment, this method will be called by {@linkplain AbstractWebApplication#contextInitialized(ServletContextEvent)}
 	 * @throws IllegalStateException if application is already running;
 	 */
 	public final void start() throws IllegalStateException {
@@ -352,8 +365,8 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	
 	/**
 	 * Forces application shutdown.
-	 * In a web environment, this method is intended to be called by 
-	 * 'contextDestroyed' in application's {@linkplain ServletContextListener context listener}.
+	 * If application is not running, nothing happens.
+	 * In a web environment, this method will be called by {@linkplain AbstractWebApplication#contextDestroyed(ServletContextEvent)}
 	 */
 	public final void stop() {
 		if (singleton != null) {

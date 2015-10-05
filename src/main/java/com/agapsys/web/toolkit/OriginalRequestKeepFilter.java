@@ -28,7 +28,7 @@ import javax.servlet.annotation.WebFilter;
 import javax.servlet.http.HttpServletRequest;
 
 @WebFilter("/*")
-public class RequestFilter implements Filter {
+public class OriginalRequestKeepFilter implements Filter {
 	// CLASS SCOPE =============================================================
 	public static final String ATTR_ORIGINAL_REQUEST_URL = "com.agapsys.web.toolkit.originalRequestUrl";
 	// =========================================================================

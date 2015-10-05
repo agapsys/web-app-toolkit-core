@@ -60,13 +60,12 @@ public class SmtpModuleTest {
 		module.sendMessage(null);
 	}
 	
-	@Test
+	@Test(expected = IllegalStateException.class)
 	public void sendMessageWhileNotRunning() {
 		Utils.printCurrentMethod();
 		
 		Assert.assertFalse(module.isRunning());
 		module.sendMessage(testMessage);
-		Assert.assertFalse(module.methodCalled);
 	}
 	
 	@Test

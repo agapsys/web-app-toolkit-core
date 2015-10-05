@@ -83,26 +83,28 @@ public class PersistenceModule extends AbstractPersistenceModule {
 		Properties properties = new Properties();
 		
 		String defaultJdbcDriverFilename = getDefaultJdbcDriverFilename();
-		if (defaultJdbcDriverFilename == null || defaultJdbcDriverFilename.trim().isEmpty())
-			defaultJdbcDriverFilename = DEFAULT_JDBC_DRIVER_FILENAME;
+		if (defaultJdbcDriverFilename != null && defaultJdbcDriverFilename.trim().isEmpty())
+			defaultJdbcDriverFilename = null;
 		
 		String defaultJdbcDriverClass = getDefaultJdbcDriverClass();
 		if (defaultJdbcDriverClass == null || defaultJdbcDriverClass.trim().isEmpty())
-			defaultJdbcDriverClass = DEFAULT_JDBC_DRIVER_CLASS;
+			throw new RuntimeException("Null/empty default JDBC driver class");
 		
 		String defaultJdbcUrl = getDefaultJdbcUrl();
 		if (defaultJdbcUrl == null || defaultJdbcUrl.trim().isEmpty())
-			defaultJdbcUrl = DEFAULT_JDBC_URL;
+			throw new RuntimeException("Null/Empty default JDBC URL");
 		
 		String defaultJdbcUser = getDefaultJdbcUser();
-		if (defaultJdbcUser == null || defaultJdbcUser.trim().isEmpty())
-			defaultJdbcUser = DEFAULT_JDBC_USER;
+		if (defaultJdbcUser == null)
+			throw new RuntimeException("Null default JDBC user");
 		
 		String defaultJdbcPassword = getDefaultJdbcPassword();
-		if (defaultJdbcPassword == null || defaultJdbcPassword.trim().isEmpty())
-			defaultJdbcPassword = DEFAULT_JDBC_PASSWORD;
+		if (defaultJdbcPassword == null)
+			throw new RuntimeException("Null default JDBC password");
 			
-		properties.setProperty(KEY_JDBC_DRIVER_FILENAME, defaultJdbcDriverFilename);
+		if (defaultJdbcDriverFilename != null)
+			properties.setProperty(KEY_JDBC_DRIVER_FILENAME, defaultJdbcDriverFilename);
+		
 		properties.setProperty(KEY_JDBC_DRIVER_CLASS,    defaultJdbcDriverClass);
 		properties.setProperty(KEY_JDBC_URL,             defaultJdbcUrl);
 		properties.setProperty(KEY_JDBC_USER,            defaultJdbcUser);
@@ -116,8 +118,10 @@ public class PersistenceModule extends AbstractPersistenceModule {
 		AbstractWebApplication application = getApplication();
 		Properties properties = application.getProperties();
 		
-		if (properties.containsKey(KEY_JDBC_DRIVER_FILENAME)) {
-			File jdbcDriverFile = new File(application.getFolder(), properties.getProperty(KEY_JDBC_DRIVER_FILENAME));
+		String jdbcFilename = properties.getProperty(KEY_JDBC_DRIVER_FILENAME);
+		
+		if (jdbcFilename != null && !jdbcFilename.trim().isEmpty()) {
+			File jdbcDriverFile = new File(application.getFolder(), jdbcFilename);
 			RuntimeJarLoader.loadJar(jdbcDriverFile);
 		}
 		
@@ -131,7 +135,7 @@ public class PersistenceModule extends AbstractPersistenceModule {
 	}
 	
 	@Override
-	protected EntityManager getAppEntityManager() throws IllegalStateException {
+	protected EntityManager getAppEntityManager() {
 		return emf.createEntityManager();
 	}
 	// =========================================================================

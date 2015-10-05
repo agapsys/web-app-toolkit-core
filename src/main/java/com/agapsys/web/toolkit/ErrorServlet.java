@@ -32,50 +32,20 @@ public class ErrorServlet extends HttpServlet {
 	// CLASS SCOPE =============================================================
 	public static final String URL = "/error";
 	
-	private static final String ATTR_STATUS_CODE    = "javax.servlet.error.status_code";
-	private static final String ATTR_EXCEPTION_TYPE = "javax.servlet.error.exception_type";
-	private static final String ATTR_MESSAGE        = "javax.servlet.error.message";
-	private static final String ATTR_REQUEST_URI    = "javax.servlet.error.request_uri";
-	private static final String ATTR_EXCEPTION      = "javax.servlet.error.exception";
-	
-	private static int getStatusCode(HttpServletRequest req) {
-		return (Integer) req.getAttribute(ATTR_STATUS_CODE);
-	}
-	
-	private static Class<?> getExceptionType(HttpServletRequest req) {
-		return (Class) req.getAttribute(ATTR_EXCEPTION_TYPE);
-	}
-	
-	private static String getExceptionMessage(HttpServletRequest req) {
-		return (String) req.getAttribute(ATTR_MESSAGE);
-	}
-	
-	private static String getRequestUri(HttpServletRequest req) {
-		return (String) req.getAttribute(ATTR_REQUEST_URI);
-	}
-	
+	private static final String ATTR_EXCEPTION = "javax.servlet.error.exception";
+		
 	private static Throwable getException(HttpServletRequest req) {
 		return (Throwable) req.getAttribute(ATTR_EXCEPTION);
 	}
-	
-
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
 	// =========================================================================
 
 	// INSTANCE SCOPE ==========================================================		
 	@Override
 	protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		Throwable t = getException(req);
+		
 		AbstractExceptionReporterModule exceptionReporterModule = (AbstractExceptionReporterModule) WebApplication.getInstance().getModuleInstance(WebApplication.EXCEPTION_REPORTER_MODULE_ID);
+		
 		if (t != null && exceptionReporterModule != null) {
 			exceptionReporterModule.reportException(t, req);
 		}

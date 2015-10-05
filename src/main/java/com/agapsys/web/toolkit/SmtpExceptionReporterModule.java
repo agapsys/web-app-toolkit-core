@@ -21,10 +21,13 @@ import com.agapsys.mail.MessageBuilder;
 import java.util.LinkedHashSet;
 import java.util.Properties;
 import java.util.Set;
+import java.util.regex.Pattern;
 import javax.mail.internet.AddressException;
+import javax.mail.internet.InternetAddress;
 
 /**
- * Default crash reporter module with SMTP sending capabilities
+ * Default exception reporter module with SMTP sending capabilities.
+ * The module requires {@linkplain SmtpModule}.
  * @author Leandro Oliveira (leandro@agapsys.com)
  */
 public class SmtpExceptionReporterModule extends ExceptionReporterModule {
@@ -34,17 +37,64 @@ public class SmtpExceptionReporterModule extends ExceptionReporterModule {
 	public static final String KEY_SUBJECT      = "agapsys.webtoolkit.smtpExceptionReporter.subject";
 	// -------------------------------------------------------------------------
 	
-	public static final String APP_NAME_TOKEN = "@appName";
+	public static final String APP_NAME_TOKEN = "${appName}";
 	
 	public static final String DEFAULT_SUBJECT    = String.format("[%s][System report] Error report", APP_NAME_TOKEN);
 	public static final String DEFAULT_RECIPIENTS = "user@email.com";
 	
 	public static final String RECIPIENT_DELIMITER = ",";
+	
+	/**
+	 * Returns an array of recipient addresses from a delimited string
+	 * @param recipients delimited string
+	 * @param delimiter delimiter
+	 * @return array of {@linkplain InternetAddress} instances
+	 */
+	private static InternetAddress[] getRecipientsFromString(String recipients, String delimiter) {
+		if (recipients == null || recipients.trim().isEmpty())
+			throw new RuntimeException("Null/empty recipients");
+		
+		if (delimiter == null || delimiter.trim().isEmpty())
+			throw new RuntimeException("Null/empty delimiter");
+		
+		String[] recipientArray = recipients.split(Pattern.quote(RECIPIENT_DELIMITER));
+		InternetAddress[] result = new InternetAddress[recipientArray.length];
+		
+		for (int i = 0; i < recipientArray.length; i++) {
+			try {
+				result[i] = new InternetAddress(recipientArray[i].trim());
+			} catch (AddressException ex) {
+				throw new RuntimeException("Invalid address: " + recipientArray[i].trim(), ex);
+			}
+		}
+		
+		return result;
+	}
+	
+	/**
+	 * Return the appropriate string representation of given array of recipients
+	 * @param recipients array of recipients
+	 * @param delimiter delimiter
+	 * @return string representation of given array of recipients
+	 */
+	private static String getRecipientsString(InternetAddress[] recipients, String delimiter) {
+		StringBuilder sb = new StringBuilder();
+		
+		for (int i = 0; i < recipients.length; i++) {
+			if (i > 0) {
+				sb.append(delimiter);
+			}
+			
+			sb.append(recipients[i].toString());
+		}
+		
+		return sb.toString();
+	}
 	// =========================================================================
 
 	// INSTANCE SCOPE ==========================================================
-	private String[] recipients = null;
-	private String   subject    = null;
+	private InternetAddress[] recipients = null;
+	private String            subject    = null;
 
 	public SmtpExceptionReporterModule(AbstractWebApplication application) {
 		super(application);
@@ -62,8 +112,8 @@ public class SmtpExceptionReporterModule extends ExceptionReporterModule {
 	 * Returns the default recipients for messages sent by the module
 	 * @return the default recipients for messages sent by the module
 	 */
-	protected String getDefaultRecipients() {
-		return DEFAULT_RECIPIENTS;
+	protected InternetAddress[] getDefaultRecipients() {
+		return getRecipientsFromString(DEFAULT_RECIPIENTS, RECIPIENT_DELIMITER);
 	}
 	
 	@Override
@@ -72,14 +122,14 @@ public class SmtpExceptionReporterModule extends ExceptionReporterModule {
 		
 		String defaultSubject = getDefaultSubject();
 		if (defaultSubject == null || defaultSubject.trim().isEmpty())
-			defaultSubject = DEFAULT_SUBJECT;
+			throw new RuntimeException("Null/Empty default subject");
 		
-		String defaultRecipients = getDefaultRecipients();
-		if (defaultSubject == null || defaultRecipients.trim().isEmpty())
-			defaultRecipients = DEFAULT_RECIPIENTS;
+		InternetAddress[] defaultRecipients = getDefaultRecipients();
+		if (defaultRecipients == null || defaultRecipients.length == 0)
+			throw new RuntimeException("Null/Empty default recipients");
 		
 		properties.setProperty(KEY_SUBJECT,    defaultSubject);
-		properties.setProperty(KEY_RECIPIENTS, defaultRecipients);
+		properties.setProperty(KEY_RECIPIENTS, getRecipientsString(defaultRecipients, RECIPIENT_DELIMITER));
 		
 		return properties;
 	}
@@ -103,7 +153,7 @@ public class SmtpExceptionReporterModule extends ExceptionReporterModule {
 		deps.add(getSmtpModuleId());
 		return deps;
 	}
-	
+		
 	@Override
 	protected void onStart() {
 		super.onStart();
@@ -113,12 +163,10 @@ public class SmtpExceptionReporterModule extends ExceptionReporterModule {
 		
 		// Recipients
 		val = properties.getProperty(KEY_RECIPIENTS);
-		if (val == null || val.trim().isEmpty())
-			val = getDefaultRecipients();
-		
-		recipients = val.split(RECIPIENT_DELIMITER);
-		for (int i = 0; i < recipients.length; i++) {
-			recipients[i] = recipients[i].trim();
+		if (val == null || val.trim().isEmpty()) {
+			recipients = getDefaultRecipients();
+		} else {
+			recipients = getRecipientsFromString(val, RECIPIENT_DELIMITER);
 		}
 		
 		// Subject
@@ -126,7 +174,6 @@ public class SmtpExceptionReporterModule extends ExceptionReporterModule {
 		if (val == null || val.trim().isEmpty())
 			val = getDefaultSubject();
 		
-		val = val.replaceAll(APP_NAME_TOKEN, getApplication().getName());
 		subject = val;
 	}
 
@@ -140,7 +187,7 @@ public class SmtpExceptionReporterModule extends ExceptionReporterModule {
 	 * Returns message recipients defined in application settings
 	 * @return message recipients defined in application settings
 	 */
-	public String[] getRecipients() {
+	public InternetAddress[] getRecipients() {
 		return recipients;
 	}
 	
@@ -152,23 +199,23 @@ public class SmtpExceptionReporterModule extends ExceptionReporterModule {
 		return subject;
 	}
 	
-	private AbstractSmtpModule getSmtpModule() {
-		return (AbstractSmtpModule) getApplication().getModuleInstance(getSmtpModuleId());
+	private SmtpModule getSmtpModule() {
+		// Since SMTP module is a mandatory dependency there is no need to check if it is null
+		return (SmtpModule) getApplication().getModuleInstance(getSmtpModuleId());
 	}
 
 	@Override
 	protected void reportErrorMessage(String message) {
 		super.reportErrorMessage(message);
-		try {
-			Message msg = new MessageBuilder(
-				getApplication().getProperties().getProperty(SmtpModule.KEY_SENDER), 
-				getRecipients()
-			).setSubject(getSubject()).setText(message).build();
+		
+		SmtpModule smtpModule = getSmtpModule();
+		
+		String finalSubject = getSubject().replaceAll(Pattern.quote(APP_NAME_TOKEN), getApplication().getName());
 
-			getSmtpModule().sendMessage(msg);
-		} catch (AddressException ex) {
-			throw new RuntimeException(ex);
-		}
+		Message msg = new MessageBuilder(smtpModule.getSender(), getRecipients())
+			.setSubject(finalSubject).setText(message).build();
+
+		smtpModule.sendMessage(msg);
 	}
 	// =========================================================================
 }
