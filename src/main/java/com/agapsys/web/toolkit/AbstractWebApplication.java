@@ -127,9 +127,19 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	/** @return the application version **/
 	public abstract String getVersion();
 
+	/** @return a boolean indicating if application folder shall be created if it does not exist. Default implementation returns true. */
+	protected boolean createAppFolderIfNotExists() {
+		return true;
+	}
+	
 	/** @return the folder where application stores resources outside application context in servlet container. Default implementation will create folder if it not exists */
 	public File getFolder() {
-		return FileUtils.getOrCreateFolder(new File(FileUtils.USER_HOME, "." + getName()).getAbsolutePath());
+		File appFolder = new File(FileUtils.USER_HOME, "." + getName());
+		
+		if (createAppFolderIfNotExists())
+			appFolder = FileUtils.getOrCreateFolder(appFolder.getAbsolutePath());
+		
+		return appFolder;
 	}
 	
 	/** @return the name of the currently running environment. Default implementation return {@linkplain AbstractWebApplication#DEFAULT_ENVIRONMENT} */
@@ -320,6 +330,9 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 			beforeApplicationStart();
 			
 			Map<String, Class<? extends AbstractModule>> moduleClassMap = getModuleClassMap();
+			
+			if (moduleClassMap == null)
+				moduleClassMap = new LinkedHashMap<>();
 			
 			// Instantiate all modules...
 			for (Map.Entry<String, Class<? extends AbstractModule>> entry : moduleClassMap.entrySet()) {
