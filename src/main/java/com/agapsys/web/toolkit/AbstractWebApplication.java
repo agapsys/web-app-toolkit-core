@@ -74,9 +74,9 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	// =========================================================================
 	
 	// INSTANCE SCOPE ==========================================================
-	private final Map<String, AbstractModule> moduleMap          = new LinkedHashMap<>();
-	private final List<AbstractModule>        loadedModules      = new LinkedList<>();
-	private final Properties          properties         = new Properties();
+	private final Map<String, AbstractModule> moduleMap     = new LinkedHashMap<>();
+	private final List<AbstractModule>        loadedModules = new LinkedList<>();
+	private final Properties                  properties    = new Properties();
 	
 	
 	/**
@@ -172,6 +172,20 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	}
 	
 	/** 
+	 * @return the properties stored in a file.
+	 * @throws IOException if there is an I/O error while reading the file
+	 */
+	protected Properties getProperties(File settingsFile) throws IOException {
+		Properties fileProperties = new Properties();
+		
+		try (FileInputStream fis = new FileInputStream(settingsFile)) {
+			fileProperties.load(fis);
+		}
+		
+		return fileProperties;
+	}
+	
+	/** 
 	 * Load application settings.
 	 * @throws IOException if there is an error reading settings file.
 	 */
@@ -187,10 +201,7 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 
 		if (settingsFile.exists()) {
 			debug("\tLoading settings file...");
-
-			try (FileInputStream fis = new FileInputStream(settingsFile)) {
-				properties.load(fis);
-			}
+			properties.putAll(getProperties(settingsFile));
 		}
 
 		List<PropertyGroup> propertyGroups = new LinkedList<>();
