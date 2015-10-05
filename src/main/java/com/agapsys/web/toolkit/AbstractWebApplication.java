@@ -218,7 +218,12 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 			Properties defaultModuleProperties = moduleInstance.getDefaultSettings();
 			
 			if (defaultModuleProperties != null && !defaultModuleProperties.isEmpty()) {
-				propertyGroups.add(new PropertyGroup(defaultModuleProperties, moduleInstance.getDescription()));
+				
+				String moduleDescription = moduleInstance.getDescription();
+				if (moduleDescription == null || moduleDescription.isEmpty())
+					moduleDescription = moduleInstance.getClass().getName();
+				
+				propertyGroups.add(new PropertyGroup(defaultModuleProperties, moduleDescription));
 				
 				for (Map.Entry<Object, Object> defaultEntry : defaultModuleProperties.entrySet()) {
 					properties.putIfAbsent(defaultEntry.getKey(), defaultEntry.getValue());
