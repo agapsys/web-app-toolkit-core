@@ -156,6 +156,11 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 		return properties;
 	}
 	
+	/** @return a boolean indicating if a default settings file shall be created if it does not exist. Default implementation returns true. */
+	protected boolean createDefaultSettingsFile() {
+		return true;
+	}
+	
 	/** 
 	 * Load application settings.
 	 * @throws IOException if there is an error reading settings file.
@@ -193,7 +198,7 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 			}
 		}
 		
-		if (!settingsFile.exists()) {
+		if (!settingsFile.exists() && createDefaultSettingsFile()) {
 			debug("\tCreating default settings file...");
 			PropertyGroup.writeToFile(settingsFile, propertyGroups);
 		}
