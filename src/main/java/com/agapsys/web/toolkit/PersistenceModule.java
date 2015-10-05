@@ -111,7 +111,7 @@ public class PersistenceModule extends AbstractPersistenceModule {
 		properties.setProperty(KEY_JDBC_PASSWORD,        defaultJdbcPassword);
 		
 		return properties;
-	}
+	}	
 	
 	@Override
 	protected void onStart() {
