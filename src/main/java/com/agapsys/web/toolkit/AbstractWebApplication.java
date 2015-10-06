@@ -78,6 +78,7 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	private final List<AbstractModule>        loadedModules = new LinkedList<>();
 	private final Properties                  properties    = new Properties();
 	
+	private File appDirectory = null;
 	
 	/**
 	 * Log application messages.
@@ -116,7 +117,7 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	 * @see AbstractWebApplication#isDebugEnabled()
 	 * @see String#format(String, Object...)
 	 */
-	protected void debug(String message, Object...args) {
+	protected final void debug(String message, Object...args) {
 		if (isDebugEnabled())
 			Console.printlnf(message, args);
 	}
@@ -128,18 +129,28 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	public abstract String getVersion();
 
 	/** @return a boolean indicating if application folder shall be created if it does not exist. Default implementation returns true. */
-	protected boolean createAppFolderIfNotExists() {
+	protected boolean createDirectory() {
 		return true;
 	}
 	
-	/** @return the folder where application stores resources outside application context in servlet container. Default implementation will create folder if it not exists */
-	public File getFolder() {
-		File appFolder = new File(FileUtils.USER_HOME, "." + getName());
+	/** @return the path of application directory. */
+	protected String getDirectoryPath() {
+		File appDirectory = new File(FileUtils.USER_HOME, "." + getName());
+		return appDirectory.getAbsolutePath();
+	}
+	
+	/** @return the directory where application stores resources outside application context in servlet container.*/
+	public final File getDirectory() {
+		if (appDirectory == null) {
+			String directoryPath = getDirectoryPath();
+			
+			appDirectory = new File(directoryPath);
+
+			if (createDirectory())
+				appDirectory = FileUtils.getOrCreateDirectory(directoryPath);
+		}
 		
-		if (createAppFolderIfNotExists())
-			appFolder = FileUtils.getOrCreateFolder(appFolder.getAbsolutePath());
-		
-		return appFolder;
+		return appDirectory;
 	}
 	
 	/** @return the name of the currently running environment. Default implementation return {@linkplain AbstractWebApplication#DEFAULT_ENVIRONMENT} */
@@ -192,7 +203,7 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 		String strDelimiter   = environment.equals(DEFAULT_ENVIRONMENT) ? "" : getSettingsFilenameEnvironmentDelimiter();
 		String strEnvironment = environment.equals(DEFAULT_ENVIRONMENT) ? "" : environment;
 		
-		File settingsFile = new File(getFolder(), getSettingsFilenamePrefix() + strDelimiter + strEnvironment + getSettingsFilenameSuffix());
+		File settingsFile = new File(getDirectory(), getSettingsFilenamePrefix() + strDelimiter + strEnvironment + getSettingsFilenameSuffix());
 
 		if (settingsFile.exists()) {
 			debug("\tLoading settings file...");
@@ -423,6 +434,7 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 			loadedModules.clear();
 			moduleMap.clear();
 			properties.clear();
+			appDirectory = null;
 			singleton = null;
 			
 			afterApplicationStop();

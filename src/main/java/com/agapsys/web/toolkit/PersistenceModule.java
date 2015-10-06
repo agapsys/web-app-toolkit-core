@@ -121,7 +121,7 @@ public class PersistenceModule extends AbstractPersistenceModule {
 		String jdbcFilename = properties.getProperty(KEY_JDBC_DRIVER_FILENAME);
 		
 		if (jdbcFilename != null && !jdbcFilename.trim().isEmpty()) {
-			File jdbcDriverFile = new File(application.getFolder(), jdbcFilename);
+			File jdbcDriverFile = new File(application.getDirectory(), jdbcFilename);
 			RuntimeJarLoader.loadJar(jdbcDriverFile);
 		}
 		

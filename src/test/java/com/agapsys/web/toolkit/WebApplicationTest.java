@@ -301,10 +301,10 @@ public class WebApplicationTest  {
 		webApp.start();
 		
 		File appFolder = new File(System.getProperty("user.home"), String.format(".%s", AbstractWebApplication.getInstance().getName()));
-		Assert.assertEquals(appFolder.getAbsolutePath(), AbstractWebApplication.getInstance().getFolder().getAbsolutePath());
+		Assert.assertEquals(appFolder.getAbsolutePath(), AbstractWebApplication.getInstance().getDirectory().getAbsolutePath());
 		
 		webApp.stop();
-		AbstractWebApplication.getInstance().getFolder();
+		AbstractWebApplication.getInstance().getDirectory();
 	}
 	
 	@Test

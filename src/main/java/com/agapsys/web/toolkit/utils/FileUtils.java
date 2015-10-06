@@ -67,12 +67,12 @@ public class FileUtils {
 	}
 	
 	/**
-	 * @return a file representing a given path. If folder hierarchy does not exist, they will be created.
-	 * @param path folder path
-	 * @throws AccessError if folder hierarchy does not exist and it was not possible to create it.
+	 * @return a file representing a given path. If directory hierarchy does not exist, they will be created.
+	 * @param path directory path
+	 * @throws AccessError if directory hierarchy does not exist and it was not possible to create it.
 	 * @throws  IllegalArgumentException if given path points to a file instead of a directory.
 	 */
-	public static File getOrCreateFolder(String path) throws AccessError, IllegalArgumentException {
+	public static File getOrCreateDirectory(String path) throws AccessError, IllegalArgumentException {
 		File folder = new File(path);
 		if (!folder.exists()) {
 			if (!folder.mkdirs())
