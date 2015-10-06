@@ -22,7 +22,7 @@ import java.util.logging.Level;
 import org.junit.Assert;
 import org.junit.Test;
 
-public class WebApplicationTest  {
+public class AbstractWebApplicationTest  {
 	// CLASS SCOPE =============================================================
 	// Custom modules ----------------------------------------------------------
 	private static class CustomPersistenceModule extends PersistenceModule {
@@ -83,7 +83,7 @@ public class WebApplicationTest  {
 	// -------------------------------------------------------------------------
 	
 	// Custom applications -----------------------------------------------------	
-	private static class WebApplicationBase extends WebApplication {
+	private static class WebApplicationBase extends AbstractWebApplication {
 		private boolean beforeApplicationStopCalled = false;
 		private boolean beforeApplicationStartCalled = false;
 		
@@ -267,56 +267,56 @@ public class WebApplicationTest  {
 		Utils.printCurrentMethod();
 		
 		
-		WebApplication webApp = new WebApplicationBase();
+		AbstractWebApplication webApp = new WebApplicationBase();
 		webApp.start();
-		Assert.assertEquals(Defs.APP_NAME, WebApplication.getInstance().getName());
+		Assert.assertEquals(Defs.APP_NAME, AbstractWebApplication.getInstance().getName());
 		webApp.stop();
-		WebApplication.getInstance().getName();
+		AbstractWebApplication.getInstance().getName();
 	}
 	
 	@Test(expected = IllegalStateException.class)
 	public void Simple_web_application_getVersion_test() {
 		Utils.printCurrentMethod();
 		
-		WebApplication webApp = new WebApplicationBase();
+		AbstractWebApplication webApp = new WebApplicationBase();
 		webApp.start();
-		Assert.assertEquals(Defs.APP_VERSION, WebApplication.getInstance().getVersion());
+		Assert.assertEquals(Defs.APP_VERSION, AbstractWebApplication.getInstance().getVersion());
 		
 		webApp.stop();
-		WebApplication.getInstance().getVersion();
+		AbstractWebApplication.getInstance().getVersion();
 	}
 	
 	@Test(expected = IllegalStateException.class)
 	public void Simple_web_application_getEnvironment_test() {
 		Utils.printCurrentMethod();
 		
-		WebApplication webApp = new WebApplicationBase();
+		AbstractWebApplication webApp = new WebApplicationBase();
 		webApp.start();
-		Assert.assertEquals(Defs.ENVIRONMENT, WebApplication.getInstance().getEnvironment());
+		Assert.assertEquals(Defs.ENVIRONMENT, AbstractWebApplication.getInstance().getEnvironment());
 		
 		webApp.stop();
-		WebApplication.getInstance().getEnvironment();
+		AbstractWebApplication.getInstance().getEnvironment();
 	}
 	
 	@Test(expected = IllegalStateException.class)
 	public void Simple_web_application_getAppFolder_test() {
 		Utils.printCurrentMethod();
 		
-		WebApplication webApp = new WebApplicationBase();
+		AbstractWebApplication webApp = new WebApplicationBase();
 		webApp.start();
 		
-		File appFolder = new File(System.getProperty("user.home"), String.format(".%s", WebApplication.getInstance().getName()));
-		Assert.assertEquals(appFolder.getAbsolutePath(), WebApplication.getInstance().getDirectory().getAbsolutePath());
+		File appFolder = new File(System.getProperty("user.home"), String.format(".%s", AbstractWebApplication.getInstance().getName()));
+		Assert.assertEquals(appFolder.getAbsolutePath(), AbstractWebApplication.getInstance().getDirectory().getAbsolutePath());
 		
 		webApp.stop();
-		WebApplication.getInstance().getDirectory();
+		AbstractWebApplication.getInstance().getDirectory();
 	}
 	
 	@Test
 	public void Simple_web_application_getEntityManager_test() {
 		Utils.printCurrentMethod();
 		
-		WebApplication webApp = new WebApplicationBase();
+		AbstractWebApplication webApp = new WebApplicationBase();
 		webApp.start();
 		
 		AbstractPersistenceModule persistenceModule = webApp.getPersistenceModule();

@@ -107,7 +107,7 @@ public abstract class AbstractApplication  {
 	 * Prints debug messages if debug is enabled.
 	 * @param message message to be printed
 	 * @param args arguments if message is a formatted string
-	 * @see AbstractWebApplication#isDebugEnabled()
+	 * @see AbstractApplication#isDebugEnabled()
 	 * @see String#format(String, Object...)
 	 */
 	protected final void debug(String message, Object...args) {
@@ -151,7 +151,7 @@ public abstract class AbstractApplication  {
 		return appDirectory;
 	}
 	
-	/** @return the name of the currently running environment. Default implementation return {@linkplain AbstractWebApplication#DEFAULT_ENVIRONMENT} */
+	/** @return the name of the currently running environment. Default implementation return {@linkplain AbstractApplication#DEFAULT_ENVIRONMENT} */
 	public String getEnvironment() {
 		return DEFAULT_ENVIRONMENT;
 	}
@@ -159,7 +159,7 @@ public abstract class AbstractApplication  {
 	/**
 	 * Registers a module with this application.
 	 * This method shall be called before application is running
-	 * @see AbstractWebApplication#beforeApplicationStart()
+	 * @see AbstractApplication#beforeApplicationStart()
 	 * @param moduleClass module class to be registered
 	 */
 	public final void registerModule(Class<? extends AbstractModule> moduleClass) {

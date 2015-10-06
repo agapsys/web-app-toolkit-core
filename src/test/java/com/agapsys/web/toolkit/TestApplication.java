@@ -15,7 +15,7 @@
  */
 package com.agapsys.web.toolkit;
 
-public class TestApplication extends WebApplication {
+public class TestApplication extends AbstractWebApplication {
 	
 	@Override
 	public String getName() {

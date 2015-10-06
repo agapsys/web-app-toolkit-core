@@ -19,11 +19,11 @@ package com.agapsys.web.toolkit;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
-public abstract class WebApplication extends AbstractApplication implements ServletContextListener {
+public abstract class AbstractWebApplication extends AbstractApplication implements ServletContextListener {
 	// CLASS SCOPE =============================================================
-	private static WebApplication singleton = null;
+	private static AbstractWebApplication singleton = null;
 	
-	public static WebApplication getInstance() {
+	public static AbstractWebApplication getInstance() {
 		if (singleton == null)
 			throw new IllegalStateException("Web application is not running");
 		

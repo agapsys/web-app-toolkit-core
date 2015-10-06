@@ -24,7 +24,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-public class SmtpModuleTest {
+public class AbstractSmtpModuleTest {
 	// CLASS SCOPE =============================================================
 	private static class TestSmtpModule extends AbstractSmtpModule {
 		private boolean methodCalled = false;
@@ -44,7 +44,7 @@ public class SmtpModuleTest {
 	private TestSmtpModule module;
 	private final Message testMessage;
 
-	public SmtpModuleTest() throws AddressException {
+	public AbstractSmtpModuleTest() throws AddressException {
 		this.testMessage = new MessageBuilder("sender@host.com", "recipient@host.com").build();
 	}	
 	

@@ -17,63 +17,58 @@
 package com.agapsys.web.toolkit;
 
 import com.agapsys.Utils;
+import javax.persistence.EntityManager;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-public class ModuleTest {
+public class AbstractPersistenceModuleTest {
 	// CLASS SCOPE =============================================================
-	private static class TestModule extends AbstractModule {
-		private boolean isStartCalled = false;
-		private boolean isStopCalled = false;
+	private static class TestPersistenceModule extends AbstractPersistenceModule {
+		private boolean methodCalled = false;
 
-		public TestModule(AbstractApplication application) {
+		public TestPersistenceModule(AbstractApplication application) {
 			super(application);
 		}
-
+		
 		@Override
-		protected void onStart() {
-			isStartCalled = true;
-		}
-
-		@Override
-		protected void onStop() {
-			isStopCalled = true;
+		protected EntityManager getAppEntityManager() {
+			methodCalled = true;
+			return null;
 		}
 	}
 	// =========================================================================
-	
+
 	// INSTANCE SCOPE ==========================================================
-	private TestModule module = null;
+	private TestPersistenceModule module;
 	
 	@Before
 	public void before() {
-		module = new TestModule(new TestApplication());
+		module = new TestPersistenceModule(new TestApplication());
 	}
 	
 	@Test
-	public void testDefaults() {
+	public void sanityCheck() {
 		Utils.printCurrentMethod();
 		
-		Assert.assertNull(module.getDefaultSettings());
-		Assert.assertFalse(module.isStartCalled);
-		Assert.assertFalse(module.isStopCalled);
-	}
-	
-	@Test
-	public void testRunning() {
-		Utils.printCurrentMethod();
-		
+		Assert.assertFalse(module.methodCalled);
 		Assert.assertFalse(module.isRunning());
+	}
+	
+	@Test(expected = IllegalStateException.class)
+	public void testGetEntityManagerWhileNotRunning() {
+		Utils.printCurrentMethod();
+		
+		module.getEntityManager();
+	}
+	
+	@Test
+	public void testGetEntityManagerWhileRunning() {
+		Utils.printCurrentMethod();
 		
 		module.start();
-		Assert.assertTrue(module.isStartCalled);
-		Assert.assertFalse(module.isStopCalled);
-		Assert.assertTrue(module.isStartCalled);
-		
-		module.stop();
-		Assert.assertTrue(module.isStopCalled);
-		Assert.assertFalse(module.isRunning());
+		Assert.assertNull(module.getEntityManager());
+		Assert.assertTrue(module.methodCalled);
 	}
 	// =========================================================================
 }

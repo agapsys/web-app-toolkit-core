@@ -40,7 +40,7 @@ public class DefaultFilter implements Filter {
 
 	@Override
 	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
-		if (WebApplication.getInstance().isDisabled()) {
+		if (AbstractWebApplication.getInstance().isDisabled()) {
 			HttpServletResponse resp = (HttpServletResponse) response;
 			resp.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
 			resp.flushBuffer();
