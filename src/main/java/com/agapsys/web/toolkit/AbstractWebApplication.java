@@ -437,7 +437,8 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	
 	/** 
 	 * Called before application is initialized.
-	 * Default implementation does nothing.
+	 * Default implementation does nothing. This is the place to register modules with the application.
+	 * Always call super implementation.
 	 */
 	protected void beforeApplicationStart() {}
 	
