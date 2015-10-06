@@ -68,15 +68,17 @@ public abstract class WebApplication extends AbstractWebApplication {
 		return SmtpModule.class;
 	}
 	
-	
+	/** @return The persistence module used by this application. If there is no such module, returns null. */
 	public AbstractPersistenceModule getPersistenceModule() {
 		return (AbstractPersistenceModule) getModuleInstance(getPersistenceModuleClass());
 	}
-	
+
+	/** @return The exception reporter module used by this application. If there is no such module, returns null. */
 	public AbstractExceptionReporterModule getExceptionReporterModule() {
 		return (AbstractExceptionReporterModule) getModuleInstance(getExceptionReporterModuleClass());
 	}
-	
+
+	/** @return The SMTP module used by this application. If there is no such module, returns null. */
 	public AbstractSmtpModule getSmtpModule() {
 		return (AbstractSmtpModule) getModuleInstance(getSmtpModuleClass());
 	}

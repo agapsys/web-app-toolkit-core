@@ -175,28 +175,25 @@ public class ExceptionReporterModule extends AbstractExceptionReporterModule {
 	 * Returns the message generated for exception report.
 	 * @param throwable exception instance
 	 * @param req HTTP request which thrown the exception
+	 * @param originalRequestUri original request URI
 	 * @return error message
 	 */
-	protected String getErrorMessage(Throwable throwable, HttpServletRequest req) {
+	protected String getErrorMessage(Throwable throwable, HttpServletRequest req, String originalRequestUri) {
 		String stackTrace = getStackTrace(throwable);
-		
-		String originalRequestUrl = (String) req.getAttribute(OriginalRequestKeepFilter.ATTR_ORIGINAL_REQUEST_URL);
-		if (originalRequestUrl == null) {
-			originalRequestUrl = HttpUtils.getRequestUrl(req);
-		}
 		
 		String msg =
 			"An error was detected"
 			+ "\n\n"
-			+ "Application: "         + getApplication().getName() + "\n"
-			+ "Application version: " + getApplication().getVersion() + "\n"
-			+ "Node name: "           + getNodeName() + "\n\n"
-			+ "Server timestamp: "    + DateUtils.getLocalTimestamp() + "\n"
-			+ "Error message: "       + throwable.getMessage() + "\n"
-			+ "Request URI: "         + originalRequestUrl + "\n"
-			+ "User-agent: "          + HttpUtils.getOriginUserAgent(req) + "\n"
-			+ "Client id: "           + HttpUtils.getOriginIp(req) + "\n"
-			+ "Stacktrace:\n"         + stackTrace;
+			+ "Application: "          + getApplication().getName() + "\n"
+			+ "Application version: "  + getApplication().getVersion() + "\n"
+			+ "Node name: "            + getNodeName() + "\n\n"
+			+ "Server timestamp: "     + DateUtils.getLocalTimestamp() + "\n"
+			+ "Error message: "        + throwable.getMessage() + "\n"
+			+ "Original request URI: " + originalRequestUri + "\n"
+			+ "Request URI: "          + HttpUtils.getRequestUri(req) + "\n"
+			+ "User-agent: "           + HttpUtils.getOriginUserAgent(req) + "\n"
+			+ "Client id: "            + HttpUtils.getOriginIp(req) + "\n"
+			+ "Stacktrace:\n"          + stackTrace;
 		
 		return msg;
 	}
@@ -223,7 +220,8 @@ public class ExceptionReporterModule extends AbstractExceptionReporterModule {
 	protected void onExceptionReport(Throwable t, HttpServletRequest req) {
 		if (isModuleEnabled()) {
 			if (!skipErrorReport(t)) {
-				reportErrorMessage(getErrorMessage(t, req));
+				String originalRequestStr = (String) req.getAttribute(OriginalRequestKeepFilter.ATTR_ORIGINAL_REQUEST_URI);
+				reportErrorMessage(getErrorMessage(t, req, originalRequestStr));
 			} else {
 				getApplication().log(
 					AbstractWebApplication.LOG_TYPE_WARNING, 

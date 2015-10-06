@@ -198,15 +198,15 @@ public class HttpUtils {
 	}
 	
 	/**
-	 * @return request URL.
+	 * @return request URI.
 	 * @param req HTTP request
 	 */
-	public static String getRequestUrl(HttpServletRequest req) {
+	public static String getRequestUri(HttpServletRequest req) {
 		StringBuffer requestUrl = req.getRequestURL();
 		if (req.getQueryString() != null)
 			requestUrl.append("?").append(req.getQueryString());
 		
-		return requestUrl.toString();
+		return String.format("%s %s %s", req.getMethod(), requestUrl.toString(), req.getProtocol());
 	}
 	// =========================================================================
 

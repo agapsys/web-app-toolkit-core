@@ -30,7 +30,7 @@ import javax.servlet.http.HttpServletRequest;
 @WebFilter("/*")
 public class OriginalRequestKeepFilter implements Filter {
 	// CLASS SCOPE =============================================================
-	public static final String ATTR_ORIGINAL_REQUEST_URL = "com.agapsys.web.toolkit.originalRequestUrl";
+	public static final String ATTR_ORIGINAL_REQUEST_URI = "com.agapsys.web.toolkit.originalRequestUri";
 	// =========================================================================
 
 	// INSTANCE SCOPE ==========================================================
@@ -39,7 +39,7 @@ public class OriginalRequestKeepFilter implements Filter {
 
 	@Override
 	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
-		request.setAttribute(ATTR_ORIGINAL_REQUEST_URL, HttpUtils.getRequestUrl((HttpServletRequest) request));
+		request.setAttribute(ATTR_ORIGINAL_REQUEST_URI, HttpUtils.getRequestUri((HttpServletRequest) request));
 		chain.doFilter(request, response);
 	}
 
