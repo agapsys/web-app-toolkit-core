@@ -23,17 +23,11 @@ import javax.servlet.http.HttpServletRequest;
  */
 public abstract class AbstractExceptionReporterModule extends AbstractModule {
 	// CLASS SCOPE =============================================================
-	private static final String DESCRIPTION = "Exception reporter module";
 	// =========================================================================
 	
 	// INSTANCE SCOPE ==========================================================
 	public AbstractExceptionReporterModule(AbstractWebApplication application) {
 		super(application);
-	}
-
-	@Override
-	public String getDescription() {
-		return DESCRIPTION;
 	}
 	
 	/**

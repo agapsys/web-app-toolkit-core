@@ -23,17 +23,11 @@ import javax.persistence.EntityManager;
  */
 public abstract class AbstractPersistenceModule extends AbstractModule {
 	// CLASS SCOPE =============================================================
-	private static final String DESCRIPTION = "Persistence module";
 	// =========================================================================
 	
 	// INSTANCE SCOPE ==========================================================
 	public AbstractPersistenceModule(AbstractWebApplication application) {
 		super(application);
-	}
-
-	@Override
-	public String getDescription() {
-		return DESCRIPTION;
 	}
 	
 	/** 

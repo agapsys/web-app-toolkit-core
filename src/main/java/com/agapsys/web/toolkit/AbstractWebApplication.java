@@ -74,9 +74,10 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	// =========================================================================
 	
 	// INSTANCE SCOPE ==========================================================
-	private final Map<String, AbstractModule> moduleMap     = new LinkedHashMap<>();
-	private final List<AbstractModule>        loadedModules = new LinkedList<>();
-	private final Properties                  properties    = new Properties();
+	private final Map<Class<? extends AbstractModule>, AbstractModule> moduleMap     = new LinkedHashMap<>();
+	private final List<AbstractModule>                                 loadedModules = new LinkedList<>();
+	private final Properties                                           properties    = new Properties();
+	private final Set<Class<? extends AbstractModule>>                 moduleSet     = new LinkedHashSet<>();
 	
 	private File appDirectory = null;
 	
@@ -136,8 +137,8 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	
 	/** @return the path of application directory. */
 	protected String getDirectoryPath() {
-		File appDirectory = new File(FileUtils.USER_HOME, "." + getName());
-		return appDirectory.getAbsolutePath();
+		File d = new File(FileUtils.USER_HOME, "." + getName());
+		return d.getAbsolutePath();
 	}
 	
 	/** @return the directory where application stores resources outside application context in servlet container.*/
@@ -160,18 +161,38 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 		return DEFAULT_ENVIRONMENT;
 	}
 	
-	/** @return the module classes used by this application. Default implementation returns null (no modules) */
-	protected Map<String, Class<? extends AbstractModule>> getModuleClassMap() {
-		return null;
+	/**
+	 * Registers a module with this application.
+	 * This method shall be called before application is running
+	 * @see AbstractWebApplication#beforeApplicationStart()
+	 * @param moduleClass module class to be registered
+	 */
+	public final void registerModule(Class<? extends AbstractModule> moduleClass) {
+		if (isRunning())
+			throw new IllegalStateException("Cannot add a module to a running application");
+		
+		if (moduleClass == null)
+			throw new IllegalArgumentException("Null module class");
+		
+		if (!moduleSet.add(moduleClass))
+			throw new IllegalArgumentException("Module already registered: " + moduleClass.getName());
+	}
+	
+	/** Unregisters all modules associated with this application. Application cannot be running! */
+	public final void unregisterModules() {
+		if (isRunning())
+			throw new IllegalStateException("Cannot unregister modules in a running application");
+		
+		moduleSet.clear();
 	}
 	
 	/** 
 	 * Returns a module registered with this application.
-	 * @param moduleId module ID
+	 * @param moduleClass module class
 	 * @return registered module instance or null if there is no such module.
 	 */
-	public final AbstractModule getModuleInstance(String moduleId) {
-		return moduleMap.get(moduleId);
+	public final AbstractModule getModuleInstance(Class<? extends AbstractModule> moduleClass) {
+		return moduleMap.get(moduleClass);
 	}
 	
 	
@@ -236,18 +257,15 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 
 		// Apply modules default properties (keeping existing)...
 		List<PropertyGroup> propertyGroups = new LinkedList<>();
-		for (Map.Entry<String, AbstractModule> entry : moduleMap.entrySet()) {
-			AbstractModule moduleInstance = entry.getValue();
+		for (Map.Entry<Class<? extends AbstractModule>, AbstractModule> entry : moduleMap.entrySet()) {
+			
+			Class<? extends AbstractModule> moduleClass    = entry.getKey();
+			AbstractModule                  moduleInstance = entry.getValue();
 			
 			Properties defaultModuleProperties = moduleInstance.getDefaultSettings();
 			
 			if (defaultModuleProperties != null && !defaultModuleProperties.isEmpty()) {
-				
-				String moduleDescription = moduleInstance.getDescription();
-				if (moduleDescription == null || moduleDescription.isEmpty())
-					moduleDescription = moduleInstance.getClass().getName();
-				
-				propertyGroups.add(new PropertyGroup(defaultModuleProperties, moduleDescription));
+				propertyGroups.add(new PropertyGroup(defaultModuleProperties, moduleClass.getName()));
 				
 				for (Map.Entry<Object, Object> defaultEntry : defaultModuleProperties.entrySet()) {
 					Object appPropertyValue = properties.putIfAbsent(defaultEntry.getKey(), defaultEntry.getValue());
@@ -282,31 +300,31 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	
 	/**
 	 * Starts a module and all the dependencies
-	 * @param moduleId ID of the module to be initialized
+	 * @param moduleClass module class to be initialized
 	 * @param mandatory defines if given module is mandatory
 	 * @param callerModules list of recursive callers (initial call may be null)
 	 */
-	private void startModule(String moduleId, boolean mandatory, List<String> callerModules)  {
+	private void startModule(Class<? extends AbstractModule> moduleClass, boolean mandatory, List<Class<? extends AbstractModule>> callerModules)  {
 		if (callerModules == null)
 			callerModules = new LinkedList<>();
 		
-		AbstractModule moduleInstance = getModuleInstance(moduleId);
+		AbstractModule moduleInstance = getModuleInstance(moduleClass);
 		
 		if (moduleInstance == null && mandatory)
-			throw new RuntimeException("Mandatory module not registered: " + moduleId);
+			throw new RuntimeException("Mandatory module not registered: " + moduleClass);
 		
 		if (moduleInstance == null && !mandatory)
-			debug("\tOptional module not found: %s", moduleId);
+			debug("\tOptional module not found: %s", moduleClass);
 		
 		if (moduleInstance != null && !moduleInstance.isRunning()) {
 			
-			if (callerModules.contains(moduleId))
-				throw new RuntimeException("Cyclic dependency on module: " + moduleId);
+			if (callerModules.contains(moduleClass))
+				throw new RuntimeException("Cyclic dependency on module: " + moduleClass);
 
-			callerModules.add(moduleId);
+			callerModules.add(moduleClass);
 			
-			Set<String> mandatoryDependencies = moduleInstance.getMandatoryDependencies();
-			Set<String> optionalDependencies = moduleInstance.getOptionalDependencies();
+			Set<Class<? extends AbstractModule>> mandatoryDependencies = moduleInstance.getMandatoryDependencies();
+			Set<Class<? extends AbstractModule>> optionalDependencies  = moduleInstance.getOptionalDependencies();
 
 			if (mandatoryDependencies == null)
 				mandatoryDependencies = new LinkedHashSet<>();
@@ -316,32 +334,28 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 
 			String moduleErrString = "Module is mandatory and optional at the same time: %s (%s)";
 
-			for (String mandatoryModuleId : mandatoryDependencies) {
-				if (optionalDependencies.contains(mandatoryModuleId))
-					throw new RuntimeException(String.format(moduleErrString, mandatoryModuleId, moduleId));
+			for (Class<? extends AbstractModule> mandatoryModuleClass : mandatoryDependencies) {
+				if (optionalDependencies.contains(mandatoryModuleClass))
+					throw new RuntimeException(String.format(moduleErrString, mandatoryModuleClass.getName(), moduleClass.getName()));
 			}
 
-			for (String optionalModuleId : optionalDependencies) {
-				if (mandatoryDependencies.contains(optionalModuleId))
-					throw new RuntimeException(String.format(moduleErrString, optionalModuleId, moduleId));
+			for (Class<? extends AbstractModule> optionalModuleClass : optionalDependencies) {
+				if (mandatoryDependencies.contains(optionalModuleClass))
+					throw new RuntimeException(String.format(moduleErrString, optionalModuleClass.getName(), moduleClass.getName()));
 			}
 			
 			// Load mandatory modules
-			for (String mandatoryModuleId : mandatoryDependencies) {
-				startModule(mandatoryModuleId, true, callerModules);
+			for (Class<? extends AbstractModule> mandatoryModuleClass : mandatoryDependencies) {
+				startModule(mandatoryModuleClass, true, callerModules);
 			}
 			
 			// Load optional modules
-			for (String optionalModuleId : optionalDependencies) {
-				startModule(optionalModuleId, false, callerModules);
+			for (Class<? extends AbstractModule> optionalModuleClass : optionalDependencies) {
+				startModule(optionalModuleClass, false, callerModules);
 			}
 
 			moduleInstance.start();
-			String moduleDescription = moduleInstance.getDescription();
-			if (moduleDescription == null || moduleDescription.trim().isEmpty())
-				moduleDescription = moduleInstance.getClass().getName();
-			
-			debug("\tModule initialized: %s", moduleDescription);
+			debug("\tModule initialized: %s", moduleClass.getName());
 
 			loadedModules.add(moduleInstance);
 		}
@@ -386,14 +400,9 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 			debug("====== AGAPSYS WEB TOOLKIT INITIALIZATION: %s (%s) ======", name, environment);
 			beforeApplicationStart();
 			
-			Map<String, Class<? extends AbstractModule>> moduleClassMap = getModuleClassMap();
-			
-			if (moduleClassMap == null)
-				moduleClassMap = new LinkedHashMap<>();
-			
 			// Instantiate all modules...
-			for (Map.Entry<String, Class<? extends AbstractModule>> entry : moduleClassMap.entrySet()) {
-				moduleMap.put(entry.getKey(), instantiateModule(entry.getValue()));
+			for (Class<? extends AbstractModule> moduleClass : moduleSet) {
+				moduleMap.put(moduleClass, instantiateModule(moduleClass));
 			}
 
 			try {
@@ -406,7 +415,7 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 			// Starts all modules
 			if (moduleMap.size() > 0) {
 				debug("Starting modules...");
-				for (Map.Entry<String, AbstractModule> entry : moduleMap.entrySet()) {
+				for (Map.Entry<Class<? extends AbstractModule>, AbstractModule> entry : moduleMap.entrySet()) {
 					if (!entry.getValue().isRunning()) {
 						startModule(entry.getKey(), true, null);
 					}
@@ -449,6 +458,7 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 			beforeApplicationStop();
 			
 			shutdownModules();
+			moduleSet.clear();
 			loadedModules.clear();
 			moduleMap.clear();
 			properties.clear();

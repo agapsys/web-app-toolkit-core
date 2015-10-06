@@ -18,6 +18,7 @@ package com.agapsys.web.toolkit;
 
 import com.agapsys.Utils;
 import java.io.File;
+import java.util.logging.Level;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -136,19 +137,24 @@ public class WebApplicationTest  {
 		@Override
 		protected void beforeApplicationStart() {
 			this.beforeApplicationStartCalled = true;
+			super.beforeApplicationStart();
+			java.util.logging.Logger.getLogger("org.hibernate").setLevel(Level.OFF); // Disable Hibernate log output
 		}
 		@Override
 		protected void afterApplicationStart() {
 			this.afterApplicationStartCalled = true;
+			super.afterApplicationStart();
 		}
 
 		@Override
 		protected void beforeApplicationStop() {
 			this.beforeApplicationStopCalled = true;
+			super.beforeApplicationStop();
 		}
 		@Override
 		protected void afterApplicationStop() {
 			this.afterApplicationStopCalled = true;
+			super.afterApplicationStop();
 		}
 		
 		@Override
@@ -313,7 +319,7 @@ public class WebApplicationTest  {
 		AbstractWebApplication webApp = new WebApplicationBase();
 		webApp.start();
 		
-		AbstractPersistenceModule persistenceModule = (AbstractPersistenceModule) WebApplicationBase.getInstance().getModuleInstance(WebApplication.PERSISTENCE_MODULE_ID);
+		AbstractPersistenceModule persistenceModule = WebApplicationBase.getInstance().getPersistenceModule();
 		Assert.assertNull(persistenceModule);
 		webApp.stop();
 	}
@@ -328,7 +334,7 @@ public class WebApplicationTest  {
 		Assert.assertTrue(webApp.isOnPersistenceModuleStartCalled());
 		
 		
-		AbstractPersistenceModule persistenceModule = (AbstractPersistenceModule) WebApplicationBase.getInstance().getModuleInstance(WebApplication.PERSISTENCE_MODULE_ID);
+		AbstractPersistenceModule persistenceModule = WebApplicationBase.getInstance().getPersistenceModule();
 		Assert.assertNotNull(persistenceModule.getEntityManager());
 		
 		webApp.stop();

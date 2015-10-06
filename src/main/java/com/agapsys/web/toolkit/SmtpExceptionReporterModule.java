@@ -116,6 +116,7 @@ public class SmtpExceptionReporterModule extends ExceptionReporterModule {
 		return getRecipientsFromString(DEFAULT_RECIPIENTS, RECIPIENT_DELIMITER);
 	}
 	
+	
 	@Override
 	public Properties getDefaultSettings() {
 		Properties properties = super.getDefaultSettings();
@@ -134,23 +135,20 @@ public class SmtpExceptionReporterModule extends ExceptionReporterModule {
 		return properties;
 	}
 	
-	/**
-	 * Return the SMTP module ID used by application
-	 * @return the SMTP module ID used by application. Default implementation returns {@linkplain WebApplication#SMTP_MODULE_ID}
-	 */
-	protected String getSmtpModuleId() {
-		return WebApplication.SMTP_MODULE_ID;
+	/** @return the SMTP module class used by this module. */
+	protected Class<? extends SmtpModule> getSmtpModuleClass() {
+		return SmtpModule.class;
 	}
 	
 	@Override
-	protected Set<String> getMandatoryDependencies() {
-		Set<String> superMandatoryDeps = super.getMandatoryDependencies();
+	protected Set<Class<? extends AbstractModule>> getMandatoryDependencies() {
+		Set<Class<? extends AbstractModule>> superMandatoryDeps = super.getMandatoryDependencies();
 		
-		Set<String> deps = new LinkedHashSet<>();
+		Set<Class<? extends AbstractModule>> deps = new LinkedHashSet<>();
 		if (superMandatoryDeps != null)
 			deps.addAll(superMandatoryDeps);
 		
-		deps.add(getSmtpModuleId());
+		deps.add(getSmtpModuleClass());
 		return deps;
 	}
 		
@@ -201,7 +199,7 @@ public class SmtpExceptionReporterModule extends ExceptionReporterModule {
 	
 	private SmtpModule getSmtpModule() {
 		// Since SMTP module is a mandatory dependency there is no need to check if it is null
-		return (SmtpModule) getApplication().getModuleInstance(getSmtpModuleId());
+		return (SmtpModule) getApplication().getModuleInstance(getSmtpModuleClass());
 	}
 
 	@Override

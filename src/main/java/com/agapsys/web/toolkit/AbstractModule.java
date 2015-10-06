@@ -42,17 +42,12 @@ public abstract class AbstractModule {
 	}
 		
 	/** @return the mandatory dependencies of this module. Default implementation returns null (no mandatory dependencies). */
-	protected Set<String> getMandatoryDependencies() {
+	protected Set<Class<? extends AbstractModule>> getMandatoryDependencies() {
 		return null;
 	}
 	
 	/** @return the optional dependencies of this module. Default implementation returns null (no optional dependencies). */
-	protected Set<String> getOptionalDependencies() {
-		return null;
-	}
-	
-	/** @return module description. Default implementation returns null. */
-	public String getDescription() {
+	protected Set<Class<? extends AbstractModule>> getOptionalDependencies() {
 		return null;
 	}
 	

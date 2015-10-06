@@ -16,39 +16,32 @@
 
 package com.agapsys.web.toolkit;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-
 public abstract class WebApplication extends AbstractWebApplication {
 	// CLASS SCOPE =============================================================
-	public static final String PERSISTENCE_MODULE_ID        = "agapsys.webtoolkit.persistence";
-	public static final String EXCEPTION_REPORTER_MODULE_ID = "agapsys.webtoolkit.exceptionReporter";
-	public static final String SMTP_MODULE_ID               = "agapsys.webtoolkit.smtp";
-	
 	public static WebApplication getInstance() {
 		return (WebApplication) AbstractWebApplication.getInstance();
 	}
 	// =========================================================================
 
 	// INSTANCE SCOPE ==========================================================
+	
 	@Override
-	protected Map<String, Class<? extends AbstractModule>> getModuleClassMap() {
-		Map<String, Class<? extends AbstractModule>> moduleMap = new LinkedHashMap<>();
-
+	protected void beforeApplicationStart() {
+		super.beforeApplicationStart();
+		
+		// Register used modules
 		Class<? extends AbstractModule> persistenceModuleClass       = getPersistenceModuleClass();
 		Class<? extends AbstractModule> exceptionReporterModuleClass = getExceptionReporterModuleClass();
 		Class<? extends AbstractModule> smtpModuleClass              = getSmtpModuleClass();
 		
 		if (persistenceModuleClass != null)
-			moduleMap.put(PERSISTENCE_MODULE_ID, getPersistenceModuleClass());
+			registerModule(persistenceModuleClass);
 		
 		if (exceptionReporterModuleClass != null)
-			moduleMap.put(EXCEPTION_REPORTER_MODULE_ID, getExceptionReporterModuleClass());
+			registerModule(exceptionReporterModuleClass);
 		
 		if (smtpModuleClass != null)
-			moduleMap.put(SMTP_MODULE_ID, getSmtpModuleClass());
-		
-		return moduleMap;
+			registerModule(smtpModuleClass);
 	}
 	
 	/**
@@ -73,6 +66,19 @@ public abstract class WebApplication extends AbstractWebApplication {
 	 */
 	protected Class<? extends AbstractSmtpModule> getSmtpModuleClass() {
 		return SmtpModule.class;
+	}
+	
+	
+	public AbstractPersistenceModule getPersistenceModule() {
+		return (AbstractPersistenceModule) getModuleInstance(getPersistenceModuleClass());
+	}
+	
+	public AbstractExceptionReporterModule getExceptionReporterModule() {
+		return (AbstractExceptionReporterModule) getModuleInstance(getExceptionReporterModuleClass());
+	}
+	
+	public AbstractSmtpModule getSmtpModule() {
+		return (AbstractSmtpModule) getModuleInstance(getSmtpModuleClass());
 	}
 	// =========================================================================
 }

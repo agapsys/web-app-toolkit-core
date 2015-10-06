@@ -23,17 +23,11 @@ import com.agapsys.mail.Message;
  */
 public abstract class AbstractSmtpModule extends AbstractModule {
 	// CLASS SCOPE =============================================================
-	private static final String DESCRIPTION = "SMTP module";
 	// =========================================================================
 	
 	// INSTANCE SCOPE ==========================================================
 	public AbstractSmtpModule(AbstractWebApplication application) {
 		super(application);
-	}
-
-	@Override
-	public String getDescription() {
-		return DESCRIPTION;
 	}
 	
 	/** 

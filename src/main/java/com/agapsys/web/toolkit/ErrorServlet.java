@@ -44,7 +44,7 @@ public class ErrorServlet extends HttpServlet {
 	protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		Throwable t = getException(req);
 		
-		AbstractExceptionReporterModule exceptionReporterModule = (AbstractExceptionReporterModule) WebApplication.getInstance().getModuleInstance(WebApplication.EXCEPTION_REPORTER_MODULE_ID);
+		AbstractExceptionReporterModule exceptionReporterModule = WebApplication.getInstance().getExceptionReporterModule();
 		
 		if (t != null && exceptionReporterModule != null) {
 			exceptionReporterModule.reportException(t, req);
