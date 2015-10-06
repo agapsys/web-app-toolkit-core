@@ -190,12 +190,12 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	
 	
 	/** @return a boolean indicating if a default settings file shall be created if it does not exist. Default implementation returns true. */
-	protected boolean isPropertyFileCreationEnabled() {
+	protected boolean isPropertiesFileCreationEnabled() {
 		return true;
 	}
 	
 	/** @return a boolean indicating if properties shall be loaded from a settings file. Default implementation returns true. */
-	protected boolean isPropertyFileLoadingEnabled() {
+	protected boolean isPropertiesFileLoadingEnabled() {
 		return true;
 	}
 	
@@ -209,7 +209,7 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 		properties.clear();
 
 		File settingsFile = null;
-		if (isPropertyFileLoadingEnabled()) {
+		if (isPropertiesFileLoadingEnabled()) {
 			String environment = getEnvironment();
 
 			String strDelimiter   = environment.equals(DEFAULT_ENVIRONMENT) ? "" : getSettingsFilenameEnvironmentDelimiter();
@@ -261,7 +261,7 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 		}
 		
 		// Write properties to disk...
-		if (settingsFile != null && !settingsFile.exists() && isPropertyFileCreationEnabled()) {
+		if (settingsFile != null && !settingsFile.exists() && isPropertiesFileCreationEnabled()) {
 			debug("\tCreating default settings file...");
 			PropertyGroup.writeToFile(settingsFile, propertyGroups);
 		}
