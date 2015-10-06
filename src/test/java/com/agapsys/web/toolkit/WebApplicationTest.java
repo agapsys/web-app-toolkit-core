@@ -18,7 +18,6 @@ package com.agapsys.web.toolkit;
 
 import com.agapsys.Utils;
 import java.io.File;
-import javax.persistence.EntityManager;
 import org.junit.Assert;
 import org.junit.Test;
 
