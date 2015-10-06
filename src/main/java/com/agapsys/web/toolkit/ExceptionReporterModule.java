@@ -18,8 +18,6 @@ package com.agapsys.web.toolkit;
 
 import com.agapsys.web.toolkit.utils.HttpUtils;
 import com.agapsys.web.toolkit.utils.DateUtils;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
@@ -40,17 +38,6 @@ public class ExceptionReporterModule extends AbstractExceptionReporterModule {
 	public static final int     DEFAULT_STACK_TRACE_HISTORY_SIZE = 5;
 	public static final String  DEFAULT_NODE_NAME               = "node-01";
 	public static final boolean DEFAULT_MODULE_ENABLED          = true;
-	
-	/** 
-	 * Return a string representation of a stack trace for given error
-	 * @return a string representation of a stack trace for given error
-	 * @param throwable error
-	 */
-	protected static String getStackTrace(Throwable throwable) {
-		StringWriter stringWriter = new StringWriter();
-		throwable.printStackTrace(new PrintWriter(stringWriter));
-		return stringWriter.toString();
-	}
 	// =========================================================================
 
 	// INSTANCE SCOPE ==========================================================

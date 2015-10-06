@@ -15,6 +15,8 @@
  */
 package com.agapsys.web.toolkit;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import javax.servlet.http.HttpServletRequest;
 
 /**
@@ -23,6 +25,16 @@ import javax.servlet.http.HttpServletRequest;
  */
 public abstract class AbstractExceptionReporterModule extends AbstractModule {
 	// CLASS SCOPE =============================================================
+	/** 
+	 * Return a string representation of a stack trace for given error
+	 * @return a string representation of a stack trace for given error
+	 * @param throwable error
+	 */
+	public static String getStackTrace(Throwable throwable) {
+		StringWriter stringWriter = new StringWriter();
+		throwable.printStackTrace(new PrintWriter(stringWriter));
+		return stringWriter.toString();
+	}
 	// =========================================================================
 	
 	// INSTANCE SCOPE ==========================================================
