@@ -128,8 +128,9 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	/** @return the application version **/
 	public abstract String getVersion();
 
+	
 	/** @return a boolean indicating if application folder shall be created if it does not exist. Default implementation returns true. */
-	protected boolean createDirectory() {
+	protected boolean isDirectoryCreationEnabled() {
 		return true;
 	}
 	
@@ -146,12 +147,13 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 			
 			appDirectory = new File(directoryPath);
 
-			if (createDirectory())
+			if (isDirectoryCreationEnabled())
 				appDirectory = FileUtils.getOrCreateDirectory(directoryPath);
 		}
 		
 		return appDirectory;
 	}
+	
 	
 	/** @return the name of the currently running environment. Default implementation return {@linkplain AbstractWebApplication#DEFAULT_ENVIRONMENT} */
 	public String getEnvironment() {
@@ -172,14 +174,10 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 		return moduleMap.get(moduleId);
 	}
 	
+	
 	/** @return application properties. */
 	public final Properties getProperties() {
 		return properties;
-	}
-	
-	/** @return a boolean indicating if a default settings file shall be created if it does not exist. Default implementation returns true. */
-	protected boolean createDefaultSettingsFile() {
-		return true;
 	}
 	
 	/**
@@ -189,7 +187,18 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	protected Properties getDefaultProperties() {
 		return null;
 	}
-		
+	
+	
+	/** @return a boolean indicating if a default settings file shall be created if it does not exist. Default implementation returns true. */
+	protected boolean isPropertyFileCreationEnabled() {
+		return true;
+	}
+	
+	/** @return a boolean indicating if properties shall be loaded from a settings file. Default implementation returns true. */
+	protected boolean isPropertyFileLoadingEnabled() {
+		return true;
+	}
+	
 	/** 
 	 * Load application settings.
 	 * @throws IOException if there is an error reading settings file.
@@ -199,19 +208,21 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 		
 		properties.clear();
 
-		// Load properties from settings file...
-		String environment = getEnvironment();
-		
-		String strDelimiter   = environment.equals(DEFAULT_ENVIRONMENT) ? "" : getSettingsFilenameEnvironmentDelimiter();
-		String strEnvironment = environment.equals(DEFAULT_ENVIRONMENT) ? "" : environment;
-		
-		File settingsFile = new File(getDirectory(), getSettingsFilenamePrefix() + strDelimiter + strEnvironment + getSettingsFilenameSuffix());
+		File settingsFile = null;
+		if (isPropertyFileLoadingEnabled()) {
+			String environment = getEnvironment();
 
-		if (settingsFile.exists()) {
-			debug("\tLoading settings file...");
-			
-			try (FileInputStream fis = new FileInputStream(settingsFile)) {
-				properties.load(fis);
+			String strDelimiter   = environment.equals(DEFAULT_ENVIRONMENT) ? "" : getSettingsFilenameEnvironmentDelimiter();
+			String strEnvironment = environment.equals(DEFAULT_ENVIRONMENT) ? "" : environment;
+
+			settingsFile = new File(getDirectory(), getSettingsFilenamePrefix() + strDelimiter + strEnvironment + getSettingsFilenameSuffix());
+
+			if (settingsFile.exists()) {
+				debug("\tLoading settings file...");
+
+				try (FileInputStream fis = new FileInputStream(settingsFile)) {
+					properties.load(fis);
+				}
 			}
 		}
 		
@@ -250,7 +261,7 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 		}
 		
 		// Write properties to disk...
-		if (!settingsFile.exists() && createDefaultSettingsFile()) {
+		if (settingsFile != null && !settingsFile.exists() && isPropertyFileCreationEnabled()) {
 			debug("\tCreating default settings file...");
 			PropertyGroup.writeToFile(settingsFile, propertyGroups);
 		}
