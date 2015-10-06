@@ -27,7 +27,7 @@ public class ModuleTest {
 		private boolean isStartCalled = false;
 		private boolean isStopCalled = false;
 
-		public TestModule(AbstractWebApplication application) {
+		public TestModule(AbstractApplication application) {
 			super(application);
 		}
 

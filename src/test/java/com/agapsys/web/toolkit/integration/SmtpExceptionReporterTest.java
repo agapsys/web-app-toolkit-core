@@ -19,10 +19,9 @@ package com.agapsys.web.toolkit.integration;
 import com.agapsys.sevlet.test.ApplicationContext;
 import com.agapsys.sevlet.test.HttpResponse;
 import com.agapsys.sevlet.test.ServletContainer;
-import com.agapsys.web.toolkit.Defs;
 import com.agapsys.web.toolkit.ErrorServlet;
-import com.agapsys.web.toolkit.OriginalRequestKeepFilter;
-import com.agapsys.web.toolkit.WebApplication;
+import com.agapsys.web.toolkit.DefaultFilter;
+import com.agapsys.web.toolkit.TestApplication;
 import javax.servlet.annotation.WebListener;
 import javax.servlet.http.HttpServletResponse;
 import org.junit.After;
@@ -33,23 +32,7 @@ import org.junit.Test;
 public class SmtpExceptionReporterTest {
 	// CLASS SCOPE =============================================================
 	@WebListener
-	public static class Application extends WebApplication {
-
-		@Override
-		protected boolean isDebugEnabled() {
-			return true;
-		}
-		
-		@Override
-		public String getName() {
-			return Defs.APP_NAME;
-		}
-
-		@Override
-		public String getVersion() {
-			return Defs.APP_VERSION;
-		}
-
+	public static class Application extends TestApplication {
 		@Override
 		protected String getSettingsFilenamePrefix() {
 			return "smtp-exception-test";
@@ -58,6 +41,21 @@ public class SmtpExceptionReporterTest {
 		@Override
 		protected String getSettingsFilenameSuffix() {
 			return ".conf";
+		}
+
+		@Override
+		protected boolean isDirectoryCreationEnabled() {
+			return true;
+		}
+
+		@Override
+		protected boolean isPropertiesFileCreationEnabled() {
+			return true;
+		}
+
+		@Override
+		protected boolean isPropertiesFileLoadingEnabled() {
+			return true;
 		}
 	}
 	// =========================================================================
@@ -73,7 +71,7 @@ public class SmtpExceptionReporterTest {
 		context.registerServlet(ErrorServlet.class);
 		context.registerServlet(ExceptionServlet.class);
 		context.registerEventListener(new Application());
-		context.registerFilter(OriginalRequestKeepFilter.class);
+		context.registerFilter(DefaultFilter.class);
 		context.registerErrorPage(500, ErrorServlet.URL);
 		
 		sc.registerContext(context);

@@ -26,7 +26,7 @@ public class WebApplicationTest  {
 	// CLASS SCOPE =============================================================
 	// Custom modules ----------------------------------------------------------
 	private static class CustomPersistenceModule extends PersistenceModule {
-		public CustomPersistenceModule(AbstractWebApplication application) {
+		public CustomPersistenceModule(AbstractApplication application) {
 			super(application);
 		}
 
@@ -45,7 +45,7 @@ public class WebApplicationTest  {
 	
 	private static class CustomExceptionReporterModule extends ExceptionReporterModule {
 
-		public CustomExceptionReporterModule(AbstractWebApplication application) {
+		public CustomExceptionReporterModule(AbstractApplication application) {
 			super(application);
 		}
 
@@ -64,7 +64,7 @@ public class WebApplicationTest  {
 		
 	private static class CustomSmtpModule extends SmtpModule {
 
-		public CustomSmtpModule(AbstractWebApplication application) {
+		public CustomSmtpModule(AbstractApplication application) {
 			super(application);
 		}
 
@@ -245,7 +245,7 @@ public class WebApplicationTest  {
 		WebApplicationBase webApp = new WebApplicationBase();
 		webApp.start();
 		Assert.assertTrue(webApp.isBeforeApplicationStartCalled());
-		Assert.assertTrue(WebApplicationBase.isRunning());
+		Assert.assertTrue(webApp.isRunning());
 		Assert.assertFalse(webApp.isOnPersistenceModuleStartCalled());
 		Assert.assertFalse(webApp.isOnExceptionReporterModuleStartCalled());
 		Assert.assertFalse(webApp.isOnSmtpModuleStartCalled());
@@ -258,7 +258,7 @@ public class WebApplicationTest  {
 		Assert.assertFalse(webApp.isOnPersistenceModuleStopCalled());
 		Assert.assertFalse(webApp.isOnExceptionReporterModuleStopCalled());
 		Assert.assertFalse(webApp.isOnSmtpModuleStopCalled());
-		Assert.assertFalse(WebApplicationBase.isRunning());
+		Assert.assertFalse(webApp.isRunning());
 		Assert.assertTrue(webApp.isAfterApplicationStopCalled());
 	}
 	
@@ -267,59 +267,59 @@ public class WebApplicationTest  {
 		Utils.printCurrentMethod();
 		
 		
-		AbstractWebApplication webApp = new WebApplicationBase();
+		WebApplication webApp = new WebApplicationBase();
 		webApp.start();
-		Assert.assertEquals(Defs.APP_NAME, AbstractWebApplication.getInstance().getName());
+		Assert.assertEquals(Defs.APP_NAME, WebApplication.getInstance().getName());
 		webApp.stop();
-		AbstractWebApplication.getInstance().getName();
+		WebApplication.getInstance().getName();
 	}
 	
 	@Test(expected = IllegalStateException.class)
 	public void Simple_web_application_getVersion_test() {
 		Utils.printCurrentMethod();
 		
-		AbstractWebApplication webApp = new WebApplicationBase();
+		WebApplication webApp = new WebApplicationBase();
 		webApp.start();
-		Assert.assertEquals(Defs.APP_VERSION, AbstractWebApplication.getInstance().getVersion());
+		Assert.assertEquals(Defs.APP_VERSION, WebApplication.getInstance().getVersion());
 		
 		webApp.stop();
-		AbstractWebApplication.getInstance().getVersion();
+		WebApplication.getInstance().getVersion();
 	}
 	
 	@Test(expected = IllegalStateException.class)
 	public void Simple_web_application_getEnvironment_test() {
 		Utils.printCurrentMethod();
 		
-		AbstractWebApplication webApp = new WebApplicationBase();
+		WebApplication webApp = new WebApplicationBase();
 		webApp.start();
-		Assert.assertEquals(Defs.ENVIRONMENT, AbstractWebApplication.getInstance().getEnvironment());
+		Assert.assertEquals(Defs.ENVIRONMENT, WebApplication.getInstance().getEnvironment());
 		
 		webApp.stop();
-		AbstractWebApplication.getInstance().getEnvironment();
+		WebApplication.getInstance().getEnvironment();
 	}
 	
 	@Test(expected = IllegalStateException.class)
 	public void Simple_web_application_getAppFolder_test() {
 		Utils.printCurrentMethod();
 		
-		AbstractWebApplication webApp = new WebApplicationBase();
+		WebApplication webApp = new WebApplicationBase();
 		webApp.start();
 		
-		File appFolder = new File(System.getProperty("user.home"), String.format(".%s", AbstractWebApplication.getInstance().getName()));
-		Assert.assertEquals(appFolder.getAbsolutePath(), AbstractWebApplication.getInstance().getDirectory().getAbsolutePath());
+		File appFolder = new File(System.getProperty("user.home"), String.format(".%s", WebApplication.getInstance().getName()));
+		Assert.assertEquals(appFolder.getAbsolutePath(), WebApplication.getInstance().getDirectory().getAbsolutePath());
 		
 		webApp.stop();
-		AbstractWebApplication.getInstance().getDirectory();
+		WebApplication.getInstance().getDirectory();
 	}
 	
 	@Test
 	public void Simple_web_application_getEntityManager_test() {
 		Utils.printCurrentMethod();
 		
-		AbstractWebApplication webApp = new WebApplicationBase();
+		WebApplication webApp = new WebApplicationBase();
 		webApp.start();
 		
-		AbstractPersistenceModule persistenceModule = WebApplicationBase.getInstance().getPersistenceModule();
+		AbstractPersistenceModule persistenceModule = webApp.getPersistenceModule();
 		Assert.assertNull(persistenceModule);
 		webApp.stop();
 	}
@@ -334,7 +334,7 @@ public class WebApplicationTest  {
 		Assert.assertTrue(webApp.isOnPersistenceModuleStartCalled());
 		
 		
-		AbstractPersistenceModule persistenceModule = WebApplicationBase.getInstance().getPersistenceModule();
+		AbstractPersistenceModule persistenceModule = webApp.getPersistenceModule();
 		Assert.assertNotNull(persistenceModule.getEntityManager());
 		
 		webApp.stop();

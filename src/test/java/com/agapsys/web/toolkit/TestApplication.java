@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.agapsys.web.toolkit;
 
-public class TestApplication extends WebApplication{
+public class TestApplication extends WebApplication {
+	
 	@Override
 	public String getName() {
 		return Defs.APP_NAME;
@@ -28,12 +28,30 @@ public class TestApplication extends WebApplication{
 	}
 
 	@Override
+	public String getEnvironment() {
+		return Defs.ENVIRONMENT;
+	}
+
+	@Override
+	protected boolean isDirectoryCreationEnabled() {
+		return false;
+	}
+
+	@Override
+	protected boolean isPropertiesFileCreationEnabled() {
+		return false;
+	}
+
+	@Override
+	protected boolean isPropertiesFileLoadingEnabled() {
+		return false;
+	}
+
+	@Override
 	protected boolean isDebugEnabled() {
 		return true;
 	}
 
 	@Override
-	public String getEnvironment() {
-		return Defs.ENVIRONMENT;
-	}
+	protected void beforeApplicationStart() {}
 }

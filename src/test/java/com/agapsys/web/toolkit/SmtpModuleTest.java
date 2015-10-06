@@ -29,7 +29,7 @@ public class SmtpModuleTest {
 	private static class TestSmtpModule extends AbstractSmtpModule {
 		private boolean methodCalled = false;
 
-		public TestSmtpModule(AbstractWebApplication application) {
+		public TestSmtpModule(AbstractApplication application) {
 			super(application);
 		}
 		

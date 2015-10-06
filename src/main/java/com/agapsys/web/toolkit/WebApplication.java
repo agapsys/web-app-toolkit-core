@@ -16,15 +16,22 @@
 
 package com.agapsys.web.toolkit;
 
-public abstract class WebApplication extends AbstractWebApplication {
+import javax.servlet.ServletContextEvent;
+import javax.servlet.ServletContextListener;
+
+public abstract class WebApplication extends AbstractApplication implements ServletContextListener {
 	// CLASS SCOPE =============================================================
+	private static WebApplication singleton = null;
+	
 	public static WebApplication getInstance() {
-		return (WebApplication) AbstractWebApplication.getInstance();
+		if (singleton == null)
+			throw new IllegalStateException("Web application is not running");
+		
+		return singleton;
 	}
 	// =========================================================================
 
 	// INSTANCE SCOPE ==========================================================
-	
 	@Override
 	protected void beforeApplicationStart() {
 		super.beforeApplicationStart();
@@ -69,18 +76,32 @@ public abstract class WebApplication extends AbstractWebApplication {
 	}
 	
 	/** @return The persistence module used by this application. If there is no such module, returns null. */
-	public AbstractPersistenceModule getPersistenceModule() {
+	public final AbstractPersistenceModule getPersistenceModule() {
 		return (AbstractPersistenceModule) getModuleInstance(getPersistenceModuleClass());
 	}
 
 	/** @return The exception reporter module used by this application. If there is no such module, returns null. */
-	public AbstractExceptionReporterModule getExceptionReporterModule() {
+	public final AbstractExceptionReporterModule getExceptionReporterModule() {
 		return (AbstractExceptionReporterModule) getModuleInstance(getExceptionReporterModuleClass());
 	}
 
 	/** @return The SMTP module used by this application. If there is no such module, returns null. */
-	public AbstractSmtpModule getSmtpModule() {
+	public final AbstractSmtpModule getSmtpModule() {
 		return (AbstractSmtpModule) getModuleInstance(getSmtpModuleClass());
 	}
+	
+	@Override
+	public final void contextInitialized(ServletContextEvent sce) {
+		start();
+		singleton = this;
+	}
+
+	@Override
+	public final void contextDestroyed(ServletContextEvent sce) {
+		stop();
+		singleton = null;
+	}
 	// =========================================================================
+
+	
 }

@@ -26,7 +26,7 @@ public abstract class AbstractSmtpModule extends AbstractModule {
 	// =========================================================================
 	
 	// INSTANCE SCOPE ==========================================================
-	public AbstractSmtpModule(AbstractWebApplication application) {
+	public AbstractSmtpModule(AbstractApplication application) {
 		super(application);
 	}
 	

@@ -33,15 +33,20 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import javax.servlet.ServletContextEvent;
-import javax.servlet.ServletContextListener;
 
 /** 
  * Web application.
  * This class is not thread-safe
  * @author Leandro Oliveira (leandro@agapsys.com)
  */
-public abstract class AbstractWebApplication implements ServletContextListener {
+public abstract class AbstractApplication  {
 	// CLASS SCOPE =============================================================
+	// Global settings ---------------------------------------------------------
+	public static final String KEY_APP_DISABLE = "com.agapsys.webtoolkit.appDisable";
+	
+	public static final boolean DEFAULT_APP_DISABLED = false;
+	// -------------------------------------------------------------------------
+	
 	public static final String DEFAULT_ENVIRONMENT = "production";
 	
 	private static final String SETTINGS_FILENAME_PREFIX    = "application";
@@ -51,26 +56,6 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	public static final String LOG_TYPE_ERROR   = "error";
 	public static final String LOG_TYPE_INFO    = "info";
 	public static final String LOG_TYPE_WARNING = "warning";
-	
-	/** Singleton instance. */
-	protected static AbstractWebApplication singleton = null;
-	
-	/** @return a boolean indicating if application is running. */
-	public static boolean isRunning() {
-		return singleton != null;
-	}
-	
-	/**
-	 * Returns a singleton instance.
-	 * @return singleton instance.
-	 * @throws IllegalStateException if application is not running
-	 */
-	public static AbstractWebApplication getInstance() throws IllegalStateException {
-		if (singleton == null)
-			throw new IllegalStateException("Application is not running");
-		
-		return singleton;
-	}
 	// =========================================================================
 	
 	// INSTANCE SCOPE ==========================================================
@@ -79,7 +64,14 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	private final Properties                                           properties    = new Properties();
 	private final Set<Class<? extends AbstractModule>>                 moduleSet     = new LinkedHashSet<>();
 	
-	private File appDirectory = null;
+	private File    appDirectory = null;
+	private boolean disabled     = DEFAULT_APP_DISABLED;
+	private boolean running      = false;
+	
+	/** @return a boolean indicating if application is running. */
+	public final boolean isRunning() {
+		return running;
+	}
 	
 	/**
 	 * Log application messages.
@@ -128,7 +120,11 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	
 	/** @return the application version **/
 	public abstract String getVersion();
-
+	
+	/** @return a boolean indicating if application is disabled. */
+	public final boolean isDisabled() {
+		return disabled;
+	}
 	
 	/** @return a boolean indicating if application folder shall be created if it does not exist. Default implementation returns true. */
 	protected boolean isDirectoryCreationEnabled() {
@@ -148,13 +144,12 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 			
 			appDirectory = new File(directoryPath);
 
-			if (isDirectoryCreationEnabled())
+			if (!appDirectory.exists() && isDirectoryCreationEnabled())
 				appDirectory = FileUtils.getOrCreateDirectory(directoryPath);
 		}
 		
 		return appDirectory;
 	}
-	
 	
 	/** @return the name of the currently running environment. Default implementation return {@linkplain AbstractWebApplication#DEFAULT_ENVIRONMENT} */
 	public String getEnvironment() {
@@ -195,7 +190,6 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 		return moduleMap.get(moduleClass);
 	}
 	
-	
 	/** @return application properties. */
 	public final Properties getProperties() {
 		return properties;
@@ -206,7 +200,9 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	 * @return application default settings. Default implementation returns null
 	 */
 	protected Properties getDefaultProperties() {
-		return null;
+		Properties props = new Properties();
+		props.setProperty(KEY_APP_DISABLE, "" + DEFAULT_APP_DISABLED);
+		return props;
 	}
 	
 	
@@ -283,6 +279,8 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 			debug("\tCreating default settings file...");
 			PropertyGroup.writeToFile(settingsFile, propertyGroups);
 		}
+		
+		disabled = Boolean.parseBoolean(properties.getProperty(KEY_APP_DISABLE));
 	}	
 
 	/** 
@@ -292,7 +290,7 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	 */
 	private AbstractModule instantiateModule(Class<? extends AbstractModule> moduleClass)  {
 		try {
-			return moduleClass.getConstructor(AbstractWebApplication.class).newInstance(this);
+			return moduleClass.getConstructor(AbstractApplication.class).newInstance(this);
 		} catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException ex) {
 			throw new RuntimeException(ex);
 		}
@@ -370,11 +368,11 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	
 	/** 
 	 * Puts application into running state.
+	 * If application is already running, nothing happens
 	 * In a web environment, this method will be called by {@linkplain AbstractWebApplication#contextInitialized(ServletContextEvent)}
-	 * @throws IllegalStateException if application is already running;
 	 */
-	public final void start() throws IllegalStateException {
-		if (singleton == null) {
+	public final void start() {
+		if (!isRunning()) {
 			String name = getName();
 			if (name != null)
 				name = name.trim();
@@ -422,23 +420,15 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 				}
 			}
 			
-			singleton = this;
 			afterApplicationStart();
+			running = true;
 			debug("====== AGAPSYS WEB TOOLKIT IS READY! ======");
-		} else {
-			throw new IllegalStateException("Application is already running: " + singleton.getName());
 		}
-	}
-
-	@Override
-	public final void contextInitialized(ServletContextEvent sce) {
-		start();
 	}
 	
 	/** 
 	 * Called before application is initialized.
 	 * Default implementation does nothing. This is the place to register modules with the application.
-	 * Always call super implementation.
 	 */
 	protected void beforeApplicationStart() {}
 	
@@ -454,26 +444,26 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	 * In a web environment, this method will be called by {@linkplain AbstractWebApplication#contextDestroyed(ServletContextEvent)}
 	 */
 	public final void stop() {
-		if (singleton != null) {
+		if (isRunning()) {
 			debug("====== AGAPSYS WEB TOOLKIT SHUTDOWN ======");
 			beforeApplicationStop();
 			
 			shutdownModules();
-			moduleSet.clear();
-			loadedModules.clear();
+			
+			// Final members...
 			moduleMap.clear();
+			loadedModules.clear();
 			properties.clear();
+			moduleSet.clear();
+			
+			//Non-final members
 			appDirectory = null;
-			singleton = null;
+			disabled = DEFAULT_APP_DISABLED;
+			running = false;
 			
 			afterApplicationStop();
 			debug("====== AGAPSYS WEB TOOLKIT WAS SHUTTED DOWN! ======");
 		}
-	}
-	
-	@Override
-	public final void contextDestroyed(ServletContextEvent sce) {
-		stop();
 	}
 	
 	/**

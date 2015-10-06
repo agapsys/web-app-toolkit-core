@@ -84,7 +84,7 @@ public class SmtpModule extends AbstractSmtpModule {
 	private SmtpSender      smtpSender = null;
 	private InternetAddress sender     = null;
 	
-	public SmtpModule(AbstractWebApplication application) {
+	public SmtpModule(AbstractApplication application) {
 		super(application);
 	}
 

@@ -96,7 +96,7 @@ public class SmtpExceptionReporterModule extends ExceptionReporterModule {
 	private InternetAddress[] recipients = null;
 	private String            subject    = null;
 
-	public SmtpExceptionReporterModule(AbstractWebApplication application) {
+	public SmtpExceptionReporterModule(AbstractApplication application) {
 		super(application);
 	}
 	

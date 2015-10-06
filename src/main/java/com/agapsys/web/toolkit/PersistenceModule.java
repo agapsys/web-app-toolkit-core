@@ -45,7 +45,7 @@ public class PersistenceModule extends AbstractPersistenceModule {
 	// INSTANCE SCOPE ==========================================================
 	private EntityManagerFactory emf = null;
 
-	public PersistenceModule(AbstractWebApplication application) {
+	public PersistenceModule(AbstractApplication application) {
 		super(application);
 	}
 
@@ -115,7 +115,7 @@ public class PersistenceModule extends AbstractPersistenceModule {
 	
 	@Override
 	protected void onStart() {
-		AbstractWebApplication application = getApplication();
+		AbstractApplication application = getApplication();
 		Properties properties = application.getProperties();
 		
 		String jdbcFilename = properties.getProperty(KEY_JDBC_DRIVER_FILENAME);

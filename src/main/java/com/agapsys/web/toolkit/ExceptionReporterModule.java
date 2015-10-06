@@ -48,7 +48,7 @@ public class ExceptionReporterModule extends AbstractExceptionReporterModule {
 	
 	private final List<String> stackTraceHistory = new LinkedList<>();
 	// -------------------------------------------------------------------------
-	public ExceptionReporterModule(AbstractWebApplication application) {
+	public ExceptionReporterModule(AbstractApplication application) {
 		super(application);
 	}
 
@@ -207,11 +207,11 @@ public class ExceptionReporterModule extends AbstractExceptionReporterModule {
 	protected void onExceptionReport(Throwable t, HttpServletRequest req) {
 		if (isModuleEnabled()) {
 			if (!skipErrorReport(t)) {
-				String originalRequestStr = (String) req.getAttribute(OriginalRequestKeepFilter.ATTR_ORIGINAL_REQUEST_URI);
+				String originalRequestStr = (String) req.getAttribute(DefaultFilter.ATTR_ORIGINAL_REQUEST_URI);
 				reportErrorMessage(getErrorMessage(t, req, originalRequestStr));
 			} else {
 				getApplication().log(
-					AbstractWebApplication.LOG_TYPE_WARNING, 
+					AbstractApplication.LOG_TYPE_WARNING, 
 					String.format("Application error (already reported): " + t.getMessage())
 				);
 			}
@@ -223,7 +223,7 @@ public class ExceptionReporterModule extends AbstractExceptionReporterModule {
 	 * @param message complete error message
 	 */
 	protected void reportErrorMessage(String message) {
-		getApplication().log(AbstractWebApplication.LOG_TYPE_ERROR, String.format("Application error:\n----\n%s\n----", message));
+		getApplication().log(AbstractApplication.LOG_TYPE_ERROR, String.format("Application error:\n----\n%s\n----", message));
 	}
 	// =========================================================================
 }

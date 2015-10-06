@@ -38,7 +38,7 @@ public abstract class AbstractExceptionReporterModule extends AbstractModule {
 	// =========================================================================
 	
 	// INSTANCE SCOPE ==========================================================
-	public AbstractExceptionReporterModule(AbstractWebApplication application) {
+	public AbstractExceptionReporterModule(AbstractApplication application) {
 		super(application);
 	}
 	

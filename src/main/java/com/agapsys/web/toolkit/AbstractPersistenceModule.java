@@ -26,7 +26,7 @@ public abstract class AbstractPersistenceModule extends AbstractModule {
 	// =========================================================================
 	
 	// INSTANCE SCOPE ==========================================================
-	public AbstractPersistenceModule(AbstractWebApplication application) {
+	public AbstractPersistenceModule(AbstractApplication application) {
 		super(application);
 	}
 	

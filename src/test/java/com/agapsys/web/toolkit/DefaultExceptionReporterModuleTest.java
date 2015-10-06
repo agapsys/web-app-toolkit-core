@@ -26,7 +26,7 @@ public class DefaultExceptionReporterModuleTest {
 	
 	private static class TestModule extends ExceptionReporterModule {
 		
-		public TestModule(AbstractWebApplication application) {
+		public TestModule(AbstractApplication application) {
 			super(application);
 		}
 

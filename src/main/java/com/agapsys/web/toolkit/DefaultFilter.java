@@ -26,9 +26,10 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.annotation.WebFilter;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 @WebFilter("/*")
-public class OriginalRequestKeepFilter implements Filter {
+public class DefaultFilter implements Filter {
 	// CLASS SCOPE =============================================================
 	public static final String ATTR_ORIGINAL_REQUEST_URI = "com.agapsys.web.toolkit.originalRequestUri";
 	// =========================================================================
@@ -39,8 +40,14 @@ public class OriginalRequestKeepFilter implements Filter {
 
 	@Override
 	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
-		request.setAttribute(ATTR_ORIGINAL_REQUEST_URI, HttpUtils.getRequestUri((HttpServletRequest) request));
-		chain.doFilter(request, response);
+		if (WebApplication.getInstance().isDisabled()) {
+			HttpServletResponse resp = (HttpServletResponse) response;
+			resp.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
+			resp.flushBuffer();
+		} else {
+			request.setAttribute(ATTR_ORIGINAL_REQUEST_URI, HttpUtils.getRequestUri((HttpServletRequest) request));
+			chain.doFilter(request, response);
+		}
 	}
 
 	@Override

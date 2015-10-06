@@ -27,7 +27,7 @@ public class PersistenceModuleTest {
 	private static class TestPersistenceModule extends AbstractPersistenceModule {
 		private boolean methodCalled = false;
 
-		public TestPersistenceModule(AbstractWebApplication application) {
+		public TestPersistenceModule(AbstractApplication application) {
 			super(application);
 		}
 		
