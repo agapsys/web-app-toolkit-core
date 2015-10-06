@@ -195,6 +195,8 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	 * @throws IOException if there is an error reading settings file.
 	 */
 	private void loadSettings() throws IOException {
+		// Priority: (1) Loaded from file, (2) getDefaultProperties, (3) modules default properties
+		
 		properties.clear();
 
 		// Load properties from settings file...
@@ -237,7 +239,12 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 				propertyGroups.add(new PropertyGroup(defaultModuleProperties, moduleDescription));
 				
 				for (Map.Entry<Object, Object> defaultEntry : defaultModuleProperties.entrySet()) {
-					properties.putIfAbsent(defaultEntry.getKey(), defaultEntry.getValue());
+					Object appPropertyValue = properties.putIfAbsent(defaultEntry.getKey(), defaultEntry.getValue());
+					
+					if (appPropertyValue != null) {
+						// Property already contains given entry
+						defaultModuleProperties.put(defaultEntry.getKey(), appPropertyValue);
+					}
 				}
 			}
 		}
