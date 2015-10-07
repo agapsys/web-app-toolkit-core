@@ -19,7 +19,7 @@ package com.agapsys.web.toolkit.integration;
 import com.agapsys.sevlet.test.ApplicationContext;
 import com.agapsys.sevlet.test.HttpResponse;
 import com.agapsys.sevlet.test.ServletContainer;
-import com.agapsys.web.toolkit.AbstractApplication;
+import com.agapsys.web.toolkit.AbstractWebApplication;
 import com.agapsys.web.toolkit.DefaultFilter;
 import com.agapsys.web.toolkit.TestApplication;
 import java.io.IOException;
@@ -45,7 +45,7 @@ public class ApplicationDisableTest {
 			if (properties == null)
 				properties = new Properties();
 			
-			properties.setProperty(AbstractApplication.KEY_APP_DISABLE, "" + true);
+			properties.setProperty(AbstractWebApplication.KEY_APP_DISABLE, "" + true);
 			
 			return properties;
 		}

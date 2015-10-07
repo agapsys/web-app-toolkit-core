@@ -41,12 +41,6 @@ import javax.servlet.ServletContextEvent;
  */
 public abstract class AbstractApplication  {
 	// CLASS SCOPE =============================================================
-	// Global settings ---------------------------------------------------------
-	public static final String KEY_APP_DISABLE = "com.agapsys.webtoolkit.appDisable";
-	
-	public static final boolean DEFAULT_APP_DISABLED = false;
-	// -------------------------------------------------------------------------
-	
 	public static final String DEFAULT_ENVIRONMENT = "production";
 	
 	private static final String SETTINGS_FILENAME_PREFIX    = "application";
@@ -65,7 +59,6 @@ public abstract class AbstractApplication  {
 	private final Set<Class<? extends AbstractModule>>                 moduleSet     = new LinkedHashSet<>();
 	
 	private File    appDirectory = null;
-	private boolean disabled     = DEFAULT_APP_DISABLED;
 	private boolean running      = false;
 	
 	/** @return a boolean indicating if application is running. */
@@ -120,11 +113,6 @@ public abstract class AbstractApplication  {
 	
 	/** @return the application version **/
 	public abstract String getVersion();
-	
-	/** @return a boolean indicating if application is disabled. */
-	public final boolean isDisabled() {
-		return disabled;
-	}
 	
 	/** @return a boolean indicating if application folder shall be created if it does not exist. Default implementation returns true. */
 	protected boolean isDirectoryCreationEnabled() {
@@ -200,9 +188,7 @@ public abstract class AbstractApplication  {
 	 * @return application default settings. Default implementation returns null
 	 */
 	protected Properties getDefaultProperties() {
-		Properties props = new Properties();
-		props.setProperty(KEY_APP_DISABLE, "" + DEFAULT_APP_DISABLED);
-		return props;
+		return null;
 	}
 	
 	
@@ -279,8 +265,6 @@ public abstract class AbstractApplication  {
 			debug("\tCreating default settings file...");
 			PropertyGroup.writeToFile(settingsFile, propertyGroups);
 		}
-		
-		disabled = Boolean.parseBoolean(properties.getProperty(KEY_APP_DISABLE));
 	}	
 
 	/** 
@@ -458,7 +442,6 @@ public abstract class AbstractApplication  {
 			
 			//Non-final members
 			appDirectory = null;
-			disabled = DEFAULT_APP_DISABLED;
 			running = false;
 			
 			afterApplicationStop();

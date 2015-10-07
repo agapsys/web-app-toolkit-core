@@ -16,11 +16,19 @@
 
 package com.agapsys.web.toolkit;
 
+import java.util.Properties;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
 public abstract class AbstractWebApplication extends AbstractApplication implements ServletContextListener {
 	// CLASS SCOPE =============================================================
+	
+	// Global settings ---------------------------------------------------------
+	public static final String KEY_APP_DISABLE = "com.agapsys.webtoolkit.appDisable";
+	
+	public static final boolean DEFAULT_APP_DISABLED = false;
+	// -------------------------------------------------------------------------
+	
 	private static AbstractWebApplication singleton = null;
 	
 	public static AbstractWebApplication getInstance() {
@@ -32,6 +40,8 @@ public abstract class AbstractWebApplication extends AbstractApplication impleme
 	// =========================================================================
 
 	// INSTANCE SCOPE ==========================================================
+	private boolean disabled = DEFAULT_APP_DISABLED;
+	
 	@Override
 	protected void beforeApplicationStart() {
 		super.beforeApplicationStart();
@@ -49,6 +59,39 @@ public abstract class AbstractWebApplication extends AbstractApplication impleme
 		
 		if (smtpModuleClass != null)
 			registerModule(smtpModuleClass);
+	}
+
+	@Override
+	protected void afterApplicationStart() {
+		super.afterApplicationStart();
+		disabled = Boolean.parseBoolean(getProperties().getProperty(KEY_APP_DISABLE));
+	}
+
+	@Override
+	protected void beforeApplicationStop() {
+		super.beforeApplicationStop();
+		disabled = DEFAULT_APP_DISABLED;
+	}
+
+	/**
+	 * Returns application default settings.
+	 * @return application default settings.
+	 */
+	@Override
+	protected Properties getDefaultProperties() {
+		Properties superProperties = super.getProperties();
+		
+		Properties props = new Properties();
+		if (superProperties != null)
+			props.putAll(superProperties);
+		
+		props.setProperty(KEY_APP_DISABLE, "" + DEFAULT_APP_DISABLED);
+		return props;
+	}
+	
+	/** @return a boolean indicating if application is disabled. */
+	public boolean isDisabled() {
+		return disabled;
 	}
 	
 	/**
