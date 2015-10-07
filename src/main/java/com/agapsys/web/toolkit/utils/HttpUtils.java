@@ -242,33 +242,59 @@ public class HttpUtils {
 		}
 		return null;
 	}
-
+	
 	/**
 	 * Adds a cookie.
-	 * @param response HTTP response
+	 * @param resp HTTP response
+	 * @param name cookie name
+	 * @param value cookie value
+	 * @param maxAge an integer specifying the maximum age of the cookie in seconds; if negative, means the cookie is not stored; if zero, deletes the cookie
+	 * @param path cookie path (usually {@linkplain HttpServletRequest#getContextPath()})
+	 */
+	public static void addCookie(HttpServletResponse resp, String name, String value, int maxAge, String path) {
+		if (path == null || !path.startsWith("/"))
+			throw new IllegalArgumentException("Invalid path: " + path);
+		
+		Cookie cookie = new Cookie(name, value);
+		cookie.setPath(path);
+		cookie.setMaxAge(maxAge);
+		resp.addCookie(cookie);
+	}
+	
+	/**
+	 * Adds a cookie for request context path
+	 * @param req  HTTP request
+	 * @param resp HTTP response
 	 * @param name cookie name
 	 * @param value cookie value
 	 * @param maxAge an integer specifying the maximum age of the cookie in seconds; if negative, means the cookie is not stored; if zero, deletes the cookie
 	 */
-	public static void addCookie(HttpServletResponse response, String name, String value, int maxAge) {
-		Cookie cookie = new Cookie(name, value);
-		cookie.setPath("/");
-		cookie.setMaxAge(maxAge);
-		response.addCookie(cookie);
+	public static void addCookie(HttpServletRequest req, HttpServletResponse resp, String name, String value, int maxAge) {
+		addCookie(resp, name, value, maxAge, req.getContextPath());
 	}
-
+	
 	/**
 	 * Removes a cookie.
-	 * @param response HTTP response
+	 * @param resp HTTP response
+	 * @param name name of the cookie to be removed
+	 * @param path cookie path ((usually {@linkplain HttpServletRequest#getContextPath()})
+	 */
+	public static void removeCookie(HttpServletResponse resp, String name, String path) {
+		addCookie(resp, name, null, 0, path);
+	}
+	
+	/**
+	 * Removes a cookie for request context path.
+	 * @param req  HTTP request
+	 * @param resp HTTP response
 	 * @param name name of the cookie to be removed
 	 */
-	public static void removeCookie(HttpServletResponse response, String name) {
-		addCookie(response, name, null, 0);
+	public static void removeCookie(HttpServletRequest req, HttpServletResponse resp, String name) {
+		removeCookie(resp, name, req.getContextPath());
 	}
 	// =========================================================================
 
 	// INSTANCE SCOPE ==========================================================
-	private HttpUtils() {
-	}
+	private HttpUtils() {}
 	// =========================================================================
 }
