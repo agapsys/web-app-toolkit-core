@@ -17,7 +17,6 @@ package com.agapsys.web.toolkit.utils;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -87,11 +86,10 @@ public class HttpUtils {
 	 * @param clazz desired output object class
 	 * @throws BadRequestException if given request content-type does not match
 	 * with expected
-	 * @throws IOException if there is an I/O error while processing the request
 	 * @param <T> generic type
 	 * @return an object stored in given request.
 	 */
-	public static <T> T getJsonData(HttpServletRequest req, Class<T> clazz) throws BadRequestException, IOException {
+	public static <T> T getJsonData(HttpServletRequest req, Class<T> clazz) throws BadRequestException {
 		if (clazz == null) {
 			throw new IllegalArgumentException("Null clazz");
 		}
@@ -100,10 +98,10 @@ public class HttpUtils {
 
 		try {
 			return getGson().fromJson(req.getReader(), clazz);
-		} catch (JsonIOException ex) {
-			throw new IOException(ex);
 		} catch (JsonSyntaxException ex) {
 			throw new BadRequestException("Malformed JSON", ex);
+		} catch (Throwable t) {
+			throw new RuntimeException(t);
 		}
 	}
 
@@ -146,18 +144,17 @@ public class HttpUtils {
 	 * @return list stored in request content body
 	 * @throws BadRequestException if given request content-type does not match
 	 * with expected
-	 * @throws IOException if there is an I/O error while processing the request
 	 */
-	public static <T> List<T> getJsonList(HttpServletRequest req, Class<T> elementType) throws BadRequestException, IOException {
+	public static <T> List<T> getJsonList(HttpServletRequest req, Class<T> elementType) throws BadRequestException {
 		checkJsonContentType(req);
 
 		try {
 			ListType lt = new ListType(elementType);
 			return getGson().fromJson(req.getReader(), lt);
-		} catch (JsonIOException ex) {
-			throw new IOException(ex);
 		} catch (JsonSyntaxException ex) {
 			throw new BadRequestException("Malformed JSON", ex);
+		} catch (Throwable t) {
+			throw new RuntimeException(t);
 		}
 	}
 
@@ -166,13 +163,17 @@ public class HttpUtils {
 	 *
 	 * @param resp HTTP response
 	 * @param object object to be sent
-	 * @throws IOException if there is an I/O error while processing the request
 	 */
-	public static void sendJsonData(HttpServletResponse resp, Object object) throws IOException {
+	public static void sendJsonData(HttpServletResponse resp, Object object) {
 		resp.setContentType(JSON_CONTENT_TYPE);
 		resp.setCharacterEncoding(JSON_ENCODING);
 
-		PrintWriter out = resp.getWriter();
+		PrintWriter out;
+		try {
+			out = resp.getWriter();
+		} catch (IOException ex) {
+			throw new RuntimeException(ex);
+		}
 		String json = getGson().toJson(object);
 		out.write(json);
 	}
@@ -183,12 +184,16 @@ public class HttpUtils {
 	 * @param resp HTTP response
 	 * @param object object to be sent
 	 * @param type type of given object
-	 * @throws IOException if there is an I/O error while processing the request
 	 */
-	public static void sendJsonData(HttpServletResponse resp, Object object, Type type) throws IOException {
+	public static void sendJsonData(HttpServletResponse resp, Object object, Type type) {
 		resp.setContentType(JSON_CONTENT_TYPE);
 		resp.setCharacterEncoding(JSON_ENCODING);
-		PrintWriter out = resp.getWriter();
+		PrintWriter out;
+		try {
+			out = resp.getWriter();
+		} catch (IOException ex) {
+			throw new RuntimeException(ex);
+		}
 		String json = getGson().toJson(object, type);
 		out.write(json);
 	}
