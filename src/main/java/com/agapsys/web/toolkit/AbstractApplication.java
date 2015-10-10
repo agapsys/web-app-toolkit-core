@@ -23,7 +23,6 @@ import com.agapsys.web.toolkit.utils.PropertyGroup;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.lang.management.ManagementFactory;
 import java.lang.reflect.InvocationTargetException;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -43,92 +42,105 @@ public abstract class AbstractApplication  {
 	// CLASS SCOPE =============================================================
 	public static final String DEFAULT_ENVIRONMENT = "production";
 	
-	private static final String SETTINGS_FILENAME_PREFIX    = "application";
-	private static final String SETTINGS_FILENAME_SUFFIX    = ".properties";
-	private static final String SETTINGS_FILENAME_ENVIRONMENT_DELIMITER = "-";
+	private static final String PROPERTIES_FILENAME_PREFIX                = "application";
+	private static final String PROPERTIES_FILENAME_SUFFIX                = ".properties";
+	private static final String PROPERTIES_FILENAME_ENVIRONMENT_DELIMITER = "-";
 	
-	public static final String LOG_TYPE_ERROR   = "error";
-	public static final String LOG_TYPE_INFO    = "info";
-	public static final String LOG_TYPE_WARNING = "warning";
+	public static enum LogType {
+		INFO,
+		WARNING,
+		ERROR;
+	}
 	// =========================================================================
 	
 	// INSTANCE SCOPE ==========================================================
-	private final Map<Class<? extends AbstractModule>, AbstractModule> moduleMap     = new LinkedHashMap<>();
-	private final List<AbstractModule>                                 loadedModules = new LinkedList<>();
-	private final Properties                                           properties    = new Properties();
-	private final Set<Class<? extends AbstractModule>>                 moduleSet     = new LinkedHashSet<>();
+	private final Map<Class<? extends AbstractModule>, AbstractModule> moduleMap      = new LinkedHashMap<>();
+	private final List<AbstractModule>                                 loadedModules  = new LinkedList<>();
+	private final Properties                                           properties     = new Properties();
+	private final Set<Class<? extends AbstractModule>>                 moduleClassSet = new LinkedHashSet<>();
 	
 	private File    appDirectory = null;
 	private boolean running      = false;
+
 	
-	/** @return a boolean indicating if application is running. */
+	/**
+	 * Return a boolean indicating if application is running.
+	 * @return a boolean indicating if application is running.
+	 */
 	public final boolean isRunning() {
 		return running;
 	}
+		
+	/**
+	 * Logs application messages.
+	 * Default implementation just prints to console.
+	 * @param message message to be logged
+	 * @param args message parameters (see {@linkplain String#format(String, Object...)})
+	 */
+	public void log(LogType logType, String message, Object...args) {
+		Console.printlnf("%s [%s] %s", DateUtils.getLocalTimestamp(), logType.name(), String.format(message, args));
+	}
 	
 	/**
-	 * Log application messages.
-	 * Default implementation just prints to console.
-	 * @param logType log type
-	 * @param message message to be logged
+	 * Returns application properties filename prefix.
+	 * @return application properties prefix.
 	 */
-	public void log(String logType, String message) {
-		Console.println(String.format("[%s] [%s] %s", DateUtils.getLocalTimestamp(), logType, message));
-	}
-	
-	/** @return a boolean indicating if debug messages shall be printed. */
-	protected boolean isDebugEnabled() {
-		return ManagementFactory.getRuntimeMXBean().getInputArguments().toString().indexOf("-agentlib:jdwp") > 0;
-	}
-	
-	/** @return settings filename prefix. */
-	protected String getSettingsFilenamePrefix() {
-		return SETTINGS_FILENAME_PREFIX;
-	}
-	
-	/** @return settings filename suffix. */
-	protected String getSettingsFilenameSuffix() {
-		return SETTINGS_FILENAME_SUFFIX;
-	}
-	
-	/** @return settings filename environment delimiter. */
-	protected String getSettingsFilenameEnvironmentDelimiter() {
-		return SETTINGS_FILENAME_ENVIRONMENT_DELIMITER;
+	protected String getPropertiesFilenamePrefix() {
+		return PROPERTIES_FILENAME_PREFIX;
 	}
 	
 	/** 
-	 * Prints debug messages if debug is enabled.
-	 * @param message message to be printed
-	 * @param args arguments if message is a formatted string
-	 * @see AbstractApplication#isDebugEnabled()
-	 * @see String#format(String, Object...)
+	 * Returns application properties filename suffix.
+	 * @return application properties filename suffix.
 	 */
-	protected final void debug(String message, Object...args) {
-		if (isDebugEnabled())
-			Console.printlnf(message, args);
+	protected String getPropertiesFilenameSuffix() {
+		return PROPERTIES_FILENAME_SUFFIX;
 	}
 	
-	/** @return the application name */
+	/**
+	 * Returns application properties filename environment delimiter.
+	 * @return application properties filename environment delimiter.
+	 */
+	protected String getPropertiesFilenameEnvironmentDelimiter() {
+		return PROPERTIES_FILENAME_ENVIRONMENT_DELIMITER;
+	}
+		
+	/**
+	 * Returns application name.
+	 * @return the application name 
+	 */
 	public abstract String getName();
 	
-	/** @return the application version **/
+	/** 
+	 * Returns application version.
+	 * @return the application version 
+	 */
 	public abstract String getVersion();
 	
-	/** @return a boolean indicating if application folder shall be created if it does not exist. Default implementation returns true. */
+	/**
+	 * Returns a boolean indicating if application folder creation is enabled.
+	 * @return a boolean indicating if application folder shall be created if it does not exist. Default implementation returns true.
+	 */
 	protected boolean isDirectoryCreationEnabled() {
 		return true;
 	}
 	
-	/** @return the path of application directory. */
-	protected String getDirectoryPath() {
+	/**
+	 * Returns the absolute path of application folder.
+	 * @return the path of application directory.
+	 */
+	protected String getDirectoryAbsolutePath() {
 		File d = new File(FileUtils.USER_HOME, "." + getName());
 		return d.getAbsolutePath();
 	}
 	
-	/** @return the directory where application stores resources outside application context in servlet container.*/
+	/**
+	 * Returns a file representing application directory
+	 * @return the directory where application stores resources outside application context in servlet container.
+	 */
 	public final File getDirectory() {
 		if (appDirectory == null) {
-			String directoryPath = getDirectoryPath();
+			String directoryPath = getDirectoryAbsolutePath();
 			
 			appDirectory = new File(directoryPath);
 
@@ -139,7 +151,10 @@ public abstract class AbstractApplication  {
 		return appDirectory;
 	}
 	
-	/** @return the name of the currently running environment. Default implementation return {@linkplain AbstractApplication#DEFAULT_ENVIRONMENT} */
+	/**
+	 * Returns the running environment.
+	 * @return the name of the currently running environment. Default implementation return {@linkplain AbstractApplication#DEFAULT_ENVIRONMENT} 
+	 */
 	public String getEnvironment() {
 		return DEFAULT_ENVIRONMENT;
 	}
@@ -157,7 +172,7 @@ public abstract class AbstractApplication  {
 		if (moduleClass == null)
 			throw new IllegalArgumentException("Null module class");
 		
-		if (!moduleSet.add(moduleClass))
+		if (!moduleClassSet.add(moduleClass))
 			throw new IllegalArgumentException("Module already registered: " + moduleClass.getName());
 	}
 	
@@ -166,7 +181,7 @@ public abstract class AbstractApplication  {
 		if (isRunning())
 			throw new IllegalStateException("Cannot unregister modules in a running application");
 		
-		moduleSet.clear();
+		moduleClassSet.clear();
 	}
 	
 	/** 
@@ -178,26 +193,35 @@ public abstract class AbstractApplication  {
 		return moduleMap.get(moduleClass);
 	}
 	
-	/** @return application properties. */
+	/** 
+	 * Returns application properties.
+	 * @return application properties. 
+	 */
 	public final Properties getProperties() {
 		return properties;
 	}
 	
 	/**
-	 * Returns application default settings.
-	 * @return application default settings. Default implementation returns null
+	 * Returns application default properties.
+	 * @return application default properties. Default implementation returns null
 	 */
 	protected Properties getDefaultProperties() {
 		return null;
 	}
 	
 	
-	/** @return a boolean indicating if a default settings file shall be created if it does not exist. Default implementation returns true. */
+	/** 
+	 * Returns a boolean indicating if a default properties file shall be created if there is none.
+	 * @return a boolean indicating if a default settings file shall be created if it does not exist. Default implementation returns true.
+	 */
 	protected boolean isPropertiesFileCreationEnabled() {
 		return true;
 	}
 	
-	/** @return a boolean indicating if properties shall be loaded from a settings file. Default implementation returns true. */
+	/**
+	 * Returns a boolean if application shall read properties from its properties file.
+	 * @return a boolean indicating if properties shall be loaded from a settings file. Default implementation returns true.
+	 */
 	protected boolean isPropertiesFileLoadingEnabled() {
 		return true;
 	}
@@ -215,13 +239,13 @@ public abstract class AbstractApplication  {
 		if (isPropertiesFileLoadingEnabled()) {
 			String environment = getEnvironment();
 
-			String strDelimiter   = environment.equals(DEFAULT_ENVIRONMENT) ? "" : getSettingsFilenameEnvironmentDelimiter();
+			String strDelimiter   = environment.equals(DEFAULT_ENVIRONMENT) ? "" : getPropertiesFilenameEnvironmentDelimiter();
 			String strEnvironment = environment.equals(DEFAULT_ENVIRONMENT) ? "" : environment;
 
-			settingsFile = new File(getDirectory(), getSettingsFilenamePrefix() + strDelimiter + strEnvironment + getSettingsFilenameSuffix());
+			settingsFile = new File(getDirectory(), getPropertiesFilenamePrefix() + strDelimiter + strEnvironment + getPropertiesFilenameSuffix());
 
 			if (settingsFile.exists()) {
-				debug("\tLoading settings file...");
+				log(LogType.INFO, "Loading settings file...");
 
 				try (FileInputStream fis = new FileInputStream(settingsFile)) {
 					properties.load(fis);
@@ -262,7 +286,7 @@ public abstract class AbstractApplication  {
 		
 		// Write properties to disk...
 		if (settingsFile != null && !settingsFile.exists() && isPropertiesFileCreationEnabled()) {
-			debug("\tCreating default settings file...");
+			log(LogType.INFO, "Creating default settings file...");
 			PropertyGroup.writeToFile(settingsFile, propertyGroups);
 		}
 	}	
@@ -296,7 +320,7 @@ public abstract class AbstractApplication  {
 			throw new RuntimeException("Mandatory module not registered: " + moduleClass);
 		
 		if (moduleInstance == null && !mandatory)
-			debug("\tOptional module not found: %s", moduleClass);
+			log(LogType.WARNING, "Optional module not found: %s", moduleClass);
 		
 		if (moduleInstance != null && !moduleInstance.isRunning()) {
 			
@@ -337,7 +361,7 @@ public abstract class AbstractApplication  {
 			}
 
 			moduleInstance.start();
-			debug("\tModule initialized: %s", moduleClass.getName());
+			log(LogType.INFO, "Module initialized: %s", moduleClass.getName());
 
 			loadedModules.add(moduleInstance);
 		}
@@ -379,16 +403,16 @@ public abstract class AbstractApplication  {
 			if (environment == null || environment.isEmpty())
 				throw new IllegalStateException("Missing environment");
 			
-			debug("====== AGAPSYS WEB TOOLKIT INITIALIZATION: %s (%s) ======", name, environment);
+			log(LogType.INFO, "====== AGAPSYS WEB TOOLKIT INITIALIZATION: %s (%s) ======", name, environment);
 			beforeApplicationStart();
 			
 			// Instantiate all modules...
-			for (Class<? extends AbstractModule> moduleClass : moduleSet) {
+			for (Class<? extends AbstractModule> moduleClass : moduleClassSet) {
 				moduleMap.put(moduleClass, instantiateModule(moduleClass));
 			}
 
 			try {
-				debug("Loading settings...");
+				log(LogType.INFO, "Loading settings...");
 				loadSettings();
 			} catch (IOException ex) {
 				throw new RuntimeException(ex);
@@ -396,7 +420,7 @@ public abstract class AbstractApplication  {
 
 			// Starts all modules
 			if (moduleMap.size() > 0) {
-				debug("Starting modules...");
+				log(LogType.INFO, "Starting modules...");
 				for (Map.Entry<Class<? extends AbstractModule>, AbstractModule> entry : moduleMap.entrySet()) {
 					if (!entry.getValue().isRunning()) {
 						startModule(entry.getKey(), true, null);
@@ -406,7 +430,7 @@ public abstract class AbstractApplication  {
 			
 			afterApplicationStart();
 			running = true;
-			debug("====== AGAPSYS WEB TOOLKIT IS READY! ======");
+			log(LogType.INFO, "====== AGAPSYS WEB TOOLKIT IS READY! ======");
 		}
 	}
 	
@@ -429,7 +453,7 @@ public abstract class AbstractApplication  {
 	 */
 	public final void stop() {
 		if (isRunning()) {
-			debug("====== AGAPSYS WEB TOOLKIT SHUTDOWN ======");
+			log(LogType.INFO, "====== AGAPSYS WEB TOOLKIT SHUTDOWN ======");
 			beforeApplicationStop();
 			
 			shutdownModules();
@@ -438,14 +462,14 @@ public abstract class AbstractApplication  {
 			moduleMap.clear();
 			loadedModules.clear();
 			properties.clear();
-			moduleSet.clear();
+			moduleClassSet.clear();
 			
 			//Non-final members
 			appDirectory = null;
 			running = false;
 			
 			afterApplicationStop();
-			debug("====== AGAPSYS WEB TOOLKIT WAS SHUTTED DOWN! ======");
+			log(LogType.INFO, "====== AGAPSYS WEB TOOLKIT WAS SHUTTED DOWN! ======");
 		}
 	}
 	

@@ -16,6 +16,7 @@
 
 package com.agapsys.web.toolkit;
 
+import com.agapsys.web.toolkit.AbstractApplication.LogType;
 import com.agapsys.web.toolkit.utils.HttpUtils;
 import com.agapsys.web.toolkit.utils.DateUtils;
 import java.util.LinkedList;
@@ -30,14 +31,14 @@ import javax.servlet.http.HttpServletRequest;
 public class ExceptionReporterModule extends AbstractExceptionReporterModule {
 	// CLASS SCOPE =============================================================
 	// SETTINGS ----------------------------------------------------------------
-	public static final String KEY_MODULE_ENABLED          = "agapsys.webtoolkit.exceptionReporter.enabled";
-	public static final String KEY_NODE_NAME               = "agapsys.webtoolkit.exceptionReporter.nodeName";
+	public static final String KEY_MODULE_ENABLED           = "agapsys.webtoolkit.exceptionReporter.enabled";
+	public static final String KEY_NODE_NAME                = "agapsys.webtoolkit.exceptionReporter.nodeName";
 	public static final String KEY_STACK_TRACE_HISTORY_SIZE = "agapsys.webtoolkit.exceptionReporter.stackTraceHistorySize";
 	// -------------------------------------------------------------------------
 	
 	public static final int     DEFAULT_STACK_TRACE_HISTORY_SIZE = 5;
-	public static final String  DEFAULT_NODE_NAME               = "node-01";
-	public static final boolean DEFAULT_MODULE_ENABLED          = true;
+	public static final String  DEFAULT_NODE_NAME                = "node-01";
+	public static final boolean DEFAULT_MODULE_ENABLED           = true;
 	// =========================================================================
 
 	// INSTANCE SCOPE ==========================================================
@@ -210,10 +211,7 @@ public class ExceptionReporterModule extends AbstractExceptionReporterModule {
 				String originalRequestStr = (String) req.getAttribute(DefaultFilter.ATTR_ORIGINAL_REQUEST_URI);
 				reportErrorMessage(getErrorMessage(t, req, originalRequestStr));
 			} else {
-				getApplication().log(
-					AbstractApplication.LOG_TYPE_WARNING, 
-					String.format("Application error (already reported): " + t.getMessage())
-				);
+				getApplication().log(LogType.ERROR, "Application error (already reported): %s", t.getMessage());
 			}
 		}
 	}
@@ -223,7 +221,7 @@ public class ExceptionReporterModule extends AbstractExceptionReporterModule {
 	 * @param message complete error message
 	 */
 	protected void reportErrorMessage(String message) {
-		getApplication().log(AbstractApplication.LOG_TYPE_ERROR, String.format("Application error:\n----\n%s\n----", message));
+		getApplication().log(LogType.ERROR, "Application error:\n----\n%s\n----", message);
 	}
 	// =========================================================================
 }

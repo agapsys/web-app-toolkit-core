@@ -48,10 +48,5 @@ public class TestApplication extends AbstractWebApplication {
 	}
 
 	@Override
-	protected boolean isDebugEnabled() {
-		return true;
-	}
-
-	@Override
 	protected void beforeApplicationStart() {}
 }

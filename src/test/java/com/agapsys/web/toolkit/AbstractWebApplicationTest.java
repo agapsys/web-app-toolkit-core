@@ -186,11 +186,6 @@ public class AbstractWebApplicationTest  {
 		public String getEnvironment() {
 			return Defs.ENVIRONMENT;
 		}
-
-		@Override
-		protected boolean isDebugEnabled() {
-			return true;
-		}
 	}
 	
 	private static class WebApplicationWithPersistence extends WebApplicationBase {
