@@ -369,6 +369,9 @@ public abstract class AbstractApplication  {
 	
 	/** Shutdown initialized modules in appropriate sequence. */
 	private void shutdownModules() {
+		if (loadedModules.size() > 0)
+			log(LogType.INFO, "Stopping modules...");
+
 		for (int i = loadedModules.size() - 1; i >= 0; i--) {
 			AbstractModule module = loadedModules.get(i);
 			module.stop();
