@@ -361,7 +361,7 @@ public abstract class AbstractApplication  {
 			}
 
 			moduleInstance.start();
-			log(LogType.INFO, "Module initialized: %s", moduleClass.getName());
+			log(LogType.INFO, "Initialized module: %s", moduleClass.getName());
 
 			loadedModules.add(moduleInstance);
 		}
@@ -370,7 +370,9 @@ public abstract class AbstractApplication  {
 	/** Shutdown initialized modules in appropriate sequence. */
 	private void shutdownModules() {
 		for (int i = loadedModules.size() - 1; i >= 0; i--) {
-			loadedModules.get(i).stop();
+			AbstractModule module = loadedModules.get(i);
+			module.stop();
+			log(LogType.INFO, "Shutted down module: %s", module.getClass().getName());
 		}
 	}
 	
