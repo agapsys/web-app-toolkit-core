@@ -80,7 +80,7 @@ public class PropertyGroup {
 			
 			if (!key.startsWith(enclosingOpen)) {
 				// It's a standard property...
-				subProperties.setProperty(key, value);
+				subProperties.putIfAbsent(key, value);
 			} else {	
 				if (key.startsWith(keyPrefix)) {
 					subProperties.setProperty(key.replaceFirst(Pattern.quote(keyPrefix), ""), value);
