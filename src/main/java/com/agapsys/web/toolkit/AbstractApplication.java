@@ -40,11 +40,9 @@ import javax.servlet.ServletContextEvent;
  */
 public abstract class AbstractApplication  {
 	// CLASS SCOPE =============================================================
-	public static final String DEFAULT_ENVIRONMENT = "production";
+	private static final String PROPERTIES_FILENAME = "application.properties";
 	
-	private static final String PROPERTIES_FILENAME_PREFIX                = "application";
-	private static final String PROPERTIES_FILENAME_SUFFIX                = ".properties";
-	private static final String PROPERTIES_FILENAME_ENVIRONMENT_DELIMITER = "-";
+	private static final String PROPERTIES_ENV_ENCLOSING = "[]";
 	
 	public static enum LogType {
 		INFO,
@@ -82,27 +80,11 @@ public abstract class AbstractApplication  {
 	}
 	
 	/**
-	 * Returns application properties filename prefix.
-	 * @return application properties prefix.
+	 * Returns application properties filename.
+	 * @return application properties.
 	 */
-	protected String getPropertiesFilenamePrefix() {
-		return PROPERTIES_FILENAME_PREFIX;
-	}
-	
-	/** 
-	 * Returns application properties filename suffix.
-	 * @return application properties filename suffix.
-	 */
-	protected String getPropertiesFilenameSuffix() {
-		return PROPERTIES_FILENAME_SUFFIX;
-	}
-	
-	/**
-	 * Returns application properties filename environment delimiter.
-	 * @return application properties filename environment delimiter.
-	 */
-	protected String getPropertiesFilenameEnvironmentDelimiter() {
-		return PROPERTIES_FILENAME_ENVIRONMENT_DELIMITER;
+	protected String getPropertiesFilename() {
+		return PROPERTIES_FILENAME;
 	}
 		
 	/**
@@ -153,10 +135,10 @@ public abstract class AbstractApplication  {
 	
 	/**
 	 * Returns the running environment.
-	 * @return the name of the currently running environment. Default implementation return {@linkplain AbstractApplication#DEFAULT_ENVIRONMENT} 
+	 * @return the name of the currently running environment. Default implementation return null
 	 */
 	public String getEnvironment() {
-		return DEFAULT_ENVIRONMENT;
+		return null;
 	}
 	
 	/**
@@ -239,16 +221,16 @@ public abstract class AbstractApplication  {
 		if (isPropertiesFileLoadingEnabled()) {
 			String environment = getEnvironment();
 
-			String strDelimiter   = environment.equals(DEFAULT_ENVIRONMENT) ? "" : getPropertiesFilenameEnvironmentDelimiter();
-			String strEnvironment = environment.equals(DEFAULT_ENVIRONMENT) ? "" : environment;
-
-			settingsFile = new File(getDirectory(), getPropertiesFilenamePrefix() + strDelimiter + strEnvironment + getPropertiesFilenameSuffix());
+			settingsFile = new File(getDirectory(), getPropertiesFilename());
 
 			if (settingsFile.exists()) {
 				log(LogType.INFO, "Loading settings file...");
 
 				try (FileInputStream fis = new FileInputStream(settingsFile)) {
-					properties.load(fis);
+					Properties tmpProperties = new Properties();
+					tmpProperties.load(fis);
+					tmpProperties = PropertyGroup.getSubProperties(tmpProperties, environment, PROPERTIES_ENV_ENCLOSING);
+					properties.putAll(tmpProperties);
 				}
 			}
 		}
@@ -403,12 +385,13 @@ public abstract class AbstractApplication  {
 				throw new IllegalStateException("Missing application version");
 			
 			String environment = getEnvironment();
-			if (environment != null)
+			if (environment != null) {
 				environment = environment.trim();
-			if (environment == null || environment.isEmpty())
-				throw new IllegalStateException("Missing environment");
+				if (environment.isEmpty())
+					environment = null;
+			}
 			
-			log(LogType.INFO, "====== AGAPSYS WEB TOOLKIT INITIALIZATION: %s (%s) ======", name, environment);
+			log(LogType.INFO, "====== AGAPSYS WEB TOOLKIT INITIALIZATION: %s%s ======", name, environment == null ? "" : String.format(" (%s)", environment));
 			beforeApplicationStart();
 			
 			// Instantiate all modules...

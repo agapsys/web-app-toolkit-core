@@ -22,7 +22,9 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Collection;
+import java.util.Map;
 import java.util.Properties;
+import java.util.regex.Pattern;
 
 public class PropertyGroup {
 	// CLASS SCOPE =============================================================
@@ -48,6 +50,45 @@ public class PropertyGroup {
 
 			writer.println(sb.toString().trim());
 		}
+	}
+	
+	/** 
+	 * Extracts properties associated with given keyPrefix
+	 * @param properties properties to be parsed
+	 * @param keyPrefix key prefix used to extract a subset of properties. Passing null or an empty string will extract only standard properties
+	 * @param enclosing enclosing string (usually "()" or "[]")
+	 * @return properties subset
+	 */
+	public static Properties getSubProperties(Properties properties, String keyPrefix, String enclosing) {
+		Properties subProperties = new Properties();
+		if (enclosing == null || enclosing.trim().isEmpty()) throw new IllegalArgumentException("Null/Empty enclosing");
+		if (enclosing.length() % 2 != 0) throw new IllegalArgumentException("Enclosing string must have an even length");
+		
+		if (keyPrefix == null)
+			keyPrefix = "";
+		
+		keyPrefix = keyPrefix.trim();
+		
+		String enclosingOpen = enclosing.substring(0, enclosing.length() / 2);
+		String enclosingClose = enclosing.substring(enclosing.length() / 2);
+		
+		keyPrefix = String.format("%s%s%s", enclosingOpen, keyPrefix, enclosingClose);
+		
+		for (Map.Entry<Object, Object> entry : properties.entrySet()) {
+			String key = (String) entry.getKey();
+			String value = (String) entry.getValue();
+			
+			if (!key.startsWith(enclosingOpen)) {
+				// It's a standard property...
+				subProperties.setProperty(key, value);
+			} else {	
+				if (key.startsWith(keyPrefix)) {
+					subProperties.setProperty(key.replaceFirst(Pattern.quote(keyPrefix), ""), value);
+				}
+			}
+		}
+		
+		return subProperties;
 	}
 	// =========================================================================
 

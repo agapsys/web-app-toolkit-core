@@ -34,13 +34,8 @@ public class SmtpExceptionReporterTest {
 	@WebListener
 	public static class Application extends TestApplication {
 		@Override
-		protected String getPropertiesFilenamePrefix() {
-			return "smtp-exception-test";
-		}
-
-		@Override
-		protected String getPropertiesFilenameSuffix() {
-			return ".conf";
+		protected String getPropertiesFilename() {
+			return "smtp-exception-test.properties";
 		}
 
 		@Override
