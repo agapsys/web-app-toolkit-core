@@ -458,7 +458,8 @@ public abstract class AbstractApplication  {
 	 */
 	public final void stop() {
 		if (isRunning()) {
-			log(LogType.INFO, "====== AGAPSYS WEB TOOLKIT SHUTDOWN ======");
+			
+			log(LogType.INFO, "====== AGAPSYS WEB TOOLKIT SHUTDOWN: %s (%s) ======", getName(), getEnvironment());
 			beforeApplicationStop();
 			
 			shutdownModules();
