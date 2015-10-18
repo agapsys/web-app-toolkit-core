@@ -34,8 +34,8 @@ public class AbstractService {
 	 * @param serviceClass service class
 	 * @return service instance
 	 */
-	public static synchronized AbstractService getService(Class<? extends AbstractService> serviceClass) {
-		AbstractService service = SERVICE_MAP.get(serviceClass);
+	public static synchronized <T extends AbstractService> T getService(Class<T> serviceClass) {
+		T service = (T) SERVICE_MAP.get(serviceClass);
 		
 		if (service == null) {
 			try {
