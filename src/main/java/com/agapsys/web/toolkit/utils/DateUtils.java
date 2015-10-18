@@ -67,6 +67,25 @@ public class DateUtils {
 	public static Date getDateFromIso(String isoDate) throws ParseException {
 		return ISO_8601_FORMATTER.parse(isoDate);
 	}
+	
+	/** 
+	 * Returns a future date
+	 * @param millisFromNow milliseconds from now
+	 * @return future date
+	 */
+	public static Date getDate(long millisFromNow) {
+		return new Date(new Date().getTime() + millisFromNow);
+	}
+	
+	/**
+	 * Returns a boolean indicating if given date is in the past
+	 * @param date date to be evaluated
+	 * @return a boolean indicating if given date is in the past
+	 */
+	public static boolean isBeforeNow(Date date) {
+		long now = new Date().getTime();
+		return date.getTime() < now;
+	}
 	// =========================================================================
 
 	// INSTANCE SCOPE ==========================================================
