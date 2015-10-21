@@ -82,7 +82,13 @@ limitations under the License.
 		</dependency>
 		
 		<!-- Provided dependencies -->
-		<dependency>
+	 <dependency>
+	  <groupId>com.h2database</groupId>
+	  <artifactId>h2</artifactId>
+	  <version>1.4.190</version>
+	  <scope>test</scope>
+	 </dependency>
+	 <dependency>
 			<groupId>javax</groupId>
 			<artifactId>javaee-web-api</artifactId>
 			<version>7.0</version>
