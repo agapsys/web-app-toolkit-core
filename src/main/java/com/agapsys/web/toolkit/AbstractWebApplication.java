@@ -16,17 +16,28 @@
 
 package com.agapsys.web.toolkit;
 
+import com.agapsys.web.toolkit.utils.HttpUtils;
 import java.util.Properties;
+import java.util.regex.Pattern;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 public abstract class AbstractWebApplication extends AbstractApplication implements ServletContextListener {
 	// CLASS SCOPE =============================================================
 	
 	// Global settings ---------------------------------------------------------
+	/** Defines if application is disabled. When an application is disabled, all requests are ignored and a {@linkplain HttpServletResponse#SC_SERVICE_UNAVAILABLE} is sent to the client. */
 	public static final String KEY_APP_DISABLE = "com.agapsys.webtoolkit.appDisable";
 	
-	public static final boolean DEFAULT_APP_DISABLED = false;
+	/** Defines a comma-delimited list of allowed origins for this application or '*' for any origin. If an origin is not accepted a {@linkplain HttpServletResponse#SC_FORBIDDEN} is sent to the client. */
+	public static final String KEY_APP_ALLOWED_ORIGINS = "com.agapsys.webtoolkit.allowedOrigins";
+	
+	public static final boolean DEFAULT_APP_DISABLED        = false;
+	public static final String  DEFAULT_APP_ALLOWED_ORIGINS = "*";
+	
+	private static final String ORIGIN_DELIMITER = ",";
 	// -------------------------------------------------------------------------
 	
 	private static AbstractWebApplication singleton = null;
@@ -41,6 +52,7 @@ public abstract class AbstractWebApplication extends AbstractApplication impleme
 
 	// INSTANCE SCOPE ==========================================================
 	private boolean disabled = DEFAULT_APP_DISABLED;
+	private String[] allowedOrigins = new String[] {DEFAULT_APP_ALLOWED_ORIGINS};
 	
 	@Override
 	protected void beforeApplicationStart() {
@@ -64,13 +76,18 @@ public abstract class AbstractWebApplication extends AbstractApplication impleme
 	@Override
 	protected void afterApplicationStart() {
 		super.afterApplicationStart();
-		disabled = Boolean.parseBoolean(getProperties().getProperty(KEY_APP_DISABLE));
+		
+		disabled = Boolean.parseBoolean(getProperties().getProperty(KEY_APP_DISABLE, "" + DEFAULT_APP_DISABLED));
+		allowedOrigins = getProperties().getProperty(KEY_APP_ALLOWED_ORIGINS, AbstractWebApplication.DEFAULT_APP_ALLOWED_ORIGINS).split(Pattern.quote(ORIGIN_DELIMITER));
+		
+		for (int i = 0; i < allowedOrigins.length; i++) {
+			allowedOrigins[i] = allowedOrigins[i].trim();
+		}
 	}
 
 	@Override
 	protected void beforeApplicationStop() {
 		super.beforeApplicationStop();
-		disabled = DEFAULT_APP_DISABLED;
 	}
 
 	/**
@@ -85,13 +102,35 @@ public abstract class AbstractWebApplication extends AbstractApplication impleme
 		if (superProperties != null)
 			props.putAll(superProperties);
 		
-		props.setProperty(KEY_APP_DISABLE, "" + DEFAULT_APP_DISABLED);
+		props.setProperty(KEY_APP_DISABLE,         "" + DEFAULT_APP_DISABLED);
+		props.setProperty(KEY_APP_ALLOWED_ORIGINS, DEFAULT_APP_ALLOWED_ORIGINS);
 		return props;
 	}
 	
 	/** @return a boolean indicating if application is disabled. */
 	public boolean isDisabled() {
 		return disabled;
+	}
+	
+	/**
+	 * Returns a boolean indicating if given request is allowed to proceed.
+	 * @param req HTTP request
+	 * @return boolean indicating if given request is allowed to proceed.
+	 */
+	public boolean isOriginAllowed(HttpServletRequest req) {
+		boolean isOriginAllowed = allowedOrigins.length == 1 && allowedOrigins[0].equals(DEFAULT_APP_ALLOWED_ORIGINS);
+		
+		if (isOriginAllowed)
+			return true;
+		
+		String originIp = HttpUtils.getOriginIp(req);
+			
+		for (String allowedOrigin : allowedOrigins) {
+			if (allowedOrigin.equals(originIp))
+				return true;
+		}
+		
+		return false;
 	}
 	
 	/**

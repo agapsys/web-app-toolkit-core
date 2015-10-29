@@ -40,14 +40,25 @@ public class DefaultFilter implements Filter {
 
 	@Override
 	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
-		if (AbstractWebApplication.getInstance().isDisabled()) {
-			HttpServletResponse resp = (HttpServletResponse) response;
+		HttpServletRequest req = (HttpServletRequest) request;
+		HttpServletResponse resp = (HttpServletResponse) response;
+		
+		AbstractWebApplication webApp = AbstractWebApplication.getInstance();
+		
+		if (webApp.isDisabled()) {
 			resp.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
 			resp.flushBuffer();
-		} else {
-			request.setAttribute(ATTR_ORIGINAL_REQUEST_URI, HttpUtils.getRequestUri((HttpServletRequest) request));
-			chain.doFilter(request, response);
+			return;
+		} 
+		
+		if (!webApp.isOriginAllowed(req)) {
+			resp.setStatus(HttpServletResponse.SC_FORBIDDEN);
+			resp.flushBuffer();
+			return;
 		}
+		
+		request.setAttribute(ATTR_ORIGINAL_REQUEST_URI, HttpUtils.getRequestUri((HttpServletRequest) request));
+		chain.doFilter(request, response);
 	}
 
 	@Override
