@@ -171,8 +171,8 @@ public abstract class AbstractApplication  {
 	 * @param moduleClass module class
 	 * @return registered module instance or null if there is no such module.
 	 */
-	public final AbstractModule getModuleInstance(Class<? extends AbstractModule> moduleClass) {
-		return moduleMap.get(moduleClass);
+	public final <T extends AbstractModule> T getModuleInstance(Class<T> moduleClass) {
+		return (T) moduleMap.get(moduleClass);
 	}
 	
 	/** 
