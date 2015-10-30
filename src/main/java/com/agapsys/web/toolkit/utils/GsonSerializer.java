@@ -71,7 +71,7 @@ public class GsonSerializer implements ObjectSerializer {
 		try {
 			return _getGson().fromJson(req.getReader(), targetClass);
 		} catch (JsonSyntaxException ex) {
-			throw new BadRequestException("Malformed JSON", ex);
+			throw new BadRequestException("Malformed JSON");
 		} catch (Throwable t) {
 			if (t instanceof RuntimeException) {
 				throw (RuntimeException) t;
@@ -143,7 +143,7 @@ public class GsonSerializer implements ObjectSerializer {
 			ListType lt = new ListType(elementType);
 			return getGson().fromJson(req.getReader(), lt);
 		} catch (JsonSyntaxException ex) {
-			throw new BadRequestException("Malformed JSON", ex);
+			throw new BadRequestException("Malformed JSON");
 		} catch (Throwable t) {
 			throw new RuntimeException(t);
 		}

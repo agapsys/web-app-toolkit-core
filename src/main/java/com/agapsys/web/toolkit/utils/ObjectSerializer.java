@@ -24,32 +24,7 @@ import javax.servlet.http.HttpServletResponse;
  * @author Leandro Oliveira (leandro@agapsys.com)
  */
 public interface ObjectSerializer {
-	// CLASS SCOPE =============================================================
-	/** Exception thrown when a request does does not contain expected data. */
-	public static class BadRequestException extends Exception {
-
-		public BadRequestException() {
-		}
-
-		public BadRequestException(String message) {
-			super(message);
-		}
-
-		public BadRequestException(String message, Throwable cause) {
-			super(message, cause);
-		}
-
-		public BadRequestException(Throwable cause) {
-			super(cause);
-		}
-
-		public BadRequestException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
-			super(message, cause, enableSuppression, writableStackTrace);
-		}
-	}
-	// =========================================================================
 	
-	// INSTANCE SCOPE ==========================================================
 	/**
 	 * Return an object sent from client (contained in the request).
 	 * @param <T> Type of the returned object
@@ -66,5 +41,4 @@ public interface ObjectSerializer {
 	 * @param object object to be sent
 	 */
 	public void writeObject(HttpServletResponse resp, Object object);
-	// =========================================================================
 }
