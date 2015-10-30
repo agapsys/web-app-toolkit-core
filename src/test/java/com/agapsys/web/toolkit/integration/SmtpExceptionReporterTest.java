@@ -19,10 +19,14 @@ package com.agapsys.web.toolkit.integration;
 import com.agapsys.sevlet.test.ApplicationContext;
 import com.agapsys.sevlet.test.HttpResponse;
 import com.agapsys.sevlet.test.ServletContainer;
-import com.agapsys.web.toolkit.ErrorServlet;
+import com.agapsys.web.toolkit.AbstractExceptionReporterModule;
+import com.agapsys.web.toolkit.AbstractErrorServlet;
 import com.agapsys.web.toolkit.DefaultFilter;
+import com.agapsys.web.toolkit.SmtpExceptionReporterModule;
+import com.agapsys.web.toolkit.SmtpModule;
 import com.agapsys.web.toolkit.TestApplication;
 import javax.servlet.annotation.WebListener;
+import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletResponse;
 import org.junit.After;
 import org.junit.Assert;
@@ -52,6 +56,23 @@ public class SmtpExceptionReporterTest {
 		protected boolean isPropertiesFileLoadingEnabled() {
 			return true;
 		}
+
+		@Override
+		protected void beforeApplicationStart() {
+			super.beforeApplicationStart();
+			registerModule(SmtpModule.class);
+			registerModule(SmtpExceptionReporterModule.class);
+		}
+	}
+	
+	@WebServlet(CustomErrorServlet.URL)
+	public static class CustomErrorServlet extends AbstractErrorServlet {
+		public static final String URL = "/error";
+
+		@Override
+		protected Class<? extends AbstractExceptionReporterModule> getExceptionReporterModuleClass() {
+			return SmtpExceptionReporterModule.class;
+		}
 	}
 	// =========================================================================
 
@@ -63,11 +84,11 @@ public class SmtpExceptionReporterTest {
 		sc = new ServletContainer();
 		
 		ApplicationContext context = new ApplicationContext();
-		context.registerServlet(ErrorServlet.class);
+		context.registerServlet(CustomErrorServlet.class);
 		context.registerServlet(ExceptionServlet.class);
 		context.registerEventListener(new Application());
 		context.registerFilter(DefaultFilter.class);
-		context.registerErrorPage(500, ErrorServlet.URL);
+		context.registerErrorPage(500, CustomErrorServlet.URL);
 		
 		sc.registerContext(context);
 		sc.startServer();

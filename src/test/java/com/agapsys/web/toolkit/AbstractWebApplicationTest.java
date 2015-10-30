@@ -155,22 +155,7 @@ public class AbstractWebApplicationTest  {
 		protected void afterApplicationStop() {
 			this.afterApplicationStopCalled = true;
 			super.afterApplicationStop();
-		}
-		
-		@Override
-		protected Class<? extends AbstractPersistenceModule> getPersistenceModuleClass() {
-			return null;
-		}
-
-		@Override
-		protected Class<? extends ExceptionReporterModule> getExceptionReporterModuleClass() {
-			return null;
-		}
-		
-		@Override
-		protected Class<? extends AbstractSmtpModule> getSmtpModuleClass() {
-			return null;
-		}		
+		}	
 		
 		@Override
 		public String getName() {
@@ -191,42 +176,38 @@ public class AbstractWebApplicationTest  {
 	private static class WebApplicationWithPersistence extends WebApplicationBase {
 
 		@Override
-		protected Class<? extends AbstractPersistenceModule> getPersistenceModuleClass() {
-			return CustomPersistenceModule.class;
+		protected void beforeApplicationStart() {
+			super.beforeApplicationStart();
+			registerModule(CustomPersistenceModule.class);
 		}
 	}
 	
 	private static class WebApplicationWithErrorReport extends WebApplicationBase {
 
 		@Override
-		protected Class<? extends ExceptionReporterModule> getExceptionReporterModuleClass() {
-			return CustomExceptionReporterModule.class;
+		protected void beforeApplicationStart() {
+			super.beforeApplicationStart();
+			registerModule(CustomExceptionReporterModule.class);
 		}
 	}
 	
 	private static class WebApplicationWithSmtpSender extends WebApplicationBase {
 
 		@Override
-		protected Class<? extends AbstractSmtpModule> getSmtpModuleClass() {
-			return CustomSmtpModule.class;
+		protected void beforeApplicationStart() {
+			super.beforeApplicationStart();
+			registerModule(CustomSmtpModule.class);
 		}
 	}
 	
 	private static class FullFledgedApplication extends WebApplicationBase {
 
 		@Override
-		protected Class<? extends AbstractPersistenceModule> getPersistenceModuleClass() {
-			return CustomPersistenceModule.class;
-		}
-
-		@Override
-		protected Class<? extends AbstractSmtpModule> getSmtpModuleClass() {
-			return CustomSmtpModule.class;
-		}
-
-		@Override
-		protected Class<? extends ExceptionReporterModule> getExceptionReporterModuleClass() {
-			return CustomExceptionReporterModule.class;
+		protected void beforeApplicationStart() {
+			super.beforeApplicationStart();
+			registerModule(CustomPersistenceModule.class);
+			registerModule(CustomSmtpModule.class);
+			registerModule(CustomExceptionReporterModule.class);
 		}
 	}
 	// -------------------------------------------------------------------------
@@ -314,7 +295,7 @@ public class AbstractWebApplicationTest  {
 		AbstractWebApplication webApp = new WebApplicationBase();
 		webApp.start();
 		
-		AbstractPersistenceModule persistenceModule = webApp.getPersistenceModule();
+		AbstractPersistenceModule persistenceModule = webApp.getModuleInstance(CustomPersistenceModule.class);
 		Assert.assertNull(persistenceModule);
 		webApp.stop();
 	}
@@ -329,7 +310,7 @@ public class AbstractWebApplicationTest  {
 		Assert.assertTrue(webApp.isOnPersistenceModuleStartCalled());
 		
 		
-		AbstractPersistenceModule persistenceModule = webApp.getPersistenceModule();
+		AbstractPersistenceModule persistenceModule = webApp.getModuleInstance(CustomPersistenceModule.class);
 		Assert.assertNotNull(persistenceModule.getEntityManager());
 		
 		webApp.stop();

@@ -55,25 +55,6 @@ public abstract class AbstractWebApplication extends AbstractApplication impleme
 	private String[] allowedOrigins = new String[] {DEFAULT_APP_ALLOWED_ORIGINS};
 	
 	@Override
-	protected void beforeApplicationStart() {
-		super.beforeApplicationStart();
-		
-		// Register used modules
-		Class<? extends AbstractModule> persistenceModuleClass       = getPersistenceModuleClass();
-		Class<? extends AbstractModule> exceptionReporterModuleClass = getExceptionReporterModuleClass();
-		Class<? extends AbstractModule> smtpModuleClass              = getSmtpModuleClass();
-		
-		if (persistenceModuleClass != null)
-			registerModule(persistenceModuleClass);
-		
-		if (exceptionReporterModuleClass != null)
-			registerModule(exceptionReporterModuleClass);
-		
-		if (smtpModuleClass != null)
-			registerModule(smtpModuleClass);
-	}
-
-	@Override
 	protected void afterApplicationStart() {
 		super.afterApplicationStart();
 		
@@ -131,45 +112,6 @@ public abstract class AbstractWebApplication extends AbstractApplication impleme
 		}
 		
 		return false;
-	}
-	
-	/**
-	 * Return the persistence module used by application
-	 * @return Persistence module class. Default implementation returns {@linkplain PersistenceModule} class.
-	 */
-	protected Class<? extends AbstractPersistenceModule> getPersistenceModuleClass() {
-		return PersistenceModule.class;
-	}
-	
-	/**
-	 * Return the exception reporter module used by application.
-	 * @return Exception reporter module class. Default implementation returns {@linkplain SmtpExceptionReporterModule} class
-	 */
-	protected Class<? extends AbstractExceptionReporterModule> getExceptionReporterModuleClass() {
-		return SmtpExceptionReporterModule.class;
-	}
-
-	/**
-	 * Returns the SMTP module used by application.
-	 * @return SMTP module class. Default implementation returns {@linkplain SmtpModule} class
-	 */
-	protected Class<? extends AbstractSmtpModule> getSmtpModuleClass() {
-		return SmtpModule.class;
-	}
-	
-	/** @return The persistence module used by this application. If there is no such module, returns null. */
-	public final AbstractPersistenceModule getPersistenceModule() {
-		return (AbstractPersistenceModule) getModuleInstance(getPersistenceModuleClass());
-	}
-
-	/** @return The exception reporter module used by this application. If there is no such module, returns null. */
-	public final AbstractExceptionReporterModule getExceptionReporterModule() {
-		return (AbstractExceptionReporterModule) getModuleInstance(getExceptionReporterModuleClass());
-	}
-
-	/** @return The SMTP module used by this application. If there is no such module, returns null. */
-	public final AbstractSmtpModule getSmtpModule() {
-		return (AbstractSmtpModule) getModuleInstance(getSmtpModuleClass());
 	}
 	
 	@Override
