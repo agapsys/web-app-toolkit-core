@@ -18,20 +18,16 @@ package com.agapsys.web.toolkit;
 
 import java.io.IOException;
 import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-@WebServlet(ErrorServlet.URL)
 /**
  * Standard Servlet for handling error requests
  * @author Leandro Oliveira (leandro@agapsys.com)
  */
-public class ErrorServlet extends HttpServlet {
+public abstract class AbstractErrorServlet extends HttpServlet {
 	// CLASS SCOPE =============================================================
-	public static final String URL = "/error";
-	
 	private static final String ATTR_EXCEPTION = "javax.servlet.error.exception";
 		
 	private static Throwable getException(HttpServletRequest req) {
@@ -39,12 +35,14 @@ public class ErrorServlet extends HttpServlet {
 	}
 	// =========================================================================
 
-	// INSTANCE SCOPE ==========================================================		
+	// INSTANCE SCOPE ==========================================================
+	protected abstract Class<? extends AbstractExceptionReporterModule> getExceptionReporterModuleClass();
+	
 	@Override
 	protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		Throwable t = getException(req);
 		
-		AbstractExceptionReporterModule exceptionReporterModule = AbstractWebApplication.getInstance().getExceptionReporterModule();
+		AbstractExceptionReporterModule exceptionReporterModule = AbstractWebApplication.getInstance().getModuleInstance(getExceptionReporterModuleClass());
 		
 		if (t != null && exceptionReporterModule != null) {
 			exceptionReporterModule.reportException(t, req);
