@@ -107,6 +107,10 @@ public class GsonSerializer implements ObjectSerializer {
 		return _getGson().fromJson(json, new ListType(elementType));
 	}
 	
+	public String toJson(Object obj) {
+		return _getGson().toJson(obj);
+	}
+	
 	@Override
 	public <T> T readObject(HttpServletRequest req, Class<T> targetClass) throws BadRequestException {
 		if (targetClass == null)  throw new IllegalArgumentException("Null targetClass");
