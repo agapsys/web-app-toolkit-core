@@ -418,10 +418,10 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	 * If application is not running, nothing happens.
 	 * In a web environment, this method will be called by {@linkplain AbstractWebApplication#contextDestroyed(ServletContextEvent)}
 	 */
-	private final void stop() {
+	private void stop() {
 		if (isRunning()) {
-			
-			log(LogType.INFO, "====== AGAPSYS WEB TOOLKIT SHUTDOWN: %s (%s) ======", getName(), getEnvironment());
+			String environment = getEnvironment();
+			log(LogType.INFO, "====== AGAPSYS WEB TOOLKIT SHUTDOWN: %s%s ======", getName(), environment == null ? "" : String.format(" (%s)", environment));
 			beforeApplicationStop();
 			
 			shutdownModules();
