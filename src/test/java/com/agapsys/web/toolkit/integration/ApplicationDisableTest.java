@@ -16,8 +16,9 @@
 
 package com.agapsys.web.toolkit.integration;
 
+import com.agapsys.http.HttpGet;
+import com.agapsys.http.HttpResponse;
 import com.agapsys.sevlet.test.ApplicationContext;
-import com.agapsys.sevlet.test.HttpResponse;
 import com.agapsys.sevlet.test.ServletContainer;
 import com.agapsys.web.toolkit.AbstractWebApplication;
 import com.agapsys.web.toolkit.DefaultFilter;
@@ -81,7 +82,7 @@ public class ApplicationDisableTest {
 		sc.registerContext(enabledContext, "/enabled");
 		sc.startServer();
 		
-		HttpResponse resp = sc.doGet("/enabled/test");
+		HttpResponse resp = sc.doRequest(new HttpGet("/enabled/test"));
 		Assert.assertEquals(HttpServletResponse.SC_OK, resp.getStatusCode());
 	}
 	
@@ -96,7 +97,7 @@ public class ApplicationDisableTest {
 		sc.registerContext(disabledContext, "/disabled");
 		sc.startServer();
 		
-		HttpResponse resp = sc.doGet("/disabled/test");
+		HttpResponse resp = sc.doRequest(new HttpGet("/disabled/test"));
 		Assert.assertEquals(HttpServletResponse.SC_SERVICE_UNAVAILABLE, resp.getStatusCode());
 	}
 	// =========================================================================

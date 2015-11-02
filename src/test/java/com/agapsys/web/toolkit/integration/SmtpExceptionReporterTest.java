@@ -16,12 +16,13 @@
 
 package com.agapsys.web.toolkit.integration;
 
+import com.agapsys.http.HttpGet;
+import com.agapsys.http.HttpResponse;
 import com.agapsys.sevlet.test.ApplicationContext;
-import com.agapsys.sevlet.test.HttpResponse;
 import com.agapsys.sevlet.test.ServletContainer;
-import com.agapsys.web.toolkit.AbstractErrorServlet;
 import com.agapsys.web.toolkit.AbstractExceptionReporterModule;
 import com.agapsys.web.toolkit.DefaultFilter;
+import com.agapsys.web.toolkit.ErrorServlet;
 import com.agapsys.web.toolkit.SmtpExceptionReporterModule;
 import com.agapsys.web.toolkit.SmtpModule;
 import com.agapsys.web.toolkit.TestApplication;
@@ -61,13 +62,8 @@ public class SmtpExceptionReporterTest {
 	}
 	
 	@WebServlet(CustomErrorServlet.URL)
-	public static class CustomErrorServlet extends AbstractErrorServlet {
+	public static class CustomErrorServlet extends ErrorServlet {
 		public static final String URL = "/error";
-
-		@Override
-		protected Class<? extends AbstractExceptionReporterModule> getExceptionReporterModuleClass() {
-			return SmtpExceptionReporterModule.class;
-		}
 	}
 	// =========================================================================
 
@@ -97,7 +93,7 @@ public class SmtpExceptionReporterTest {
 	@Test
 	public void callErrorUrl() {
 		String url = ExceptionServlet.URL + "?a=1&b=2";
-		HttpResponse resp = sc.doGet(url);
+		HttpResponse resp = sc.doRequest(new HttpGet(url));
 		Assert.assertEquals(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, resp.getStatusCode());
 	}
 	// =========================================================================
