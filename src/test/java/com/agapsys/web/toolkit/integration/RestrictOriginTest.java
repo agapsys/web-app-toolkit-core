@@ -21,7 +21,7 @@ import com.agapsys.http.HttpResponse;
 import com.agapsys.sevlet.test.ApplicationContext;
 import com.agapsys.sevlet.test.ServletContainer;
 import com.agapsys.web.toolkit.AbstractWebApplication;
-import com.agapsys.web.toolkit.DefaultFilter;
+import com.agapsys.web.toolkit.WebApplicationFilter;
 import com.agapsys.web.toolkit.TestApplication;
 import java.io.IOException;
 import java.util.Properties;
@@ -76,7 +76,7 @@ public class RestrictOriginTest {
 		ApplicationContext anyOriginApp = new ApplicationContext();
 		anyOriginApp.registerEventListener(new AnyOriginApp());
 		anyOriginApp.registerServlet(TestServlet.class);
-		anyOriginApp.registerFilter(DefaultFilter.class);
+		anyOriginApp.registerFilter(WebApplicationFilter.class, "/*");
 		
 		sc = new ServletContainer();
 		sc.registerContext(anyOriginApp, "/enabled");
@@ -91,7 +91,7 @@ public class RestrictOriginTest {
 		ApplicationContext forbiddenLocalHostApp = new ApplicationContext();
 		forbiddenLocalHostApp.registerEventListener(new ForbiddenLocalHostApp());
 		forbiddenLocalHostApp.registerServlet(TestServlet.class);
-		forbiddenLocalHostApp.registerFilter(DefaultFilter.class);
+		forbiddenLocalHostApp.registerFilter(WebApplicationFilter.class, "/*");
 		
 		sc = new ServletContainer();
 		sc.registerContext(forbiddenLocalHostApp, "/disabled");

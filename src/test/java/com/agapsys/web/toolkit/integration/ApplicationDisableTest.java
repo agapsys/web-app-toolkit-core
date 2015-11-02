@@ -21,7 +21,7 @@ import com.agapsys.http.HttpResponse;
 import com.agapsys.sevlet.test.ApplicationContext;
 import com.agapsys.sevlet.test.ServletContainer;
 import com.agapsys.web.toolkit.AbstractWebApplication;
-import com.agapsys.web.toolkit.DefaultFilter;
+import com.agapsys.web.toolkit.WebApplicationFilter;
 import com.agapsys.web.toolkit.TestApplication;
 import java.io.IOException;
 import java.util.Properties;
@@ -76,7 +76,7 @@ public class ApplicationDisableTest {
 		ApplicationContext enabledContext = new ApplicationContext();
 		enabledContext.registerEventListener(new EnabledApplication());
 		enabledContext.registerServlet(TestServlet.class);
-		enabledContext.registerFilter(DefaultFilter.class);
+		enabledContext.registerFilter(WebApplicationFilter.class, "/*");
 		
 		sc = new ServletContainer();
 		sc.registerContext(enabledContext, "/enabled");
@@ -91,7 +91,7 @@ public class ApplicationDisableTest {
 		ApplicationContext disabledContext = new ApplicationContext();
 		disabledContext.registerEventListener(new DisabledApplication());
 		disabledContext.registerServlet(TestServlet.class);
-		disabledContext.registerFilter(DefaultFilter.class);
+		disabledContext.registerFilter(WebApplicationFilter.class, "/*");
 		
 		sc = new ServletContainer();
 		sc.registerContext(disabledContext, "/disabled");

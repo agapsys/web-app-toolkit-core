@@ -21,7 +21,7 @@ import com.agapsys.http.HttpResponse;
 import com.agapsys.sevlet.test.ApplicationContext;
 import com.agapsys.sevlet.test.ServletContainer;
 import com.agapsys.web.toolkit.AbstractExceptionReporterModule;
-import com.agapsys.web.toolkit.DefaultFilter;
+import com.agapsys.web.toolkit.WebApplicationFilter;
 import com.agapsys.web.toolkit.ErrorServlet;
 import com.agapsys.web.toolkit.SmtpExceptionReporterModule;
 import com.agapsys.web.toolkit.SmtpModule;
@@ -78,7 +78,7 @@ public class SmtpExceptionReporterTest {
 		context.registerServlet(CustomErrorServlet.class);
 		context.registerServlet(ExceptionServlet.class);
 		context.registerEventListener(new Application());
-		context.registerFilter(DefaultFilter.class);
+		context.registerFilter(WebApplicationFilter.class, "/*");
 		context.registerErrorPage(500, CustomErrorServlet.URL);
 		
 		sc.registerContext(context);
