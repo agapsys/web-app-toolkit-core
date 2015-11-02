@@ -22,11 +22,6 @@ import com.agapsys.mail.Message;
  * @author Leandro Oliveira (leandro@agapsys.com)
  */
 public abstract class AbstractSmtpModule extends AbstractModule {
-	// CLASS SCOPE =============================================================
-	public static final String MODULE_ID = AbstractSmtpModule.class.getName();
-	// =========================================================================
-	
-	// INSTANCE SCOPE ==========================================================
 	@Override
 	public String getTitle() {
 		return "SMTP module";
@@ -53,5 +48,4 @@ public abstract class AbstractSmtpModule extends AbstractModule {
 		
 		onSendMessage(message);
 	}
-	// =========================================================================
 }

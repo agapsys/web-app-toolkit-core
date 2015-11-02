@@ -16,41 +16,14 @@
 
 package com.agapsys.web.toolkit;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
-
-public class PersistenceModule extends AbstractPersistenceModule {
+public class Defs {
 	// CLASS SCOPE =============================================================
-	public static final String DEFAULT_PERSISTENCE_UNIT_NAME = "default";
+	public static final String PERSISTENCE_MODULE_ID        = "com.agapsys.web.toolkit.persistenceModule";
+	public static final String SMTP_MODULE_ID               = "com.agapsys.web.toolkit.smtpModule";
+	public static final String EXCEPTION_REPORTER_MODULE_ID = "com.agapsys.web.toolkit.exceptionReporterModule";
 	// =========================================================================
 
 	// INSTANCE SCOPE ==========================================================
-	private EntityManagerFactory emf = null;
-
-	/**
-	 * Return the name of default persistence unit name. 
-	 * @return the name of default persistence unit name. Default implementation 
-	 * returns {@linkplain PersistenceModule#DEFAULT_PERSISTENCE_UNIT_NAME} 
-	 */
-	protected String getDefaultPersistenceUnitName() {
-		return DEFAULT_PERSISTENCE_UNIT_NAME;
-	}
-	
-	@Override
-	protected void onStart(AbstractWebApplication webapplication) {
-		emf = Persistence.createEntityManagerFactory(getDefaultPersistenceUnitName());
-	}
-	
-	@Override
-	protected void onStop() {
-		emf.close();
-		emf = null;
-	}
-	
-	@Override
-	protected EntityManager getAppEntityManager() {
-		return emf.createEntityManager();
-	}
+	private Defs() {}
 	// =========================================================================
 }

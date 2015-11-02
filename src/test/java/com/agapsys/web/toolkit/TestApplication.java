@@ -19,17 +19,17 @@ public class TestApplication extends AbstractWebApplication {
 	
 	@Override
 	public String getName() {
-		return Defs.APP_NAME;
+		return TestDefs.APP_NAME;
 	}
 
 	@Override
 	public String getVersion() {
-		return Defs.APP_VERSION;
+		return TestDefs.APP_VERSION;
 	}
 
 	@Override
 	public String getEnvironment() {
-		return Defs.ENVIRONMENT;
+		return TestDefs.ENVIRONMENT;
 	}
 
 	@Override

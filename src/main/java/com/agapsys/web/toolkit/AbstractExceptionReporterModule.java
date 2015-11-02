@@ -25,8 +25,6 @@ import javax.servlet.http.HttpServletRequest;
  */
 public abstract class AbstractExceptionReporterModule extends AbstractModule {
 	// CLASS SCOPE =============================================================
-	public static final String MODULE_ID = AbstractExceptionReporterModule.class.getName();
-	
 	/** 
 	 * Return a string representation of a stack trace for given error
 	 * @return a string representation of a stack trace for given error

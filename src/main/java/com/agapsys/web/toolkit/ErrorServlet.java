@@ -41,7 +41,7 @@ public class ErrorServlet extends HttpServlet {
 		Throwable t = getException(req);
 		
 		try {
-			AbstractExceptionReporterModule exceptionReporterModule = (AbstractExceptionReporterModule) AbstractWebApplication.getInstance().getModule(AbstractExceptionReporterModule.MODULE_ID);
+			AbstractExceptionReporterModule exceptionReporterModule = (AbstractExceptionReporterModule) AbstractWebApplication.getInstance().getModule(Defs.EXCEPTION_REPORTER_MODULE_ID);
 			if (t != null && exceptionReporterModule != null) {
 				exceptionReporterModule.reportException(t, req);
 			}

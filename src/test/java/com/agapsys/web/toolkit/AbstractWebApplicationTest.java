@@ -151,17 +151,17 @@ public class AbstractWebApplicationTest  {
 		
 		@Override
 		public String getName() {
-			return Defs.APP_NAME;
+			return TestDefs.APP_NAME;
 		}
 
 		@Override
 		public String getVersion() {
-			return Defs.APP_VERSION;
+			return TestDefs.APP_VERSION;
 		}
 
 		@Override
 		public String getEnvironment() {
-			return Defs.ENVIRONMENT;
+			return TestDefs.ENVIRONMENT;
 		}
 	}
 	
@@ -237,7 +237,7 @@ public class AbstractWebApplicationTest  {
 		
 		AbstractWebApplication webApp = new WebApplicationBase();
 		webApp.contextInitialized(null);
-		Assert.assertEquals(Defs.APP_NAME, AbstractWebApplication.getInstance().getName());
+		Assert.assertEquals(TestDefs.APP_NAME, AbstractWebApplication.getInstance().getName());
 		webApp.contextDestroyed(null);
 		AbstractWebApplication.getInstance().getName();
 	}
@@ -248,7 +248,7 @@ public class AbstractWebApplicationTest  {
 		
 		AbstractWebApplication webApp = new WebApplicationBase();
 		webApp.contextInitialized(null);
-		Assert.assertEquals(Defs.APP_VERSION, AbstractWebApplication.getInstance().getVersion());
+		Assert.assertEquals(TestDefs.APP_VERSION, AbstractWebApplication.getInstance().getVersion());
 		
 		webApp.contextDestroyed(null);
 		AbstractWebApplication.getInstance().getVersion();
@@ -260,7 +260,7 @@ public class AbstractWebApplicationTest  {
 		
 		AbstractWebApplication webApp = new WebApplicationBase();
 		webApp.contextInitialized(null);
-		Assert.assertEquals(Defs.ENVIRONMENT, AbstractWebApplication.getInstance().getEnvironment());
+		Assert.assertEquals(TestDefs.ENVIRONMENT, AbstractWebApplication.getInstance().getEnvironment());
 		
 		webApp.contextDestroyed(null);
 		AbstractWebApplication.getInstance().getEnvironment();

@@ -22,11 +22,6 @@ import javax.persistence.EntityManager;
  * @author Leandro Oliveira (leandro@agapsys.com)
  */
 public abstract class AbstractPersistenceModule extends AbstractModule {
-	// CLASS SCOPE =============================================================
-	public static final String MODULE_ID = AbstractPersistenceModule.class.getName();
-	// =========================================================================
-	
-	// INSTANCE SCOPE ==========================================================
 	@Override
 	public String getTitle() {
 		return "Persistence module";
@@ -50,5 +45,4 @@ public abstract class AbstractPersistenceModule extends AbstractModule {
 		
 		return getAppEntityManager();
 	}
-	// =========================================================================
 }
