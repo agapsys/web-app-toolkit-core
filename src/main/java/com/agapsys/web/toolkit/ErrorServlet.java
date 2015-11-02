@@ -18,6 +18,7 @@ package com.agapsys.web.toolkit;
 
 import java.io.IOException;
 import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -26,7 +27,8 @@ import javax.servlet.http.HttpServletResponse;
  * Standard Servlet for handling error requests
  * @author Leandro Oliveira (leandro@agapsys.com)
  */
-public abstract class AbstractErrorServlet extends HttpServlet {
+@WebServlet("/error")
+public class ErrorServlet extends HttpServlet {
 	// CLASS SCOPE =============================================================
 	private static final String ATTR_EXCEPTION = "javax.servlet.error.exception";
 		
@@ -35,9 +37,7 @@ public abstract class AbstractErrorServlet extends HttpServlet {
 	}
 	// =========================================================================
 
-	// INSTANCE SCOPE ==========================================================
-	protected abstract Class<? extends AbstractExceptionReporterModule> getExceptionReporterModuleClass();
-	
+	// INSTANCE SCOPE ==========================================================	
 	@Override
 	protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		Throwable t = getException(req);
