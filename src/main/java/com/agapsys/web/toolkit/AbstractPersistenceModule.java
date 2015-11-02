@@ -23,7 +23,7 @@ import javax.persistence.EntityManager;
  */
 public abstract class AbstractPersistenceModule extends AbstractModule {
 	// CLASS SCOPE =============================================================
-	public static final String DEFAULT_MODULE_ID = AbstractPersistenceModule.class.getName();
+	public static final String MODULE_ID = AbstractPersistenceModule.class.getName();
 	// =========================================================================
 	
 	// INSTANCE SCOPE ==========================================================

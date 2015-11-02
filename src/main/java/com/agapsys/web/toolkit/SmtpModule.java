@@ -33,7 +33,7 @@ import javax.mail.internet.InternetAddress;
 
 public class SmtpModule extends AbstractSmtpModule {
 	// CLASS SCOPE =============================================================
-	public static final String DEFAULT_MODULE_ID = SmtpModule.class.getName();
+	public static final String MODULE_ID = SmtpModule.class.getName();
 	
 	// SETTINGS ----------------------------------------------------------------
 	public static final String KEY_SENDER = "agapsys.webtoolkit.smtp.sender";

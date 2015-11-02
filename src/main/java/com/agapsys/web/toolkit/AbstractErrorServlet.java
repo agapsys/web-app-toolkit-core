@@ -42,7 +42,7 @@ public abstract class AbstractErrorServlet extends HttpServlet {
 	protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		Throwable t = getException(req);
 		
-		AbstractExceptionReporterModule exceptionReporterModule = (AbstractExceptionReporterModule) AbstractWebApplication.getInstance().getModule(AbstractExceptionReporterModule.DEFAULT_MODULE_ID);
+		AbstractExceptionReporterModule exceptionReporterModule = (AbstractExceptionReporterModule) AbstractWebApplication.getInstance().getModule(AbstractExceptionReporterModule.MODULE_ID);
 		
 		if (t != null && exceptionReporterModule != null) {
 			exceptionReporterModule.reportException(t, req);

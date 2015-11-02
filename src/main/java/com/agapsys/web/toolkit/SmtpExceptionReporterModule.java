@@ -184,7 +184,7 @@ public class SmtpExceptionReporterModule extends ExceptionReporterModule {
 	protected void reportErrorMessage(String message) {
 		super.reportErrorMessage(message);
 		
-		SmtpModule smtpModule =  (SmtpModule) getApplication().getModule(SmtpModule.DEFAULT_MODULE_ID);
+		SmtpModule smtpModule =  (SmtpModule) getApplication().getModule(SmtpModule.MODULE_ID);
 		
 		String finalSubject = getSubject().replaceAll(Pattern.quote(APP_NAME_TOKEN), getApplication().getName());
 

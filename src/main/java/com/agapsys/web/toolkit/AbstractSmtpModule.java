@@ -23,7 +23,7 @@ import com.agapsys.mail.Message;
  */
 public abstract class AbstractSmtpModule extends AbstractModule {
 	// CLASS SCOPE =============================================================
-	public static final String DEFAULT_MODULE_ID = AbstractSmtpModule.class.getName();
+	public static final String MODULE_ID = AbstractSmtpModule.class.getName();
 	// =========================================================================
 	
 	// INSTANCE SCOPE ==========================================================
