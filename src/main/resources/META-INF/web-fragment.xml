@@ -17,6 +17,25 @@ limitations under the License.
 
 
 <web-fragment>
+	
+	<filter>
+		<filter-name>web-app-filter</filter-name>
+		<filter-class>com.agapsys.web.toolkit.WebApplicationFilter</filter-class>
+	</filter>
+	<filter-mapping>
+		<filter-name>web-app-filter</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+	
+	<servlet>
+		<servlet-name>error-servlet</servlet-name>
+		<servlet-class>com.agapsys.web.toolkit.ErrorServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>error-servlet</servlet-name>
+		<url-pattern>/error</url-pattern>
+	</servlet-mapping>
+	
 	<error-page>
 		<location>/error</location>
 	</error-page>
@@ -25,4 +44,5 @@ limitations under the License.
 		<exception-type>java.lang.Throwable</exception-type>
 		<location>/error</location>
 	</error-page>
+	
 </web-fragment>
