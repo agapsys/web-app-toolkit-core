@@ -206,7 +206,7 @@ public class ExceptionReporterModule extends AbstractExceptionReporterModule {
 	protected void onExceptionReport(Throwable t, HttpServletRequest req) {
 		if (isModuleEnabled()) {
 			if (!skipErrorReport(t)) {
-				String originalRequestStr = (String) req.getAttribute(DefaultFilter.ATTR_ORIGINAL_REQUEST_URI);
+				String originalRequestStr = (String) req.getAttribute(WebApplicationFilter.ATTR_ORIGINAL_REQUEST_URI);
 				reportErrorMessage(getErrorMessage(t, req, originalRequestStr));
 			} else {
 				getApplication().log(LogType.ERROR, "Application error (already reported): %s", t.getMessage());

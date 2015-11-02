@@ -24,12 +24,10 @@ import javax.servlet.FilterConfig;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
-import javax.servlet.annotation.WebFilter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-@WebFilter("/*")
-public class DefaultFilter implements Filter {
+public class WebApplicationFilter implements Filter {
 	// CLASS SCOPE =============================================================
 	public static final String ATTR_ORIGINAL_REQUEST_URI = "com.agapsys.web.toolkit.originalRequestUri";
 	// =========================================================================
