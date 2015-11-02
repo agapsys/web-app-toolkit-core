@@ -17,7 +17,6 @@
 package com.agapsys.web.toolkit;
 
 import com.agapsys.utils.console.Console;
-import com.agapsys.web.toolkit.SingletonManager.Singleton;
 import com.agapsys.web.toolkit.utils.DateUtils;
 import com.agapsys.web.toolkit.utils.FileUtils;
 import com.agapsys.web.toolkit.utils.HttpUtils;
@@ -228,20 +227,6 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	 */
 	public AbstractModule getModule(String id) {
 		return (AbstractModule) singletonManager.getSingleton(id);
-	}
-	
-	/** Registers a singleton with an associated ID. */
-	public void registerSingleton(String id, Class<? extends Singleton> singletonClass) {
-		singletonManager.registerSingleton(id, singletonClass);
-	}
-	
-	/**
-	 * Returns a singleton instance of given class
-	 * @param singletonClass class
-	 * @return singleton instance of given class
-	 */
-	public Singleton getSingleton(Class<? extends Singleton> singletonClass) {
-		return singletonManager.getSingleton(singletonClass);
 	}
 	
 	/** 
