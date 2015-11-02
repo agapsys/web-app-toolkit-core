@@ -45,10 +45,6 @@ public class SingletonManager {
 		if (ID_CLASS_MAP.put(id, singletonClass) != null)
 			throw new IllegalArgumentException("ID is already assigned: " + id);
 	}
-	
-	public void registerSingleton(Class<? extends Singleton> singletonClass) {
-		registerSingleton(singletonClass.getName(), singletonClass);
-	}
 
 	public Class<? extends Singleton> getSingletonClass(String id) {
 		return ID_CLASS_MAP.get(id);
