@@ -16,9 +16,9 @@
 
 package com.agapsys.web.toolkit;
 
-import com.agapsys.web.toolkit.AbstractApplication.LogType;
-import com.agapsys.web.toolkit.utils.HttpUtils;
+import com.agapsys.web.toolkit.AbstractWebApplication.LogType;
 import com.agapsys.web.toolkit.utils.DateUtils;
+import com.agapsys.web.toolkit.utils.HttpUtils;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
@@ -49,10 +49,7 @@ public class ExceptionReporterModule extends AbstractExceptionReporterModule {
 	
 	private final List<String> stackTraceHistory = new LinkedList<>();
 	// -------------------------------------------------------------------------
-	public ExceptionReporterModule(AbstractApplication application) {
-		super(application);
-	}
-
+	
 	/**
 	 * Returns the default stack trace history size when there is no definition.
 	 * @return default stack trace history size
@@ -99,8 +96,8 @@ public class ExceptionReporterModule extends AbstractExceptionReporterModule {
 	}
 
 	@Override
-	protected void onStart() {
-		Properties appProperties = getApplication().getProperties();
+	protected void onStart(AbstractWebApplication webApp) {
+		Properties appProperties = webApp.getProperties();
 		
 		String val;
 		
@@ -168,6 +165,7 @@ public class ExceptionReporterModule extends AbstractExceptionReporterModule {
 	 */
 	protected String getErrorMessage(Throwable throwable, HttpServletRequest req, String originalRequestUri) {
 		String stackTrace = getStackTrace(throwable);
+		
 		
 		String msg =
 			"An error was detected"

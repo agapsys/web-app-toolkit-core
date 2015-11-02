@@ -27,18 +27,19 @@ public class AbstractModuleTest {
 		private boolean isStartCalled = false;
 		private boolean isStopCalled = false;
 
-		public TestModule(AbstractApplication application) {
-			super(application);
-		}
-
 		@Override
-		protected void onStart() {
+		protected void onStart(AbstractWebApplication webApp) {
 			isStartCalled = true;
 		}
 
 		@Override
 		protected void onStop() {
 			isStopCalled = true;
+		}
+
+		@Override
+		public String getTitle() {
+			return "Test module";
 		}
 	}
 	// =========================================================================
@@ -48,7 +49,7 @@ public class AbstractModuleTest {
 	
 	@Before
 	public void before() {
-		module = new TestModule(new TestApplication());
+		module = new TestModule();
 	}
 	
 	@Test
@@ -66,7 +67,7 @@ public class AbstractModuleTest {
 		
 		Assert.assertFalse(module.isRunning());
 		
-		module.start();
+		module.start(null);
 		Assert.assertTrue(module.isStartCalled);
 		Assert.assertFalse(module.isStopCalled);
 		Assert.assertTrue(module.isStartCalled);

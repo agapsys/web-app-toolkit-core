@@ -23,14 +23,16 @@ import javax.persistence.EntityManager;
  */
 public abstract class AbstractPersistenceModule extends AbstractModule {
 	// CLASS SCOPE =============================================================
+	public static final String DEFAULT_MODULE_ID = AbstractPersistenceModule.class.getName();
 	// =========================================================================
 	
 	// INSTANCE SCOPE ==========================================================
-	public AbstractPersistenceModule(AbstractApplication application) {
-		super(application);
+	@Override
+	public String getTitle() {
+		return "Persistence module";
 	}
-	
-	/** 
+
+	/**
 	 * Returns an entity manager to be used by application.
 	 * This method will be called only when module is running.
 	 * @return an entity manager to be used by application.

@@ -33,11 +33,6 @@ public class TestApplication extends AbstractWebApplication {
 	}
 
 	@Override
-	protected boolean isDirectoryCreationEnabled() {
-		return false;
-	}
-
-	@Override
 	protected boolean isPropertiesFileCreationEnabled() {
 		return false;
 	}

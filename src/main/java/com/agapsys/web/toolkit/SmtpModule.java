@@ -33,6 +33,8 @@ import javax.mail.internet.InternetAddress;
 
 public class SmtpModule extends AbstractSmtpModule {
 	// CLASS SCOPE =============================================================
+	public static final String DEFAULT_MODULE_ID = SmtpModule.class.getName();
+	
 	// SETTINGS ----------------------------------------------------------------
 	public static final String KEY_SENDER = "agapsys.webtoolkit.smtp.sender";
 	
@@ -84,10 +86,6 @@ public class SmtpModule extends AbstractSmtpModule {
 	private SmtpSender      smtpSender = null;
 	private InternetAddress sender     = null;
 	
-	public SmtpModule(AbstractApplication application) {
-		super(application);
-	}
-
 	/**
 	 * Returns the name of the log file used to store errors in SMTP module
 	 * @return log error filename. Default implementation returns {@linkplain SmtpModule#SMTP_ERR_LOG_FILENAME}.
@@ -202,8 +200,8 @@ public class SmtpModule extends AbstractSmtpModule {
 	}
 	
 	@Override
-	protected void onStart() {
-		Properties properties = getApplication().getProperties();
+	protected void onStart(AbstractWebApplication webApp) {
+		Properties properties = webApp.getProperties();
 		
 		SmtpSettings settings = new SmtpSettings(properties);
 		smtpSender = new SmtpSender(settings);

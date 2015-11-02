@@ -43,9 +43,11 @@ public class RuntimePersistenceModule extends PersistenceModule {
 	// INSTANCE SCOPE ==========================================================
 	private EntityManagerFactory emf = null;
 
-	public RuntimePersistenceModule(AbstractApplication application) {
-		super(application);
+	@Override
+	public String getTitle() {
+		return "Runtime persistence Module";
 	}
+	
 	
 	protected String getDefaultJdbcDriverFilename() {
 		return DEFAULT_JDBC_DRIVER_FILENAME;
@@ -103,14 +105,13 @@ public class RuntimePersistenceModule extends PersistenceModule {
 	}	
 	
 	@Override
-	protected void onStart() {
-		AbstractApplication application = getApplication();
-		Properties properties = application.getProperties();
+	protected void onStart(AbstractWebApplication webApp) {
+		Properties properties = webApp.getProperties();
 		
 		String jdbcFilename = properties.getProperty(KEY_JDBC_DRIVER_FILENAME);
 		
 		if (jdbcFilename != null && !jdbcFilename.trim().isEmpty()) {
-			File jdbcDriverFile = new File(application.getDirectory(), jdbcFilename);
+			File jdbcDriverFile = new File(webApp.getDirectory(), jdbcFilename);
 			RuntimeJarLoader.loadJar(jdbcDriverFile);
 		}
 		

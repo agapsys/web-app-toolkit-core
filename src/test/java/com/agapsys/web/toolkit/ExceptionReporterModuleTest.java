@@ -25,10 +25,6 @@ public class ExceptionReporterModuleTest {
 	private static final int STACK_TRACE_HISTORY_SIZE = 2;
 	
 	private static class TestModule extends ExceptionReporterModule {
-		
-		public TestModule(AbstractApplication application) {
-			super(application);
-		}
 
 		@Override
 		public int getStacktraceHistorySize() {
@@ -47,7 +43,7 @@ public class ExceptionReporterModuleTest {
 	public void skipReportTest() {
 		Utils.printCurrentMethod();
 		
-		TestModule module = new TestModule(new TestApplication());
+		TestModule module = new TestModule();
 		
 		RuntimeException re1 = new RuntimeException();
 		RuntimeException re2 = new RuntimeException();

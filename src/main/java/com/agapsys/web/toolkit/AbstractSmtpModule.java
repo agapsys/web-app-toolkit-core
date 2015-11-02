@@ -23,15 +23,17 @@ import com.agapsys.mail.Message;
  */
 public abstract class AbstractSmtpModule extends AbstractModule {
 	// CLASS SCOPE =============================================================
+	public static final String DEFAULT_MODULE_ID = AbstractSmtpModule.class.getName();
 	// =========================================================================
 	
 	// INSTANCE SCOPE ==========================================================
-	public AbstractSmtpModule(AbstractApplication application) {
-		super(application);
+	@Override
+	public String getTitle() {
+		return "SMTP module";
 	}
-	
-	/** 
-	 * Actual message sending code. 
+
+	/**
+	 * Actual message sending code.
 	 * This method will be called only when module is running.
 	 * @param message message to be sent
 	 */

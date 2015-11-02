@@ -25,6 +25,8 @@ import javax.servlet.http.HttpServletRequest;
  */
 public abstract class AbstractExceptionReporterModule extends AbstractModule {
 	// CLASS SCOPE =============================================================
+	public static final String DEFAULT_MODULE_ID = AbstractExceptionReporterModule.class.getName();
+	
 	/** 
 	 * Return a string representation of a stack trace for given error
 	 * @return a string representation of a stack trace for given error
@@ -38,8 +40,10 @@ public abstract class AbstractExceptionReporterModule extends AbstractModule {
 	// =========================================================================
 	
 	// INSTANCE SCOPE ==========================================================
-	public AbstractExceptionReporterModule(AbstractApplication application) {
-		super(application);
+
+	@Override
+	public String getTitle() {
+		return "Exception reporter module";
 	}
 	
 	/**

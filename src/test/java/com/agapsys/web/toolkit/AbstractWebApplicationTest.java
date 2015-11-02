@@ -25,15 +25,13 @@ import org.junit.Test;
 public class AbstractWebApplicationTest  {
 	// CLASS SCOPE =============================================================
 	// Custom modules ----------------------------------------------------------
-	private static class CustomPersistenceModule extends PersistenceModule {
-		public CustomPersistenceModule(AbstractApplication application) {
-			super(application);
-		}
-
+	public static class CustomPersistenceModule extends PersistenceModule {
+		public static final String MODULE_ID = "persistence";
+		
 		@Override
-		protected void onStart() {
-			super.onStart();
-			((WebApplicationBase)getApplication()).onPersistenceModuleStartCalled = true;
+		protected void onStart(AbstractWebApplication webApp) {
+			super.onStart(webApp);
+			((WebApplicationBase)webApp).onPersistenceModuleStartCalled = true;
 		}
 
 		@Override
@@ -43,16 +41,13 @@ public class AbstractWebApplicationTest  {
 		}
 	}
 	
-	private static class CustomExceptionReporterModule extends ExceptionReporterModule {
-
-		public CustomExceptionReporterModule(AbstractApplication application) {
-			super(application);
-		}
+	public static class CustomExceptionReporterModule extends ExceptionReporterModule {
+		public static final String MODULE_ID = "exceptionReporter";
 
 		@Override
-		protected void onStart() {
-			super.onStart();
-			((WebApplicationBase)getApplication()).onExceptionReporterModuleStartCalled = true;
+		protected void onStart(AbstractWebApplication webApp) {
+			super.onStart(webApp);
+			((WebApplicationBase)webApp).onExceptionReporterModuleStartCalled = true;
 		}
 
 		@Override
@@ -62,16 +57,13 @@ public class AbstractWebApplicationTest  {
 		}
 	}
 		
-	private static class CustomSmtpModule extends SmtpModule {
-
-		public CustomSmtpModule(AbstractApplication application) {
-			super(application);
-		}
+	public static class CustomSmtpModule extends SmtpModule {
+		public static final String MODULE_ID = "smtp";
 
 		@Override
-		protected void onStart() {
-			super.onStart();
-			((WebApplicationBase)getApplication()).onSmtpModuleStartCalled = true;
+		protected void onStart(AbstractWebApplication webApp) {
+			super.onStart(webApp);
+			((WebApplicationBase)webApp).onSmtpModuleStartCalled = true;
 		}
 
 		@Override
@@ -178,7 +170,7 @@ public class AbstractWebApplicationTest  {
 		@Override
 		protected void beforeApplicationStart() {
 			super.beforeApplicationStart();
-			registerModule(CustomPersistenceModule.class);
+			registerModule(CustomPersistenceModule.MODULE_ID, CustomPersistenceModule.class);
 		}
 	}
 	
@@ -187,7 +179,7 @@ public class AbstractWebApplicationTest  {
 		@Override
 		protected void beforeApplicationStart() {
 			super.beforeApplicationStart();
-			registerModule(CustomExceptionReporterModule.class);
+			registerModule(CustomExceptionReporterModule.MODULE_ID, CustomExceptionReporterModule.class);
 		}
 	}
 	
@@ -196,7 +188,7 @@ public class AbstractWebApplicationTest  {
 		@Override
 		protected void beforeApplicationStart() {
 			super.beforeApplicationStart();
-			registerModule(CustomSmtpModule.class);
+			registerModule(CustomSmtpModule.MODULE_ID, CustomSmtpModule.class);
 		}
 	}
 	
@@ -205,9 +197,9 @@ public class AbstractWebApplicationTest  {
 		@Override
 		protected void beforeApplicationStart() {
 			super.beforeApplicationStart();
-			registerModule(CustomPersistenceModule.class);
-			registerModule(CustomSmtpModule.class);
-			registerModule(CustomExceptionReporterModule.class);
+			registerModule(CustomPersistenceModule.MODULE_ID, CustomPersistenceModule.class);
+			registerModule(CustomSmtpModule.MODULE_ID, CustomSmtpModule.class);
+			registerModule(CustomExceptionReporterModule.MODULE_ID, CustomExceptionReporterModule.class);
 		}
 	}
 	// -------------------------------------------------------------------------
@@ -219,7 +211,7 @@ public class AbstractWebApplicationTest  {
 		Utils.printCurrentMethod();
 		
 		WebApplicationBase webApp = new WebApplicationBase();
-		webApp.start();
+		webApp.contextInitialized(null);
 		Assert.assertTrue(webApp.isBeforeApplicationStartCalled());
 		Assert.assertTrue(webApp.isRunning());
 		Assert.assertFalse(webApp.isOnPersistenceModuleStartCalled());
@@ -229,7 +221,7 @@ public class AbstractWebApplicationTest  {
 		Assert.assertFalse(webApp.isBeforeApplicationStopCalled());
 		Assert.assertFalse(webApp.isAfterApplicationStopCalled());
 		
-		webApp.stop();
+		webApp.contextDestroyed(null);
 		Assert.assertTrue(webApp.isBeforeApplicationStopCalled());
 		Assert.assertFalse(webApp.isOnPersistenceModuleStopCalled());
 		Assert.assertFalse(webApp.isOnExceptionReporterModuleStopCalled());
@@ -244,9 +236,9 @@ public class AbstractWebApplicationTest  {
 		
 		
 		AbstractWebApplication webApp = new WebApplicationBase();
-		webApp.start();
+		webApp.contextInitialized(null);
 		Assert.assertEquals(Defs.APP_NAME, AbstractWebApplication.getInstance().getName());
-		webApp.stop();
+		webApp.contextDestroyed(null);
 		AbstractWebApplication.getInstance().getName();
 	}
 	
@@ -255,10 +247,10 @@ public class AbstractWebApplicationTest  {
 		Utils.printCurrentMethod();
 		
 		AbstractWebApplication webApp = new WebApplicationBase();
-		webApp.start();
+		webApp.contextInitialized(null);
 		Assert.assertEquals(Defs.APP_VERSION, AbstractWebApplication.getInstance().getVersion());
 		
-		webApp.stop();
+		webApp.contextDestroyed(null);
 		AbstractWebApplication.getInstance().getVersion();
 	}
 	
@@ -267,10 +259,10 @@ public class AbstractWebApplicationTest  {
 		Utils.printCurrentMethod();
 		
 		AbstractWebApplication webApp = new WebApplicationBase();
-		webApp.start();
+		webApp.contextInitialized(null);
 		Assert.assertEquals(Defs.ENVIRONMENT, AbstractWebApplication.getInstance().getEnvironment());
 		
-		webApp.stop();
+		webApp.contextDestroyed(null);
 		AbstractWebApplication.getInstance().getEnvironment();
 	}
 	
@@ -279,12 +271,12 @@ public class AbstractWebApplicationTest  {
 		Utils.printCurrentMethod();
 		
 		AbstractWebApplication webApp = new WebApplicationBase();
-		webApp.start();
+		webApp.contextInitialized(null);
 		
 		File appFolder = new File(System.getProperty("user.home"), String.format(".%s", AbstractWebApplication.getInstance().getName()));
 		Assert.assertEquals(appFolder.getAbsolutePath(), AbstractWebApplication.getInstance().getDirectory().getAbsolutePath());
 		
-		webApp.stop();
+		webApp.contextDestroyed(null);
 		AbstractWebApplication.getInstance().getDirectory();
 	}
 	
@@ -293,11 +285,16 @@ public class AbstractWebApplicationTest  {
 		Utils.printCurrentMethod();
 		
 		AbstractWebApplication webApp = new WebApplicationBase();
-		webApp.start();
+		webApp.contextInitialized(null);
 		
-		AbstractPersistenceModule persistenceModule = webApp.getModuleInstance(CustomPersistenceModule.class);
-		Assert.assertNull(persistenceModule);
-		webApp.stop();
+		try {
+			AbstractPersistenceModule persistenceModule = (AbstractPersistenceModule) webApp.getModule(CustomPersistenceModule.MODULE_ID);
+		} catch (IllegalArgumentException ex) {
+			Assert.assertEquals("ID is not registered: " + CustomPersistenceModule.MODULE_ID, ex.getMessage());
+			webApp.contextDestroyed(null);
+			return;
+		}
+		throw new RuntimeException();
 	}
 	
 	
@@ -306,14 +303,14 @@ public class AbstractWebApplicationTest  {
 		Utils.printCurrentMethod();
 		
 		WebApplicationBase webApp = new WebApplicationWithPersistence();
-		webApp.start();
+		webApp.contextInitialized(null);
 		Assert.assertTrue(webApp.isOnPersistenceModuleStartCalled());
 		
 		
-		AbstractPersistenceModule persistenceModule = webApp.getModuleInstance(CustomPersistenceModule.class);
+		AbstractPersistenceModule persistenceModule = (AbstractPersistenceModule) webApp.getModule(CustomPersistenceModule.MODULE_ID);
 		Assert.assertNotNull(persistenceModule.getEntityManager());
 		
-		webApp.stop();
+		webApp.contextDestroyed(null);
 		Assert.assertTrue(webApp.isOnPersistenceModuleStopCalled());
 	}
 	
@@ -322,10 +319,10 @@ public class AbstractWebApplicationTest  {
 		Utils.printCurrentMethod();
 		
 		WebApplicationBase webApp = new WebApplicationWithErrorReport();
-		webApp.start();
+		webApp.contextInitialized(null);
 		Assert.assertTrue(webApp.isOnExceptionReporterModuleStartCalled());
 		
-		webApp.stop();
+		webApp.contextDestroyed(null);
 		Assert.assertTrue(webApp.isOnExceptionReporterModuleStopCalled());
 	}
 	
@@ -334,10 +331,10 @@ public class AbstractWebApplicationTest  {
 		Utils.printCurrentMethod();
 		
 		WebApplicationBase webApp = new WebApplicationWithSmtpSender();
-		webApp.start();
+		webApp.contextInitialized(null);
 		Assert.assertTrue(webApp.isOnSmtpModuleStartCalled());
 		
-		webApp.stop();
+		webApp.contextDestroyed(null);
 		Assert.assertTrue(webApp.isOnSmtpModuleStopCalled());
 	}
 	
@@ -346,13 +343,13 @@ public class AbstractWebApplicationTest  {
 		Utils.printCurrentMethod();
 		
 		WebApplicationBase webApp = new FullFledgedApplication();
-		webApp.start();
+		webApp.contextInitialized(null);
 		
 		Assert.assertTrue(webApp.isOnPersistenceModuleStartCalled());
 		Assert.assertTrue(webApp.isOnSmtpModuleStartCalled());
 		Assert.assertTrue(webApp.isOnExceptionReporterModuleStartCalled());
 		
-		webApp.stop();
+		webApp.contextDestroyed(null);
 		Assert.assertTrue(webApp.isOnPersistenceModuleStopCalled());
 		Assert.assertTrue(webApp.isOnSmtpModuleStopCalled());
 		Assert.assertTrue(webApp.isOnExceptionReporterModuleStopCalled());
@@ -363,8 +360,8 @@ public class AbstractWebApplicationTest  {
 		Utils.printCurrentMethod();
 
 		TestApplication app = new TestApplication();
-		app.start();
-		app.stop();
+		app.contextInitialized(null);
+		app.contextDestroyed(null);
 	}
 	// =========================================================================
 }

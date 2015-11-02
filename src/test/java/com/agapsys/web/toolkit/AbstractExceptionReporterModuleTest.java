@@ -48,10 +48,6 @@ public class AbstractExceptionReporterModuleTest {
 	private static class TestExceptionReporterModule extends AbstractExceptionReporterModule {
 		private boolean methodCalled = false;
 
-		public TestExceptionReporterModule(AbstractApplication application) {
-			super(application);
-		}
-
 		@Override
 		protected void onExceptionReport(Throwable t, HttpServletRequest req) {
 			methodCalled = true;
@@ -412,7 +408,7 @@ public class AbstractExceptionReporterModuleTest {
 	
 	@Before
 	public void before() {
-		module = new TestExceptionReporterModule(new TestApplication());
+		module = new TestExceptionReporterModule();
 	}
 	
 	@Test(expected = IllegalArgumentException.class)
@@ -441,7 +437,7 @@ public class AbstractExceptionReporterModuleTest {
 	public void reportWhileRunning() {
 		Utils.printCurrentMethod();
 		Throwable t = new Throwable();
-		module.start();
+		module.start(null);
 		module.reportException(t, req);
 		Assert.assertTrue(module.methodCalled);
 	}

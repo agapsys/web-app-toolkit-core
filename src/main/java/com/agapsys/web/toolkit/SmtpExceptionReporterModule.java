@@ -18,9 +18,7 @@ package com.agapsys.web.toolkit;
 
 import com.agapsys.mail.Message;
 import com.agapsys.mail.MessageBuilder;
-import java.util.LinkedHashSet;
 import java.util.Properties;
-import java.util.Set;
 import java.util.regex.Pattern;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
@@ -96,9 +94,11 @@ public class SmtpExceptionReporterModule extends ExceptionReporterModule {
 	private InternetAddress[] recipients = null;
 	private String            subject    = null;
 
-	public SmtpExceptionReporterModule(AbstractApplication application) {
-		super(application);
+	@Override
+	public String getTitle() {
+		return "SMTP exception reporter module";
 	}
+
 	
 	/**
 	 * Returns the default subject for messaged sent by the module
@@ -134,28 +134,11 @@ public class SmtpExceptionReporterModule extends ExceptionReporterModule {
 		
 		return properties;
 	}
-	
-	/** @return the SMTP module class used by this module. */
-	protected Class<? extends SmtpModule> getSmtpModuleClass() {
-		return SmtpModule.class;
-	}
-	
-	@Override
-	protected Set<Class<? extends AbstractModule>> getMandatoryDependencies() {
-		Set<Class<? extends AbstractModule>> superMandatoryDeps = super.getMandatoryDependencies();
-		
-		Set<Class<? extends AbstractModule>> deps = new LinkedHashSet<>();
-		if (superMandatoryDeps != null)
-			deps.addAll(superMandatoryDeps);
-		
-		deps.add(getSmtpModuleClass());
-		return deps;
-	}
 		
 	@Override
-	protected void onStart() {
-		super.onStart();
-		Properties properties = getApplication().getProperties();
+	protected void onStart(AbstractWebApplication webApp) {
+		super.onStart(webApp);
+		Properties properties = webApp.getProperties();
 		
 		String val;
 		
@@ -196,17 +179,12 @@ public class SmtpExceptionReporterModule extends ExceptionReporterModule {
 	public String getSubject() {
 		return subject;
 	}
-	
-	private SmtpModule getSmtpModule() {
-		// Since SMTP module is a mandatory dependency there is no need to check if it is null
-		return (SmtpModule) getApplication().getModuleInstance(getSmtpModuleClass());
-	}
 
 	@Override
 	protected void reportErrorMessage(String message) {
 		super.reportErrorMessage(message);
 		
-		SmtpModule smtpModule = getSmtpModule();
+		SmtpModule smtpModule =  (SmtpModule) getApplication().getModule(SmtpModule.DEFAULT_MODULE_ID);
 		
 		String finalSubject = getSubject().replaceAll(Pattern.quote(APP_NAME_TOKEN), getApplication().getName());
 

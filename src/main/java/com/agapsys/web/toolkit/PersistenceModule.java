@@ -26,10 +26,6 @@ public class PersistenceModule extends AbstractPersistenceModule {
 	// INSTANCE SCOPE ==========================================================
 	private EntityManagerFactory emf = null;
 
-	public PersistenceModule(AbstractApplication application) {
-		super(application);
-	}
-
 	/**
 	 * Return the name of default persistence unit name. 
 	 * @return the name of default persistence unit name. Default implementation 
@@ -40,7 +36,7 @@ public class PersistenceModule extends AbstractPersistenceModule {
 	}
 	
 	@Override
-	protected void onStart() {
+	protected void onStart(AbstractWebApplication webapplication) {
 		emf = Persistence.createEntityManagerFactory(getDefaultPersistenceUnitName());
 	}
 	

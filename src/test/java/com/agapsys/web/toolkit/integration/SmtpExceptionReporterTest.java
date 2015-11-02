@@ -19,8 +19,8 @@ package com.agapsys.web.toolkit.integration;
 import com.agapsys.sevlet.test.ApplicationContext;
 import com.agapsys.sevlet.test.HttpResponse;
 import com.agapsys.sevlet.test.ServletContainer;
-import com.agapsys.web.toolkit.AbstractExceptionReporterModule;
 import com.agapsys.web.toolkit.AbstractErrorServlet;
+import com.agapsys.web.toolkit.AbstractExceptionReporterModule;
 import com.agapsys.web.toolkit.DefaultFilter;
 import com.agapsys.web.toolkit.SmtpExceptionReporterModule;
 import com.agapsys.web.toolkit.SmtpModule;
@@ -43,11 +43,6 @@ public class SmtpExceptionReporterTest {
 		}
 
 		@Override
-		protected boolean isDirectoryCreationEnabled() {
-			return true;
-		}
-
-		@Override
 		protected boolean isPropertiesFileCreationEnabled() {
 			return true;
 		}
@@ -60,8 +55,8 @@ public class SmtpExceptionReporterTest {
 		@Override
 		protected void beforeApplicationStart() {
 			super.beforeApplicationStart();
-			registerModule(SmtpModule.class);
-			registerModule(SmtpExceptionReporterModule.class);
+			registerModule(SmtpModule.DEFAULT_MODULE_ID, SmtpModule.class);
+			registerModule(AbstractExceptionReporterModule.DEFAULT_MODULE_ID, SmtpExceptionReporterModule.class);
 		}
 	}
 	

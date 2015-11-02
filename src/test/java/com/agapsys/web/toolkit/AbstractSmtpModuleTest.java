@@ -28,10 +28,6 @@ public class AbstractSmtpModuleTest {
 	// CLASS SCOPE =============================================================
 	private static class TestSmtpModule extends AbstractSmtpModule {
 		private boolean methodCalled = false;
-
-		public TestSmtpModule(AbstractApplication application) {
-			super(application);
-		}
 		
 		@Override
 		protected void onSendMessage(Message message) {
@@ -50,7 +46,7 @@ public class AbstractSmtpModuleTest {
 	
 	@Before
 	public void before() {
-		module = new TestSmtpModule(new TestApplication());
+		module = new TestSmtpModule();
 	}
 	
 	@Test(expected = IllegalArgumentException.class)
@@ -72,7 +68,7 @@ public class AbstractSmtpModuleTest {
 	public void sendMessageWhileRunning() {
 		Utils.printCurrentMethod();
 		
-		module.start();
+		module.start(null);
 		module.sendMessage(testMessage);
 		Assert.assertTrue(module.methodCalled);
 	}

@@ -27,10 +27,6 @@ public class AbstractPersistenceModuleTest {
 	private static class TestPersistenceModule extends AbstractPersistenceModule {
 		private boolean methodCalled = false;
 
-		public TestPersistenceModule(AbstractApplication application) {
-			super(application);
-		}
-		
 		@Override
 		protected EntityManager getAppEntityManager() {
 			methodCalled = true;
@@ -44,7 +40,7 @@ public class AbstractPersistenceModuleTest {
 	
 	@Before
 	public void before() {
-		module = new TestPersistenceModule(new TestApplication());
+		module = new TestPersistenceModule();
 	}
 	
 	@Test
@@ -66,7 +62,7 @@ public class AbstractPersistenceModuleTest {
 	public void testGetEntityManagerWhileRunning() {
 		Utils.printCurrentMethod();
 		
-		module.start();
+		module.start(null);
 		Assert.assertNull(module.getEntityManager());
 		Assert.assertTrue(module.methodCalled);
 	}
