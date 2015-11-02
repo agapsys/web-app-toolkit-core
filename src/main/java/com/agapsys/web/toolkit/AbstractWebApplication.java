@@ -230,6 +230,11 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 		return (AbstractModule) singletonManager.getSingleton(id);
 	}
 	
+	/** Registers a singleton with an associated ID. */
+	public void registerSingleton(String id, Class<? extends Singleton> singletonClass) {
+		singletonManager.registerSingleton(id, singletonClass);
+	}
+	
 	/**
 	 * Returns a singleton instance of given class
 	 * @param singletonClass class
