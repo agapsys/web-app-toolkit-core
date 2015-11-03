@@ -209,15 +209,23 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 		
 	/**
 	 * Registers a singleton with application.
-	 * @param id ID associated with given class
-	 * @param moduleClass singleton class to be registered
+	 * @param moduleClass module class to be registered
 	 */
-	public void registerModule(String id, Class<? extends AbstractModule> moduleClass) {
+	public void registerModule(Class<? extends AbstractModule> moduleClass) {
 		if (isRunning())
 			throw new IllegalStateException("Cannot add a module to a running application");
 		
-		singletonManager.registerSingleton(id, moduleClass);
-		moduleClassSet.add(moduleClass);
+		if (!moduleClassSet.add(moduleClass)) {
+			throw new IllegalArgumentException("Module class already registered: " + moduleClass.getName());
+		}
+	}
+	
+	public void registerModuleAlias(Class<? extends AbstractModule> moduleAlias, Class<? extends AbstractModule> targetClass) {
+		singletonManager.registerSingletonAlias(moduleAlias, targetClass);
+		
+		if (!moduleClassSet.contains(moduleAlias)) {
+			moduleClassSet.add(moduleAlias);
+		}
 	}
 	
 	/**

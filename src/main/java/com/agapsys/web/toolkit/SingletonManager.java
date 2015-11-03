@@ -34,40 +34,40 @@ public class SingletonManager {
 	private final Map<Class<? extends Singleton>, Singleton>                  INSTANCE_MAP = new LinkedHashMap<>();
 	private final Map<Class<? extends Singleton>, Class<? extends Singleton>> ALIAS_MAP    = new LinkedHashMap<>();
 	
-	public synchronized void registerSingletonAlias(Class<? extends Singleton> aliasClass, Class<? extends Singleton> singletonClass) {
-		if (aliasClass == null)
+	public synchronized void registerSingletonAlias(Class<? extends Singleton> singletonAlias, Class<? extends Singleton> targetSingleton) {
+		if (singletonAlias == null)
 			throw new IllegalArgumentException("Null alias class");
 		
-		if (singletonClass == null)
+		if (targetSingleton == null)
 			throw new IllegalArgumentException("Null singleton class");
 		
-		if (!singletonClass.isAssignableFrom(aliasClass))
-			throw new IllegalArgumentException(String.format("%s cannot be cast to %s", singletonClass.getName(), aliasClass.getName()));
+		if (!targetSingleton.isAssignableFrom(singletonAlias))
+			throw new IllegalArgumentException(String.format("%s cannot be cast to %s", targetSingleton.getName(), singletonAlias.getName()));
 		
-		ALIAS_MAP.put(aliasClass, singletonClass);
+		ALIAS_MAP.put(singletonAlias, targetSingleton);
 	}
 	
 	public synchronized <T extends Singleton> T getSingleton(Class<T> singletonClass) {
 		try {
-			Class<? extends Singleton> destClass = ALIAS_MAP.get(singletonClass);
-			Singleton destSingleton = null;
+			Class<? extends Singleton> targetClass = ALIAS_MAP.get(singletonClass);
 			
-			if (destClass == null) {
+			if (targetClass == null) {
 				// First attempt to get a singleton without an alias...
 				ALIAS_MAP.put(singletonClass, singletonClass);
-				destClass = singletonClass;
+				targetClass = singletonClass;
 			}
 			
-			if (destClass.equals(singletonClass)) {
-				destSingleton = INSTANCE_MAP.get(destClass);
+			Singleton targetSingleton = INSTANCE_MAP.get(singletonClass);
+			if (targetSingleton != null && !targetSingleton.getClass().equals(targetClass)) {
+				targetSingleton = null;
 			}
 			
-			if (destSingleton == null) {
-				destSingleton = destClass.getConstructor().newInstance();
-				INSTANCE_MAP.put(singletonClass, destSingleton);
+			if (targetSingleton == null) {
+				targetSingleton = targetClass.getConstructor().newInstance();
+				INSTANCE_MAP.put(singletonClass, targetSingleton);
 			}
 			
-			return (T) destSingleton;
+			return (T) targetSingleton;
 		} catch (
 				NoSuchMethodException | 
 				SecurityException | 
