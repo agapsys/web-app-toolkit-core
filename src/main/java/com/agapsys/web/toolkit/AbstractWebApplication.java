@@ -227,7 +227,7 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 			throw new IllegalStateException("Cannot register a module into a running application");
 		
 		singletonManager.registerSingletonAlias(moduleAlias, targetClass);
-		
+		// TODO check if exception throw is useful in a testing environment
 		if (!moduleClassSet.add(moduleAlias)) {
 			throw new IllegalArgumentException("Module alias already registered: " + moduleAlias.getName());
 		}
