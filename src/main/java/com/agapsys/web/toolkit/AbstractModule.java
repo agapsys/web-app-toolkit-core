@@ -17,6 +17,7 @@ package com.agapsys.web.toolkit;
 
 import com.agapsys.web.toolkit.SingletonManager.Singleton;
 import java.util.Properties;
+import java.util.Set;
 
 /**
  * Basic module
@@ -24,6 +25,11 @@ import java.util.Properties;
  */
 public abstract class AbstractModule implements Singleton{
 	private boolean running = false;
+	
+	// TODO!!!!
+	public Set<Class<? extends AbstractModule>> getDependencies() {
+		return null;
+	}
 	
 	/**
 	 * Convenience method to get application singleton.

@@ -208,33 +208,38 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	}
 		
 	/**
-	 * Registers a singleton with application.
+	 * Registers a module with application.
+	 * This is a convenience method for registerModule(moduleClass, moduleClass).
 	 * @param moduleClass module class to be registered
 	 */
 	public void registerModule(Class<? extends AbstractModule> moduleClass) {
-		if (isRunning())
-			throw new IllegalStateException("Cannot add a module to a running application");
-		
-		if (!moduleClassSet.add(moduleClass)) {
-			throw new IllegalArgumentException("Module class already registered: " + moduleClass.getName());
-		}
+		registerModule(moduleClass, moduleClass);
 	}
 	
-	public void registerModuleAlias(Class<? extends AbstractModule> moduleAlias, Class<? extends AbstractModule> targetClass) {
+	/**
+	 * Registers a module with application.
+	 * This method is useful for testing.
+	 * @param moduleAlias module alias
+	 * @param targetClass module target class. Target class must be either module alias or a subclass of it.
+	 */
+	public void registerModule(Class<? extends AbstractModule> moduleAlias, Class<? extends AbstractModule> targetClass) {
+		if (isRunning())
+			throw new IllegalStateException("Cannot register a module into a running application");
+		
 		singletonManager.registerSingletonAlias(moduleAlias, targetClass);
 		
-		if (!moduleClassSet.contains(moduleAlias)) {
-			moduleClassSet.add(moduleAlias);
+		if (!moduleClassSet.add(moduleAlias)) {
+			throw new IllegalArgumentException("Module alias already registered: " + moduleAlias.getName());
 		}
 	}
 	
 	/**
-	 * Returns a singleton registered with this application.
-	 * @param id singleton ID
-	 * @return singleton instance
+	 * Returns a module registered with this application.
+	 * @param moduleClass module class
+	 * @return moduleAlias instance
 	 */
-	public AbstractModule getModule(String id) {
-		return (AbstractModule) singletonManager.getSingleton(id);
+	public <T extends AbstractModule> T getModule(Class<T> moduleClass) {
+		return singletonManager.getSingleton(moduleClass);
 	}
 	
 	/** 
