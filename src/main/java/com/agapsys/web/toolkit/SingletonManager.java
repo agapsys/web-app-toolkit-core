@@ -31,40 +31,43 @@ public class SingletonManager {
 	// =========================================================================
 	
 	// INSTANCE SCOPE ==========================================================
-	private final Map<Class<? extends Singleton>, Singleton> CLASS_INSTANCE_MAP = new LinkedHashMap<>();
-	private final Map<String, Class<? extends Singleton>>    ID_CLASS_MAP       = new LinkedHashMap<>();
-	private final Map<String, Singleton>                     ID_INSTANCE_MAP    = new LinkedHashMap<>();
+	private final Map<Class<? extends Singleton>, Singleton>                  INSTANCE_MAP = new LinkedHashMap<>();
+	private final Map<Class<? extends Singleton>, Class<? extends Singleton>> ALIAS_MAP    = new LinkedHashMap<>();
 	
-	public void registerSingleton(String id, Class<? extends Singleton> singletonClass) {
-		if (id == null || id.trim().isEmpty())
-			throw new IllegalArgumentException("Null/Empty ID");
-	
+	public synchronized void registerSingletonAlias(Class<? extends Singleton> aliasClass, Class<? extends Singleton> singletonClass) {
+		if (aliasClass == null)
+			throw new IllegalArgumentException("Null alias class");
+		
 		if (singletonClass == null)
 			throw new IllegalArgumentException("Null singleton class");
 		
-		if (ID_CLASS_MAP.put(id, singletonClass) != null)
-			throw new IllegalArgumentException("ID is already assigned: " + id);
-	}
-
-	public Class<? extends Singleton> getSingletonClass(String id) {
-		return ID_CLASS_MAP.get(id);
+		if (!singletonClass.isAssignableFrom(aliasClass))
+			throw new IllegalArgumentException(String.format("%s cannot be cast to %s", singletonClass.getName(), aliasClass.getName()));
+		
+		ALIAS_MAP.put(aliasClass, singletonClass);
 	}
 	
-	public void clear() {
-		ID_CLASS_MAP.clear();
-		ID_INSTANCE_MAP.clear();
-		CLASS_INSTANCE_MAP.clear();
-	}
-
-	public synchronized Singleton getSingleton(Class<? extends Singleton> singletonClass) {
+	public synchronized <T extends Singleton> T getSingleton(Class<T> singletonClass) {
 		try {
-			Singleton singleton = CLASS_INSTANCE_MAP.get(singletonClass);
-		
-			if (singleton == null)
-				singleton = singletonClass.getConstructor().newInstance();
+			Class<? extends Singleton> destClass = ALIAS_MAP.get(singletonClass);
+			Singleton destSingleton = null;
 			
-			CLASS_INSTANCE_MAP.put(singletonClass, singleton);
-			return singleton;
+			if (destClass == null) {
+				// First attempt to get a singleton without an alias...
+				ALIAS_MAP.put(singletonClass, singletonClass);
+				destClass = singletonClass;
+			}
+			
+			if (destClass.equals(singletonClass)) {
+				destSingleton = INSTANCE_MAP.get(destClass);
+			}
+			
+			if (destSingleton == null) {
+				destSingleton = destClass.getConstructor().newInstance();
+				INSTANCE_MAP.put(singletonClass, destSingleton);
+			}
+			
+			return (T) destSingleton;
 		} catch (
 				NoSuchMethodException | 
 				SecurityException | 
@@ -76,25 +79,10 @@ public class SingletonManager {
 			throw new RuntimeException(ex);
 		}
 	}
-	
-	public synchronized Singleton getSingleton(String id) {
-		if (id == null || id.trim().isEmpty())
-			throw new IllegalArgumentException("Null/Empty ID");
 		
-		Singleton singleton = ID_INSTANCE_MAP.get(id);
-		
-		if (singleton == null) {
-			Class<? extends Singleton> singletonClass = ID_CLASS_MAP.get(id);
-
-			if (singletonClass == null)
-				throw new IllegalArgumentException("ID is not registered: " + id);
-
-			singleton = getSingleton(singletonClass);
-
-			ID_INSTANCE_MAP.put(id, singleton);
-		}
-		
-		return singleton;
+	public void clear() {
+		ALIAS_MAP.clear();
+		INSTANCE_MAP.clear();
 	}
 	// =========================================================================
 }
