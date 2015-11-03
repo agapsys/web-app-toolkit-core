@@ -20,7 +20,7 @@ import com.agapsys.http.HttpGet;
 import com.agapsys.http.HttpResponse;
 import com.agapsys.sevlet.test.ApplicationContext;
 import com.agapsys.sevlet.test.ServletContainer;
-import com.agapsys.web.toolkit.Defs;
+import com.agapsys.web.toolkit.WebToolkit;
 import com.agapsys.web.toolkit.ErrorServlet;
 import com.agapsys.web.toolkit.SmtpExceptionReporterModule;
 import com.agapsys.web.toolkit.SmtpModule;
@@ -56,8 +56,8 @@ public class SmtpExceptionReporterTest {
 		@Override
 		protected void beforeApplicationStart() {
 			super.beforeApplicationStart();
-			registerModule(Defs.SMTP_MODULE_ID, SmtpModule.class);
-			registerModule(Defs.EXCEPTION_REPORTER_MODULE_ID, SmtpExceptionReporterModule.class);
+			registerModule(WebToolkit.SMTP_MODULE_ID, SmtpModule.class);
+			registerModule(WebToolkit.EXCEPTION_REPORTER_MODULE_ID, SmtpExceptionReporterModule.class);
 		}
 	}
 	

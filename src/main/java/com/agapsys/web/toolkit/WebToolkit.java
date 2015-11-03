@@ -16,7 +16,7 @@
 
 package com.agapsys.web.toolkit;
 
-public class Defs {
+public class WebToolkit {
 	// CLASS SCOPE =============================================================
 	public static final String PERSISTENCE_MODULE_ID        = "com.agapsys.web.toolkit.persistenceModule";
 	public static final String SMTP_MODULE_ID               = "com.agapsys.web.toolkit.smtpModule";
@@ -24,6 +24,6 @@ public class Defs {
 	// =========================================================================
 
 	// INSTANCE SCOPE ==========================================================
-	private Defs() {}
+	private WebToolkit() {}
 	// =========================================================================
 }
