@@ -17,16 +17,8 @@ package com.agapsys.web.toolkit;
 
 import com.agapsys.mail.Message;
 
-/**
- * E-mail sender module
- * @author Leandro Oliveira (leandro@agapsys.com)
- */
+/** E-mail sender module. */
 public abstract class AbstractSmtpModule extends AbstractModule {
-	@Override
-	public String getTitle() {
-		return "SMTP module";
-	}
-
 	/**
 	 * Actual message sending code.
 	 * This method will be called only when module is running.
@@ -37,9 +29,8 @@ public abstract class AbstractSmtpModule extends AbstractModule {
 	/** 
 	 * Sends a email message.
 	 * @param message message to be sent
-	 * @throws IllegalStateException if module is not running
 	 */
-	public final void sendMessage(Message message) throws IllegalStateException {
+	public final void sendMessage(Message message) {
 		if (message == null)
 			throw new IllegalArgumentException("null message");
 			

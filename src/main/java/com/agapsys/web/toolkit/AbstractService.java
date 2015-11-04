@@ -13,74 +13,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.agapsys.web.toolkit;
 
-import java.util.Properties;
-
-/** Basic module implementation. */
-public abstract class AbstractModule implements Module{
+/** Basic service implementation. */
+public abstract class AbstractService implements Service {
 	private AbstractWebApplication webApp;
 	
-	@Override
-	public final boolean isRunning() {
+	private boolean isInitialized() {
 		return webApp != null;
 	}
 	
 	@Override
-	public final void start(AbstractWebApplication webApp) {
-		if (isRunning())
-			throw new IllegalStateException("Module is already running");
-		
+	public final void init(AbstractWebApplication webApp) {
+		if (isInitialized())
+			throw new IllegalStateException("Service was already initialized");
+			
 		if (webApp == null)
 			throw new IllegalArgumentException("Null web application");
 		
 		this.webApp = webApp;
-		onStart(webApp);
+		onInit(webApp);
 	}
 	
-	/** 
-	 * Called upon module initialization.
-	 * @param webApp application managing this module
-	 */
-	protected abstract void onStart(AbstractWebApplication webApp);
-	
-	@Override
-	public final void stop() {
-		if (!isRunning())
-			throw new IllegalStateException("Module is not running");
-		
-		onStop();
-		
-		this.webApp = null;
-	}
-	
-	/**
-	 * Actual module shutdown code.
-	 * Default implementation does nothing.
-	 */
-	protected abstract void onStop();
-	
-	@Override
-	public Properties getDefaultProperties() {
-		return null;
-	}
-	
-	/**
-	 * Return required modules used by this module.
-	 * @return required modules used by this module. Default implementation
-	 * returns null.
-	 */
-	@Override
-	public Module[] getDependencies() {
-		return null;
-	}
-	
+	/** Called upon module initialization. Default implementation does nothing. */
+	protected void onInit(AbstractWebApplication webApp) {}
+
 	@Override
 	public final AbstractWebApplication getWebApplication() {
 		return webApp;
 	}
-	
-	
+
 	@Override
 	public final <T extends Module> T getModule(Class<T> module) {
 		return webApp.getModule(module);

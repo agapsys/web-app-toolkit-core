@@ -42,12 +42,6 @@ public class RuntimePersistenceModule extends PersistenceModule {
 
 	// INSTANCE SCOPE ==========================================================
 	private EntityManagerFactory emf = null;
-
-	@Override
-	public String getTitle() {
-		return "Runtime persistence Module";
-	}
-	
 	
 	protected String getDefaultJdbcDriverFilename() {
 		return DEFAULT_JDBC_DRIVER_FILENAME;
@@ -70,7 +64,7 @@ public class RuntimePersistenceModule extends PersistenceModule {
 	}
 	
 	@Override
-	public Properties getDefaultSettings() {
+	public Properties getDefaultProperties() {
 		Properties properties = new Properties();
 		
 		String defaultJdbcDriverFilename = getDefaultJdbcDriverFilename();

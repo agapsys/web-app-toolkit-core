@@ -77,7 +77,7 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	// =========================================================================
 	
 	// INSTANCE SCOPE ==========================================================
-	private final Set<Class<? extends AbstractModule>> moduleClassSet = new LinkedHashSet<>();
+	private final Set<Class<? extends Module>> moduleClassSet = new LinkedHashSet<>();
 	
 	private final Properties       properties       = new Properties();
 	private final SingletonManager singletonManager = new SingletonManager();
@@ -118,7 +118,7 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	 * Return a boolean indicating if application is running.
 	 * @return a boolean indicating if application is running.
 	 */
-	public boolean isRunning() {
+	public final boolean isRunning() {
 		return running;
 	}
 	
@@ -126,7 +126,7 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	 * Returns a boolean indicating if application is disabled.
 	 * @return a boolean indicating if application is disabled.
 	 */
-	public boolean isDisabled() {
+	public final boolean isDisabled() {
 		return disabled;
 	}
 	
@@ -135,7 +135,7 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	 * @param req HTTP request
 	 * @return boolean indicating if given request is allowed to proceed.
 	 */
-	public boolean isOriginAllowed(HttpServletRequest req) {
+	public final boolean isOriginAllowed(HttpServletRequest req) {
 		boolean isOriginAllowed = allowedOrigins.length == 1 && allowedOrigins[0].equals(DEFAULT_APP_ALLOWED_ORIGINS);
 		
 		if (isOriginAllowed)
@@ -206,41 +206,66 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 		
 		return appDirectory;
 	}
-		
+	
+	
 	/**
 	 * Registers a module with application.
 	 * This is a convenience method for registerModule(moduleClass, moduleClass).
 	 * @param moduleClass module class to be registered
 	 */
-	public void registerModule(Class<? extends AbstractModule> moduleClass) {
-		registerModule(moduleClass, moduleClass);
-	}
-	
-	/**
-	 * Registers a module with application.
-	 * This method is useful for testing.
-	 * @param moduleAlias module alias
-	 * @param targetClass module target class. Target class must be either module alias or a subclass of it.
-	 */
-	public void registerModule(Class<? extends AbstractModule> moduleAlias, Class<? extends AbstractModule> targetClass) {
+	public void registerModule(Class<? extends Module> moduleClass) {
 		if (isRunning())
 			throw new IllegalStateException("Cannot register a module into a running application");
 		
-		singletonManager.registerSingletonAlias(moduleAlias, targetClass);
-		// TODO check if exception throw is useful in a testing environment
-		if (!moduleClassSet.add(moduleAlias)) {
-			throw new IllegalArgumentException("Module alias already registered: " + moduleAlias.getName());
-		}
+		if (!moduleClassSet.add(moduleClass))
+			throw new IllegalArgumentException("Duplicate module: " + moduleClass.getName());
+	}
+	
+	/**
+	 * Registers a module replacement
+	 * This method is useful for testing.
+	 * @param baseClass module base class (will be replaced)
+	 * @param subclass module subclass.
+	 */
+	public void replaceModule(Class<? extends Module> baseClass, Class<? extends Module> subclass) {
+		if (isRunning())
+			throw new IllegalStateException("Cannot register a module into a running application");
+		
+		singletonManager.replaceSingleton(baseClass, subclass);
+		
+		moduleClassSet.add(baseClass);
 	}
 	
 	/**
 	 * Returns a module registered with this application.
 	 * @param moduleClass module class
-	 * @return moduleAlias instance
+	 * @return module instance
 	 */
-	public <T extends AbstractModule> T getModule(Class<T> moduleClass) {
+	public <T extends Module> T getModule(Class<T> moduleClass) {
 		return singletonManager.getSingleton(moduleClass);
 	}
+	
+	
+	/**
+	 * Returns a service instance.
+	 * @param <T> returned type
+	 * @param serviceClass expected service class
+	 * @return service instance.
+	 */
+	public <T extends Service> T getService(Class<T> serviceClass) {
+		return singletonManager.getSingleton(serviceClass);
+	}
+	
+	/**
+	 * Replaces a service by a subclass of it.
+	 * This method is useful for testing.
+	 * @param baseclass service base class
+	 * @param subclass service subclass.
+	 */
+	public void replaceService(Class<? extends Service> baseclass, Class<? extends Service> subclass) {
+		singletonManager.replaceSingleton(baseclass, subclass);
+	}
+	
 	
 	/** 
 	 * Returns application properties.
@@ -312,12 +337,12 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 		// Apply modules default properties (keeping existing)...
 		List<PropertyGroup> propertyGroups = new LinkedList<>();
 		
-		for (Class<? extends AbstractModule> moduleClass : moduleClassSet) {
-			AbstractModule module = (AbstractModule) singletonManager.getSingleton(moduleClass);
-			Properties defaultModuleProperties = module.getDefaultSettings();
+		for (Class<? extends Module> moduleClass : moduleClassSet) {
+			Module module = (Module) singletonManager.getSingleton(moduleClass);
+			Properties defaultModuleProperties = module.getDefaultProperties();
 			
 			if (defaultModuleProperties != null && !defaultModuleProperties.isEmpty()) {
-				propertyGroups.add(new PropertyGroup(defaultModuleProperties, module.getTitle()));
+				propertyGroups.add(new PropertyGroup(defaultModuleProperties, module.getClass().getName()));
 				
 				for (Map.Entry<Object, Object> defaultEntry : defaultModuleProperties.entrySet()) {
 					Object appPropertyValue = properties.putIfAbsent(defaultEntry.getKey(), defaultEntry.getValue());
@@ -361,11 +386,7 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 		}
 	}
 	
-	/** 
-	 * Puts application into running state.
-	 * If application is already running, nothing happens
-	 * In a web environment, this method will be called by {@linkplain AbstractWebApplication#contextInitialized(ServletContextEvent)}
-	 */
+	/** Starts this application. */
 	private void start() {
 		if (!isRunning()) {
 			String name = getName();
@@ -404,7 +425,7 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 			// Starts all modules
 			startModules();
 			
-			afterApplicationStart();
+			_afterApplicationStart();
 			running = true;
 			log(LogType.INFO, "====== AGAPSYS WEB TOOLKIT IS READY! ======");
 		}
@@ -412,25 +433,30 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	
 	/** 
 	 * Called before application is initialized.
-	 * Default implementation does nothing. This is the place to register modules and singletons with the application.
+	 * Default implementation does nothing. 
+	 * This is the place to register modules with the application.
 	 */
 	protected void beforeApplicationStart() {}
 	
-	/** Called after application is initialized. */
-	protected void afterApplicationStart() {
+	/** Loads application-specific properties. */
+	private void _afterApplicationStart() {
 		disabled = Boolean.parseBoolean(getProperties().getProperty(KEY_APP_DISABLE, "" + DEFAULT_APP_DISABLED));
 		allowedOrigins = getProperties().getProperty(KEY_APP_ALLOWED_ORIGINS, AbstractWebApplication.DEFAULT_APP_ALLOWED_ORIGINS).split(Pattern.quote(ORIGIN_DELIMITER));
 		
 		for (int i = 0; i < allowedOrigins.length; i++) {
 			allowedOrigins[i] = allowedOrigins[i].trim();
 		}
+		afterApplicationStart();
 	}
 	
-	/**
-	 * Forces application shutdown.
-	 * If application is not running, nothing happens.
-	 * In a web environment, this method will be called by {@linkplain AbstractWebApplication#contextDestroyed(ServletContextEvent)}
+	/** 
+	 * Called after application is initialized.
+	 * During this phase all modules associated with this application are running.
+	 * Default implementation does nothing.
 	 */
+	protected void afterApplicationStart() {}
+	
+	/** Stops this application. */
 	private void stop() {
 		if (isRunning()) {
 			String environment = getEnvironment();
@@ -447,24 +473,32 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	
 	/**
 	 * Called before application shutdown.
+	 * During this phase all modules are accessible.
 	 * Default implementation does nothing.
 	 */
 	protected void beforeApplicationStop() {}
 	
 	/** 
 	 * Called after application is stopped.
+	 * During this phase there is no active modules associated with this application.
 	 * Default implementation does nothing.
 	 */
 	protected void afterApplicationStop() {}
 	
 	@Override
 	public final void contextInitialized(ServletContextEvent sce) {
+		if (singleton != null)
+			throw new RuntimeException("Only one web application instance is allowed to run");
+		
 		start();
 		singleton = this;
 	}
 
 	@Override
 	public final void contextDestroyed(ServletContextEvent sce) {
+		if (singleton == null)
+			throw new RuntimeException("Application is not running");
+		
 		stop();
 		singleton = null;
 	}

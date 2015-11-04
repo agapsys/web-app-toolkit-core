@@ -17,16 +17,8 @@ package com.agapsys.web.toolkit;
 
 import javax.persistence.EntityManager;
 
-/**
- * Persistence module
- * @author Leandro Oliveira (leandro@agapsys.com)
- */
+/** Persistence module. */
 public abstract class AbstractPersistenceModule extends AbstractModule {
-	@Override
-	public String getTitle() {
-		return "Persistence module";
-	}
-
 	/**
 	 * Returns an entity manager to be used by application.
 	 * This method will be called only when module is running.
@@ -37,9 +29,8 @@ public abstract class AbstractPersistenceModule extends AbstractModule {
 	/**
 	 * Returns an entity manager to be used by application.
 	 * @return an entity manager to be used by application.
-	 * @throws IllegalStateException if module is not running
 	 */
-	public final EntityManager getEntityManager() throws IllegalStateException {
+	public final EntityManager getEntityManager() {
 		if (!isRunning())
 			throw new IllegalStateException("Module is not running");
 		

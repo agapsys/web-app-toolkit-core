@@ -75,7 +75,7 @@ public class ExceptionReporterModule extends AbstractExceptionReporterModule {
 	}
 	
 	@Override
-	public Properties getDefaultSettings() {
+	public Properties getDefaultProperties() {
 		Properties properties = new Properties();
 		
 		String defaultNodeName = getDefaultNodeName();
@@ -170,8 +170,8 @@ public class ExceptionReporterModule extends AbstractExceptionReporterModule {
 		String msg =
 			"An error was detected"
 			+ "\n\n"
-			+ "Application: "          + getApplication().getName() + "\n"
-			+ "Application version: "  + getApplication().getVersion() + "\n"
+			+ "Application: "          + getWebApplication().getName() + "\n"
+			+ "Application version: "  + getWebApplication().getVersion() + "\n"
 			+ "Node name: "            + getNodeName() + "\n\n"
 			+ "Server timestamp: "     + DateUtils.getLocalTimestamp() + "\n"
 			+ "Error message: "        + throwable.getMessage() + "\n"
@@ -209,7 +209,7 @@ public class ExceptionReporterModule extends AbstractExceptionReporterModule {
 				String originalRequestStr = (String) req.getAttribute(WebApplicationFilter.ATTR_ORIGINAL_REQUEST_URI);
 				reportErrorMessage(getErrorMessage(t, req, originalRequestStr));
 			} else {
-				getApplication().log(LogType.ERROR, "Application error (already reported): %s", t.getMessage());
+				getWebApplication().log(LogType.ERROR, "Application error (already reported): %s", t.getMessage());
 			}
 		}
 	}
@@ -219,7 +219,7 @@ public class ExceptionReporterModule extends AbstractExceptionReporterModule {
 	 * @param message complete error message
 	 */
 	protected void reportErrorMessage(String message) {
-		getApplication().log(LogType.ERROR, "Application error:\n----\n%s\n----", message);
+		getWebApplication().log(LogType.ERROR, "Application error:\n----\n%s\n----", message);
 	}
 	// =========================================================================
 }

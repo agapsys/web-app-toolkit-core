@@ -94,11 +94,6 @@ public class SmtpExceptionReporterModule extends ExceptionReporterModule {
 	private InternetAddress[] recipients = null;
 	private String            subject    = null;
 
-	@Override
-	public String getTitle() {
-		return "SMTP exception reporter module";
-	}
-
 	
 	/**
 	 * Returns the default subject for messaged sent by the module
@@ -118,8 +113,8 @@ public class SmtpExceptionReporterModule extends ExceptionReporterModule {
 	
 	
 	@Override
-	public Properties getDefaultSettings() {
-		Properties properties = super.getDefaultSettings();
+	public Properties getDefaultProperties() {
+		Properties properties = super.getDefaultProperties();
 		
 		String defaultSubject = getDefaultSubject();
 		if (defaultSubject == null || defaultSubject.trim().isEmpty())
@@ -184,9 +179,9 @@ public class SmtpExceptionReporterModule extends ExceptionReporterModule {
 	protected void reportErrorMessage(String message) {
 		super.reportErrorMessage(message);
 		
-		SmtpModule smtpModule =  (SmtpModule) getApplication().getModule(WebToolkit.SMTP_MODULE_ID);
+		SmtpModule smtpModule =  getModule(SmtpModule.class);
 		
-		String finalSubject = getSubject().replaceAll(Pattern.quote(APP_NAME_TOKEN), getApplication().getName());
+		String finalSubject = getSubject().replaceAll(Pattern.quote(APP_NAME_TOKEN), getWebApplication().getName());
 
 		Message msg = new MessageBuilder(smtpModule.getSender(), getRecipients())
 			.setSubject(finalSubject).setText(message).build();

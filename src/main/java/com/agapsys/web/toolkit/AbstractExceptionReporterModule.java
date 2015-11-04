@@ -19,10 +19,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import javax.servlet.http.HttpServletRequest;
 
-/**
- * Represents an exception reporter
- * @author Leandro Oliveira (leandro@agapsys.com)
- */
+/** Represents an exception reporter. */
 public abstract class AbstractExceptionReporterModule extends AbstractModule {
 	// CLASS SCOPE =============================================================
 	/** 
@@ -38,12 +35,6 @@ public abstract class AbstractExceptionReporterModule extends AbstractModule {
 	// =========================================================================
 	
 	// INSTANCE SCOPE ==========================================================
-
-	@Override
-	public String getTitle() {
-		return "Exception reporter module";
-	}
-	
 	/**
 	 * Actual exception report code.
 	 * This method will be called only when module is running.
@@ -56,9 +47,8 @@ public abstract class AbstractExceptionReporterModule extends AbstractModule {
 	 * Reports an error in the application.
 	 * @param t exception to be reported
 	 * @param req HTTP request which thrown the exception
-	 * @throws IllegalStateException if module is not running
 	 */
-	public final void reportException(Throwable t, HttpServletRequest req) throws IllegalStateException {
+	public final void reportException(Throwable t, HttpServletRequest req) {
 		if (t == null)
 			throw new IllegalArgumentException("null throwable");
 		

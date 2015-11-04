@@ -56,8 +56,8 @@ public class SmtpExceptionReporterTest {
 		@Override
 		protected void beforeApplicationStart() {
 			super.beforeApplicationStart();
-			registerModule(WebToolkit.SMTP_MODULE_ID, SmtpModule.class);
-			registerModule(WebToolkit.EXCEPTION_REPORTER_MODULE_ID, SmtpExceptionReporterModule.class);
+			replaceModule(WebToolkit.SMTP_MODULE_ID, SmtpModule.class);
+			replaceModule(WebToolkit.EXCEPTION_REPORTER_MODULE_ID, SmtpExceptionReporterModule.class);
 		}
 	}
 	

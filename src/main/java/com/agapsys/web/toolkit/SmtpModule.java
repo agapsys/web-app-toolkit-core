@@ -149,7 +149,7 @@ public class SmtpModule extends AbstractSmtpModule {
 	}
 	
 	@Override
-	public Properties getDefaultSettings() {
+	public Properties getDefaultProperties() {
 		Properties properties = new Properties();
 		
 		InternetAddress defaultSender = getDefaultSender();
@@ -238,7 +238,7 @@ public class SmtpModule extends AbstractSmtpModule {
 	 * @param message message
 	 */
 	protected void onError(MessagingException ex, Message message) {
-		try (PrintStream ps = new PrintStream(new FileOutputStream(new File(getApplication().getDirectory(), getSmtpErrorLogFilename()), true))) {
+		try (PrintStream ps = new PrintStream(new FileOutputStream(new File(getWebApplication().getDirectory(), getSmtpErrorLogFilename()), true))) {
 			ps.print(getErrorString(ex, message));
 		} catch (IOException e) {
 			throw new RuntimeException(e);
