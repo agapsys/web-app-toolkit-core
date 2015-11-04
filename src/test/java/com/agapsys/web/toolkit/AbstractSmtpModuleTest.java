@@ -33,6 +33,12 @@ public class AbstractSmtpModuleTest {
 		protected void onSendMessage(Message message) {
 			methodCalled = true;
 		}
+
+		@Override
+		protected void onStart(AbstractWebApplication webApp) {}
+
+		@Override
+		protected void onStop() {}
 	}
 	// =========================================================================
 

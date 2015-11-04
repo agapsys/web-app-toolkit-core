@@ -52,6 +52,12 @@ public class AbstractExceptionReporterModuleTest {
 		protected void onExceptionReport(Throwable t, HttpServletRequest req) {
 			methodCalled = true;
 		}
+
+		@Override
+		protected void onStart(AbstractWebApplication webApp) {}
+
+		@Override
+		protected void onStop() {}
 	}
 	// =========================================================================
 

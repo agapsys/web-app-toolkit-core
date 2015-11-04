@@ -38,7 +38,7 @@ public class SingletonManager {
 		if (subclass == null)
 			throw new IllegalArgumentException("Null singleton class");
 		
-		if (!subclass.isAssignableFrom(baseClass))
+		if (!baseClass.isAssignableFrom(subclass))
 			throw new IllegalArgumentException(String.format("%s cannot be cast to %s", subclass.getName(), baseClass.getName()));
 		
 		ALIAS_MAP.put(baseClass, subclass);
@@ -63,7 +63,7 @@ public class SingletonManager {
 			}
 			
 			Singleton targetSingleton = INSTANCE_MAP.get(singletonClass);
-			if (targetSingleton != null && !targetSingleton.getClass().equals(targetClass)) {
+			if (targetSingleton != null && targetSingleton.getClass() != targetClass) {
 				targetSingleton = null;
 			}
 			

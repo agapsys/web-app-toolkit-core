@@ -32,6 +32,12 @@ public class AbstractPersistenceModuleTest {
 			methodCalled = true;
 			return null;
 		}
+
+		@Override
+		protected void onStart(AbstractWebApplication webApp) {}
+
+		@Override
+		protected void onStop() {}
 	}
 	// =========================================================================
 

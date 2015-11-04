@@ -37,7 +37,7 @@ public class AbstractWebApplicationTest  {
 		@Override
 		protected void onStop() {
 			super.onStop();
-			((WebApplicationBase)getApplication()).onPersistenceModuleStopCalled = true;
+			((WebApplicationBase)getWebApplication()).onPersistenceModuleStopCalled = true;
 		}
 	}
 	
@@ -53,7 +53,7 @@ public class AbstractWebApplicationTest  {
 		@Override
 		protected void onStop() {
 			super.onStop();
-			((WebApplicationBase)getApplication()).onExceptionReporterModuleStopCalled = true;
+			((WebApplicationBase)getWebApplication()).onExceptionReporterModuleStopCalled = true;
 		}
 	}
 		
@@ -69,7 +69,7 @@ public class AbstractWebApplicationTest  {
 		@Override
 		protected void onStop() {
 			super.onStop();
-			((WebApplicationBase)getApplication()).onSmtpModuleStopCalled = true;
+			((WebApplicationBase)getWebApplication()).onSmtpModuleStopCalled = true;
 		}
 	}
 	// -------------------------------------------------------------------------
@@ -170,7 +170,7 @@ public class AbstractWebApplicationTest  {
 		@Override
 		protected void beforeApplicationStart() {
 			super.beforeApplicationStart();
-			registerModule(CustomPersistenceModule.MODULE_ID, CustomPersistenceModule.class);
+			registerModule(CustomPersistenceModule.class);
 		}
 	}
 	
@@ -179,7 +179,7 @@ public class AbstractWebApplicationTest  {
 		@Override
 		protected void beforeApplicationStart() {
 			super.beforeApplicationStart();
-			registerModule(CustomExceptionReporterModule.MODULE_ID, CustomExceptionReporterModule.class);
+			registerModule(CustomExceptionReporterModule.class);
 		}
 	}
 	
@@ -188,7 +188,7 @@ public class AbstractWebApplicationTest  {
 		@Override
 		protected void beforeApplicationStart() {
 			super.beforeApplicationStart();
-			registerModule(CustomSmtpModule.MODULE_ID, CustomSmtpModule.class);
+			registerModule(CustomSmtpModule.class);
 		}
 	}
 	
@@ -197,9 +197,9 @@ public class AbstractWebApplicationTest  {
 		@Override
 		protected void beforeApplicationStart() {
 			super.beforeApplicationStart();
-			registerModule(CustomPersistenceModule.MODULE_ID, CustomPersistenceModule.class);
-			registerModule(CustomSmtpModule.MODULE_ID, CustomSmtpModule.class);
-			registerModule(CustomExceptionReporterModule.MODULE_ID, CustomExceptionReporterModule.class);
+			registerModule(CustomPersistenceModule.class);
+			registerModule(CustomSmtpModule.class);
+			registerModule(CustomExceptionReporterModule.class);
 		}
 	}
 	// -------------------------------------------------------------------------
@@ -288,7 +288,7 @@ public class AbstractWebApplicationTest  {
 		webApp.contextInitialized(null);
 		
 		try {
-			AbstractPersistenceModule persistenceModule = (AbstractPersistenceModule) webApp.getModule(CustomPersistenceModule.MODULE_ID);
+			AbstractPersistenceModule persistenceModule = (AbstractPersistenceModule) webApp.getModule(CustomPersistenceModule.class);
 		} catch (IllegalArgumentException ex) {
 			Assert.assertEquals("ID is not registered: " + CustomPersistenceModule.MODULE_ID, ex.getMessage());
 			webApp.contextDestroyed(null);
@@ -307,7 +307,7 @@ public class AbstractWebApplicationTest  {
 		Assert.assertTrue(webApp.isOnPersistenceModuleStartCalled());
 		
 		
-		AbstractPersistenceModule persistenceModule = (AbstractPersistenceModule) webApp.getModule(CustomPersistenceModule.MODULE_ID);
+		AbstractPersistenceModule persistenceModule = (AbstractPersistenceModule) webApp.getModule(CustomPersistenceModule.class);
 		Assert.assertNotNull(persistenceModule.getEntityManager());
 		
 		webApp.contextDestroyed(null);

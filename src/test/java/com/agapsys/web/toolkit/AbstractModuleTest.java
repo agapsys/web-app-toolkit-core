@@ -36,11 +36,6 @@ public class AbstractModuleTest {
 		protected void onStop() {
 			isStopCalled = true;
 		}
-
-		@Override
-		public String getTitle() {
-			return "Test module";
-		}
 	}
 	// =========================================================================
 	
@@ -56,7 +51,7 @@ public class AbstractModuleTest {
 	public void testDefaults() {
 		Utils.printCurrentMethod();
 		
-		Assert.assertNull(module.getDefaultSettings());
+		Assert.assertNull(module.getDefaultProperties());
 		Assert.assertFalse(module.isStartCalled);
 		Assert.assertFalse(module.isStopCalled);
 	}

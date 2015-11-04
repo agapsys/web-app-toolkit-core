@@ -27,6 +27,9 @@ public interface Service extends Singleton {
 	 */
 	public void init(AbstractWebApplication webApp);
 	
+	/** Returns a boolean indicating if this module was initialized. */
+	public boolean isActive();
+	
 	/**
 	 * Return the application managing this module instance
 	 * @return the application managing this module instance.

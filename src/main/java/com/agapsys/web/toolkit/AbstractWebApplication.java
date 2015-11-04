@@ -335,7 +335,11 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	 * @return service instance.
 	 */
 	public <T extends Service> T getService(Class<T> serviceClass) {
-		return singletonManager.getSingleton(serviceClass);
+		T service = singletonManager.getSingleton(serviceClass);
+		if (!service.isActive())
+			service.init(this);
+		
+		return service;
 	}
 	
 	/**

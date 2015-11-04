@@ -16,13 +16,16 @@
 
 package com.agapsys.web.toolkit;
 
-import com.agapsys.web.toolkit.SingletonManager.Singleton;
 import org.junit.Assert;
 import org.junit.Test;
 
 public class SingletonManagerTest {
 	// CLASS SCOPE =============================================================
 	public static class TestSingleton implements Singleton {}
+	
+	public static class CustomTestSingleton extends TestSingleton {}
+	
+	private static class OntherSingleton implements Singleton {}
 	// =========================================================================
 
 	// INSTANCE SCOPE ==========================================================
@@ -36,19 +39,27 @@ public class SingletonManagerTest {
 		Assert.assertTrue(instance1 == instance2);
 	}
 	
-	@Test
-	public void testSingletonWithId() {
+	@Test(expected = IllegalArgumentException.class)
+	public void testInvalidSingletonReplace() {
 		SingletonManager sm = new SingletonManager();
 		
-		sm.registerSingleton("id1", TestSingleton.class);
-		sm.registerSingleton("id2", TestSingleton.class);
+		sm.replaceSingleton(TestSingleton.class, OntherSingleton.class);
+	}
+	
+	@Test
+	public void testSingletonReplace() {
+		SingletonManager sm = new SingletonManager();
+		Object obj = sm.getSingleton(TestSingleton.class);
+		Assert.assertTrue(obj.getClass() == TestSingleton.class);
 		
-		Singleton instance1 = sm.getSingleton(TestSingleton.class);
-		Singleton instance2 = sm.getSingleton("id1");
-		Singleton instance3 = sm.getSingleton("id2");
+		sm.replaceSingleton(TestSingleton.class, CustomTestSingleton.class);
+		obj = sm.getSingleton(TestSingleton.class);
 		
-		Assert.assertTrue(instance1 == instance2);
-		Assert.assertTrue(instance1 == instance3);
+		Assert.assertTrue(obj.getClass() == CustomTestSingleton.class);
+		
+		sm.clearReplacement();
+		obj = sm.getSingleton(TestSingleton.class);
+		Assert.assertTrue(obj.getClass() == TestSingleton.class);
 	}
 	// =========================================================================
 }

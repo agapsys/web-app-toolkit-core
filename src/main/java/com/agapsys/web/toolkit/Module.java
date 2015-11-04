@@ -24,15 +24,6 @@ import java.util.Properties;
  * will have a singleton scope controlled by associated application.
  */
 public interface Module extends Singleton {
-	// CLASS SCOPE =============================================================
-	
-	
-
-	
-	
-	
-	// =========================================================================
-	
 	/** 
 	 * Starts the module.
 	 * @param webApplication application initializing this module.

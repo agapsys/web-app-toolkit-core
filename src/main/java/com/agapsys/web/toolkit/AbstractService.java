@@ -20,13 +20,14 @@ package com.agapsys.web.toolkit;
 public abstract class AbstractService implements Service {
 	private AbstractWebApplication webApp;
 	
-	private boolean isInitialized() {
+	@Override
+	public boolean isActive() {
 		return webApp != null;
 	}
 	
 	@Override
 	public final void init(AbstractWebApplication webApp) {
-		if (isInitialized())
+		if (isActive())
 			throw new IllegalStateException("Service was already initialized");
 			
 		if (webApp == null)
