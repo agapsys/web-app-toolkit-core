@@ -36,15 +36,20 @@ public class ErrorServlet extends HttpServlet {
 	// =========================================================================
 
 	// INSTANCE SCOPE ==========================================================	
+	private <T extends Module> T getModule(Class<T> moduleClass) {
+		return AbstractWebApplication.getInstance().getModule(moduleClass);
+	}
+	
 	@Override
 	protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		Throwable t = getException(req);
 		
 		try {
-			AbstractExceptionReporterModule exceptionReporterModule = (AbstractExceptionReporterModule) AbstractWebApplication.getInstance().getModule(WebToolkit.EXCEPTION_REPORTER_MODULE_ID);
-			if (t != null && exceptionReporterModule != null) {
+			ExceptionReporterModule exceptionReporterModule = getModule(ExceptionReporterModule.class);
+			
+			if (t != null && exceptionReporterModule != null)
 				exceptionReporterModule.reportException(t, req);
-			}
+			
 		} catch (IllegalArgumentException ignored) {
 			// If module is not registered, an exception is thrown.
 		}

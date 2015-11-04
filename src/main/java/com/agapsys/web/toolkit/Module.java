@@ -24,6 +24,14 @@ import java.util.Properties;
  * will have a singleton scope controlled by associated application.
  */
 public interface Module extends Singleton {
+	// CLASS SCOPE =============================================================
+	
+	
+
+	
+	
+	
+	// =========================================================================
 	
 	/** 
 	 * Starts the module.
@@ -53,7 +61,7 @@ public interface Module extends Singleton {
 	 * @return required modules used by this module. Returning either null or
 	 * an empty array has the same effect: Module has no dependency.
 	 */
-	public Module[] getDependencies();
+	public Class<? extends Module>[] getDependencies();
 	
 	/**
 	 * Return the application managing this module instance

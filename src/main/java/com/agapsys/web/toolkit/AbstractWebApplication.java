@@ -78,6 +78,7 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	
 	// INSTANCE SCOPE ==========================================================
 	private final Set<Class<? extends Module>> moduleClassSet = new LinkedHashSet<>();
+	private final List<Module>                 loadedModules  = new LinkedList<>();
 	
 	private final Properties       properties       = new Properties();
 	private final SingletonManager singletonManager = new SingletonManager();
@@ -94,6 +95,7 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	/** Resets application state. */
 	private void reset() {
 		moduleClassSet.clear();
+		loadedModules.clear();
 		properties.clear();
 		singletonManager.clear();
 		
@@ -209,6 +211,26 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	
 	
 	/**
+	 * Registers a module and all transitive dependencies.
+	 * @param moduleClass module class to be registered.
+	 */
+	private void _registerModule(Class<? extends Module> moduleClass) {
+		if (!moduleClassSet.contains(moduleClass)) {
+			
+			Class<? extends Module>[] dependencies = singletonManager.getSingleton(moduleClass).getDependencies();
+			
+			if (dependencies == null)
+				dependencies = new Class[] {};
+			
+			for (Class<? extends Module> dep : dependencies) {
+				_registerModule(dep);
+			}
+			
+			moduleClassSet.add(moduleClass);
+		}
+	}
+	
+	/**
 	 * Registers a module with application.
 	 * This is a convenience method for registerModule(moduleClass, moduleClass).
 	 * @param moduleClass module class to be registered
@@ -217,8 +239,10 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 		if (isRunning())
 			throw new IllegalStateException("Cannot register a module into a running application");
 		
-		if (!moduleClassSet.add(moduleClass))
+		if (moduleClassSet.contains(moduleClass))
 			throw new IllegalArgumentException("Duplicate module: " + moduleClass.getName());
+		
+		_registerModule(moduleClass);
 	}
 	
 	/**
@@ -231,9 +255,9 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 		if (isRunning())
 			throw new IllegalStateException("Cannot register a module into a running application");
 		
+		moduleClassSet.remove(baseClass);
 		singletonManager.replaceSingleton(baseClass, subclass);
-		
-		moduleClassSet.add(baseClass);
+		_registerModule(baseClass);
 	}
 	
 	/**
@@ -242,7 +266,65 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	 * @return module instance
 	 */
 	public <T extends Module> T getModule(Class<T> moduleClass) {
-		return singletonManager.getSingleton(moduleClass);
+		if (moduleClassSet.contains(moduleClass))
+			return singletonManager.getSingleton(moduleClass);
+		
+		return null;
+	}
+	
+	/** 
+	 * Starts a module.
+	 * @param moduleClass module class to be loaded
+	 * @param callerModules recursive caller list.
+	 */
+	private void startModule(Class<? extends Module> moduleClass, List<Class<? extends Module>> callerModules) {
+		if (callerModules == null)
+			callerModules = new LinkedList<>();
+		
+		Module moduleInstance = getModule(moduleClass);
+		
+		if (!moduleInstance.isRunning()) {
+			
+			if (callerModules.contains(moduleClass))
+				throw new RuntimeException("Cyclic dependency on module: " + moduleClass);
+
+			callerModules.add(moduleClass);
+			
+			Class<? extends Module>[] dependencies = moduleInstance.getDependencies();
+			if (dependencies == null)
+				dependencies = new Class[] {};
+			
+			for (Class<? extends Module> dep : dependencies) {
+				startModule(dep, callerModules);
+			}
+
+			moduleInstance.start(this);
+			log(LogType.INFO, "Initialized module: %s", moduleClass.getName());
+
+			loadedModules.add(moduleInstance);
+		}
+	}
+	
+	/** Starts modules. */
+	private void startModules() {
+		if (!moduleClassSet.isEmpty())
+			log(LogType.INFO, "Starting modules...");
+		
+		for (Class<? extends Module> moduleClass : moduleClassSet) {
+			startModule(moduleClass, null);
+		}
+	}
+	
+	/** Shutdown initialized modules in appropriate sequence. */
+	private void shutdownModules() {
+		if (loadedModules.size() > 0)
+			log(LogType.INFO, "Stopping modules...");
+
+		for (int i = loadedModules.size() - 1; i >= 0; i--) {
+			Module module = loadedModules.get(i);
+			module.stop();
+			log(LogType.INFO, "Shutted down module: %s", module.getClass().getName());
+		}
 	}
 	
 	
@@ -362,29 +444,6 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 		}
 	}	
 
-	/** Starts modules. */
-	private void startModules() {
-		if (!moduleClassSet.isEmpty())
-			log(LogType.INFO, "Starting modules...");
-		
-		for (Class<? extends AbstractModule> moduleClass : moduleClassSet) {
-			AbstractModule module = (AbstractModule) singletonManager.getSingleton(moduleClass);
-			module.start(this);
-			log(LogType.INFO, "Module started: %s", module.getTitle());
-		}
-	}
-	
-	/** Shutdown loaded modules. */
-	private void shutdownModules() {
-		if (!moduleClassSet.isEmpty())
-			log(LogType.INFO, "Stopping modules...");
-		
-		for (Class<? extends AbstractModule> moduleClass : moduleClassSet) {
-			AbstractModule module = (AbstractModule) singletonManager.getSingleton(moduleClass);
-			module.stop();
-			log(LogType.INFO, "Shutted down module: %s", module.getTitle());
-		}
-	}
 	
 	/** Starts this application. */
 	private void start() {
@@ -456,6 +515,7 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	 */
 	protected void afterApplicationStart() {}
 	
+	
 	/** Stops this application. */
 	private void stop() {
 		if (isRunning()) {
@@ -484,6 +544,7 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	 * Default implementation does nothing.
 	 */
 	protected void afterApplicationStop() {}
+	
 	
 	@Override
 	public final void contextInitialized(ServletContextEvent sce) {

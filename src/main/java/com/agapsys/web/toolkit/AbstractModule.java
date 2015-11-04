@@ -18,7 +18,7 @@ package com.agapsys.web.toolkit;
 import java.util.Properties;
 
 /** Basic module implementation. */
-public abstract class AbstractModule implements Module{
+public abstract class AbstractModule implements Module {
 	private AbstractWebApplication webApp;
 	
 	@Override
@@ -71,7 +71,7 @@ public abstract class AbstractModule implements Module{
 	 * returns null.
 	 */
 	@Override
-	public Module[] getDependencies() {
+	public Class<? extends Module>[] getDependencies() {
 		return null;
 	}
 	
