@@ -46,12 +46,12 @@ public abstract class AbstractService implements Service {
 	}
 
 	@Override
-	public final <T extends Module> T getModule(Class<T> module) {
-		return webApp.getModule(module);
+	public final <T extends Module> T getModule(Class<T> moduleClass) {
+		return webApp.getModule(moduleClass);
 	}
 	
 	@Override
-	public final <T extends Service> T getService(Class<T> service) {
-		return webApp.getService(service);
+	public final <T extends Service> T getService(Class<T> serviceClass) {
+		return webApp.getService(serviceClass);
 	}
 }

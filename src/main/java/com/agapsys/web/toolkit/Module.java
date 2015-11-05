@@ -64,17 +64,17 @@ public interface Module extends Singleton {
 	 * Returns another module registered in the same application as this module
 	 * is registered with.
 	 * @param <T> Module type
-	 * @param module module class
+	 * @param moduleClass module class
 	 * @return module class or null if given module class was not registered with
 	 * associated application.
 	 */
-	public <T extends Module> T getModule(Class<T> module);
+	public <T extends Module> T getModule(Class<T> moduleClass);
 	
 	/**
 	 * Returns a service instance
 	 * @param <T> Module type
-	 * @param service service class
+	 * @param serviceClass service class
 	 * @return service instance.
 	 */
-	public <T extends Service> T getService(Class<T> service);
+	public <T extends Service> T getService(Class<T> serviceClass);
 }

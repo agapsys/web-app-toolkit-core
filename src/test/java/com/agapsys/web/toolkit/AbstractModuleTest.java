@@ -17,6 +17,7 @@
 package com.agapsys.web.toolkit;
 
 import com.agapsys.Utils;
+import com.agapsys.web.toolkit.mock.MockedApplication;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -40,6 +41,7 @@ public class AbstractModuleTest {
 	// =========================================================================
 	
 	// INSTANCE SCOPE ==========================================================
+	private final AbstractWebApplication app = new MockedApplication();
 	private TestModule module = null;
 	
 	@Before
@@ -62,7 +64,7 @@ public class AbstractModuleTest {
 		
 		Assert.assertFalse(module.isRunning());
 		
-		module.start(null);
+		module.start(app);
 		Assert.assertTrue(module.isStartCalled);
 		Assert.assertFalse(module.isStopCalled);
 		Assert.assertTrue(module.isStartCalled);

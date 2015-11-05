@@ -43,57 +43,15 @@ public class RuntimePersistenceModule extends PersistenceModule {
 	// INSTANCE SCOPE ==========================================================
 	private EntityManagerFactory emf = null;
 	
-	protected String getDefaultJdbcDriverFilename() {
-		return DEFAULT_JDBC_DRIVER_FILENAME;
-	}
-	
-	protected String getDefaultJdbcDriverClass() {
-		return DEFAULT_JDBC_DRIVER_CLASS;
-	}
-	
-	protected String getDefaultJdbcUrl() {
-		return DEFAULT_JDBC_URL;
-	}
-	
-	protected String getDefaultJdbcUser() {
-		return DEFAULT_JDBC_USER;
-	}
-	
-	protected String getDefaultJdbcPassword() {
-		return DEFAULT_JDBC_PASSWORD;
-	}
-	
 	@Override
 	public Properties getDefaultProperties() {
 		Properties properties = new Properties();
 		
-		String defaultJdbcDriverFilename = getDefaultJdbcDriverFilename();
-		if (defaultJdbcDriverFilename != null && defaultJdbcDriverFilename.trim().isEmpty())
-			defaultJdbcDriverFilename = null;
-		
-		String defaultJdbcDriverClass = getDefaultJdbcDriverClass();
-		if (defaultJdbcDriverClass == null || defaultJdbcDriverClass.trim().isEmpty())
-			throw new RuntimeException("Null/empty default JDBC driver class");
-		
-		String defaultJdbcUrl = getDefaultJdbcUrl();
-		if (defaultJdbcUrl == null || defaultJdbcUrl.trim().isEmpty())
-			throw new RuntimeException("Null/Empty default JDBC URL");
-		
-		String defaultJdbcUser = getDefaultJdbcUser();
-		if (defaultJdbcUser == null)
-			throw new RuntimeException("Null default JDBC user");
-		
-		String defaultJdbcPassword = getDefaultJdbcPassword();
-		if (defaultJdbcPassword == null)
-			throw new RuntimeException("Null default JDBC password");
-			
-		if (defaultJdbcDriverFilename != null)
-			properties.setProperty(KEY_JDBC_DRIVER_FILENAME, defaultJdbcDriverFilename);
-		
-		properties.setProperty(KEY_JDBC_DRIVER_CLASS,    defaultJdbcDriverClass);
-		properties.setProperty(KEY_JDBC_URL,             defaultJdbcUrl);
-		properties.setProperty(KEY_JDBC_USER,            defaultJdbcUser);
-		properties.setProperty(KEY_JDBC_PASSWORD,        defaultJdbcPassword);
+		properties.setProperty(KEY_JDBC_DRIVER_FILENAME, DEFAULT_JDBC_DRIVER_FILENAME);
+		properties.setProperty(KEY_JDBC_DRIVER_CLASS,    DEFAULT_JDBC_DRIVER_CLASS);
+		properties.setProperty(KEY_JDBC_URL,             DEFAULT_JDBC_URL);
+		properties.setProperty(KEY_JDBC_USER,            DEFAULT_JDBC_USER);
+		properties.setProperty(KEY_JDBC_PASSWORD,        DEFAULT_JDBC_PASSWORD);
 		
 		return properties;
 	}	
@@ -101,6 +59,10 @@ public class RuntimePersistenceModule extends PersistenceModule {
 	@Override
 	protected void onStart(AbstractWebApplication webApp) {
 		Properties properties = webApp.getProperties();
+		getMandatoryProperty(properties, KEY_JDBC_DRIVER_CLASS);
+		getMandatoryProperty(properties, DEFAULT_JDBC_URL);
+		getMandatoryProperty(properties, DEFAULT_JDBC_USER);
+		getMandatoryProperty(properties, DEFAULT_JDBC_PASSWORD);
 		
 		String jdbcFilename = properties.getProperty(KEY_JDBC_DRIVER_FILENAME);
 		
@@ -109,7 +71,7 @@ public class RuntimePersistenceModule extends PersistenceModule {
 			RuntimeJarLoader.loadJar(jdbcDriverFile);
 		}
 		
-		emf = Persistence.createEntityManagerFactory(getDefaultPersistenceUnitName(), properties);
+		emf = Persistence.createEntityManagerFactory(getPersistenceUnitName(), properties);
 	}
 	
 	@Override
@@ -119,7 +81,7 @@ public class RuntimePersistenceModule extends PersistenceModule {
 	}
 	
 	@Override
-	protected EntityManager getAppEntityManager() {
+	protected EntityManager _getEntityManager() {
 		return emf.createEntityManager();
 	}
 	// =========================================================================

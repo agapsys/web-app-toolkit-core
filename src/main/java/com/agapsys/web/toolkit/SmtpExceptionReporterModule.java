@@ -42,6 +42,8 @@ public class SmtpExceptionReporterModule extends ExceptionReporterModule {
 	
 	public static final String RECIPIENT_DELIMITER = ",";
 	
+	private static final Class<? extends Module>[] DEPENDENCIES = new Class[] {SmtpModule.class};
+	
 	/**
 	 * Returns an array of recipient addresses from a delimited string
 	 * @param recipients delimited string
@@ -68,64 +70,23 @@ public class SmtpExceptionReporterModule extends ExceptionReporterModule {
 		
 		return result;
 	}
-	
-	/**
-	 * Return the appropriate string representation of given array of recipients
-	 * @param recipients array of recipients
-	 * @param delimiter delimiter
-	 * @return string representation of given array of recipients
-	 */
-	private static String getRecipientsString(InternetAddress[] recipients, String delimiter) {
-		StringBuilder sb = new StringBuilder();
-		
-		for (int i = 0; i < recipients.length; i++) {
-			if (i > 0) {
-				sb.append(delimiter);
-			}
-			
-			sb.append(recipients[i].toString());
-		}
-		
-		return sb.toString();
-	}
 	// =========================================================================
 
 	// INSTANCE SCOPE ==========================================================
 	private InternetAddress[] recipients = null;
 	private String            subject    = null;
 
-	
-	/**
-	 * Returns the default subject for messaged sent by the module
-	 * @return the default subject for messaged sent by the module
-	 */
-	protected String getDefaultSubject() {
-		return DEFAULT_SUBJECT;
+	@Override
+	public Class<? extends Module>[] getDependencies() {
+		return DEPENDENCIES;
 	}
-	
-	/**
-	 * Returns the default recipients for messages sent by the module
-	 * @return the default recipients for messages sent by the module
-	 */
-	protected InternetAddress[] getDefaultRecipients() {
-		return getRecipientsFromString(DEFAULT_RECIPIENTS, RECIPIENT_DELIMITER);
-	}
-	
 	
 	@Override
 	public Properties getDefaultProperties() {
 		Properties properties = super.getDefaultProperties();
 		
-		String defaultSubject = getDefaultSubject();
-		if (defaultSubject == null || defaultSubject.trim().isEmpty())
-			throw new RuntimeException("Null/Empty default subject");
-		
-		InternetAddress[] defaultRecipients = getDefaultRecipients();
-		if (defaultRecipients == null || defaultRecipients.length == 0)
-			throw new RuntimeException("Null/Empty default recipients");
-		
-		properties.setProperty(KEY_SUBJECT,    defaultSubject);
-		properties.setProperty(KEY_RECIPIENTS, getRecipientsString(defaultRecipients, RECIPIENT_DELIMITER));
+		properties.setProperty(KEY_SUBJECT,    DEFAULT_SUBJECT);
+		properties.setProperty(KEY_RECIPIENTS, DEFAULT_RECIPIENTS);
 		
 		return properties;
 	}
@@ -138,18 +99,11 @@ public class SmtpExceptionReporterModule extends ExceptionReporterModule {
 		String val;
 		
 		// Recipients
-		val = properties.getProperty(KEY_RECIPIENTS);
-		if (val == null || val.trim().isEmpty()) {
-			recipients = getDefaultRecipients();
-		} else {
-			recipients = getRecipientsFromString(val, RECIPIENT_DELIMITER);
-		}
+		val = getMandatoryProperty(properties, KEY_RECIPIENTS);
+		recipients = getRecipientsFromString(val, RECIPIENT_DELIMITER);
 		
 		// Subject
-		val = properties.getProperty(KEY_SUBJECT);
-		if (val == null || val.trim().isEmpty())
-			val = getDefaultSubject();
-		
+		val = getMandatoryProperty(properties, KEY_SUBJECT);
 		subject = val;
 	}
 

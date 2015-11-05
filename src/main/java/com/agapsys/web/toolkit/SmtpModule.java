@@ -69,15 +69,6 @@ public class SmtpModule extends AbstractSmtpModule {
 			throw new RuntimeException("Invalid address: " + senderAddrStr, ex);
 		}
 	}
-	
-	/**
-	 * Returns appropriate string representation of given sender address
-	 * @param senderAddress sender address
-	 * @return string representation of given sender address
-	 */
-	private static String getSenderString(InternetAddress senderAddress) {
-		return senderAddress.toString();
-	}
 	// =========================================================================
 
 	// INSTANCE SCOPE ==========================================================
@@ -92,99 +83,17 @@ public class SmtpModule extends AbstractSmtpModule {
 		return SMTP_ERR_LOG_FILENAME;
 	}
 	
-	/**
-	 * Return the default sender address when there is no definition.
-	 * @return default sender address
-	 */
-	protected InternetAddress getDefaultSender() {
-		return getSenderFromString(DEFAULT_SENDER);
-	}
-	
-	/**
-	 * Return the default SMTP server address when there is no definition.
-	 * @return default SMTP server address
-	 */
-	protected String getDefaultServer() {
-		return DEFAULT_SERVER;
-	}
-	
-	/**
-	 * Return the default property defining if authentication is required.
-	 * @return default property defining if authentication is required.
-	 */
-	protected boolean getDefaultAuthEnabled() {
-		return DEFAULT_AUTH_ENABLED;
-	}
-	
-	/**
-	 * Return the default SMTP server username credential if there is no definition.
-	 * @return default SMTP server username
-	 */
-	protected String getDefaultUsername() {
-		return DEFAULT_USERNAME;
-	}
-	
-	/**
-	 * Return the default SMTP server password credential if there is no definition.
-	 * @return default SMTP server password
-	 */
-	protected String getDefaultPassword() {
-		return DEFAULT_PASSWORD;
-	}
-	
-	/**
-	 * Return the default SMTP server security type when there is no definition.
-	 * @return default SMTP server security type when there is no definition.
-	 */
-	protected SecurityType getDefaultSecurityType() {
-		return DEFAULT_SECURITY_TYPE;
-	}
-	
-	/**
-	 * Return the default SMTP server port when there is no definition.
-	 * @return default SMTP server port when there is no definition.
-	 */
-	protected int getDefaultPort() {
-		return DEFAULT_PORT;
-	}
-	
 	@Override
 	public Properties getDefaultProperties() {
 		Properties properties = new Properties();
 		
-		InternetAddress defaultSender = getDefaultSender();
-		if (defaultSender == null)
-			throw new RuntimeException("Null default sender address");
-		
-		String defaultServer = getDefaultServer();
-		if (defaultServer == null || defaultServer.trim().isEmpty())
-			throw new RuntimeException("Null/Empty default server address/host");
-		
-		boolean defaultAuthEnabled = getDefaultAuthEnabled();
-		
-		String defaultUsername = getDefaultUsername();
-		if (defaultUsername == null || defaultUsername.trim().isEmpty())
-			throw new RuntimeException("Null/Empty default username");
-		
-		String defaultPassword = getDefaultPassword();
-		if (defaultPassword == null || defaultPassword.trim().isEmpty())
-			throw new RuntimeException("Null/Empty default password");
-		
-		SecurityType defaultSecurityType = getDefaultSecurityType();
-		if (defaultSecurityType == null)
-			throw new RuntimeException("Null/Empty default security type");
-
-		int defaultPort = getDefaultPort();
-		if (defaultPort < 1)
-			throw new RuntimeException("Invalid port: " + defaultPort);
-		
-		properties.setProperty(KEY_SENDER,       getSenderString(defaultSender));
-		properties.setProperty(KEY_SERVER,       defaultServer);
-		properties.setProperty(KEY_AUTH_ENABLED,  "" + defaultAuthEnabled);
-		properties.setProperty(KEY_USERNAME,      defaultUsername);
-		properties.setProperty(KEY_PASSWORD,      defaultPassword);
-		properties.setProperty(KEY_SECURITY_TYPE, defaultSecurityType.name());
-		properties.setProperty(KEY_PORT,          "" + defaultPort);
+		properties.setProperty(KEY_SENDER,       DEFAULT_SENDER);
+		properties.setProperty(KEY_SERVER,       DEFAULT_SERVER);
+		properties.setProperty(KEY_AUTH_ENABLED,  "" + DEFAULT_AUTH_ENABLED);
+		properties.setProperty(KEY_USERNAME,      DEFAULT_USERNAME);
+		properties.setProperty(KEY_PASSWORD,      DEFAULT_PASSWORD);
+		properties.setProperty(KEY_SECURITY_TYPE, DEFAULT_SECURITY_TYPE.name());
+		properties.setProperty(KEY_PORT,          "" + DEFAULT_PORT);
 		
 		return properties;
 	}

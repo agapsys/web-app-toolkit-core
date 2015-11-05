@@ -17,6 +17,7 @@
 package com.agapsys.web.toolkit;
 
 import com.agapsys.Utils;
+import com.agapsys.web.toolkit.mock.MockedApplication;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -409,6 +410,7 @@ public class AbstractExceptionReporterModuleTest {
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 	};
+	private final AbstractWebApplication app = new MockedApplication();
 	
 	private TestExceptionReporterModule module;
 	
@@ -443,7 +445,7 @@ public class AbstractExceptionReporterModuleTest {
 	public void reportWhileRunning() {
 		Utils.printCurrentMethod();
 		Throwable t = new Throwable();
-		module.start(null);
+		module.start(app);
 		module.reportException(t, req);
 		Assert.assertTrue(module.methodCalled);
 	}

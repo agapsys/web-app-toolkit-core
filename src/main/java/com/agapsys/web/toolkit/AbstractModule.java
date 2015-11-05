@@ -19,6 +19,19 @@ import java.util.Properties;
 
 /** Basic module implementation. */
 public abstract class AbstractModule implements Module {
+	
+	protected String getMandatoryProperty(Properties appProperties, String key) {
+		Properties defaultProperties = getDefaultProperties();
+		
+		String defaultValue = defaultProperties != null ? defaultProperties.getProperty(key, null) : null;
+		String value = appProperties.getProperty(key, defaultValue);
+		
+		if (value == null || value.trim().isEmpty())
+			throw new RuntimeException("Missing property: " + key);
+		
+		return value;
+	}
+	
 	private AbstractWebApplication webApp;
 	
 	@Override
@@ -82,12 +95,12 @@ public abstract class AbstractModule implements Module {
 	
 	
 	@Override
-	public final <T extends Module> T getModule(Class<T> module) {
-		return webApp.getModule(module);
+	public final <T extends Module> T getModule(Class<T> moduleClass) {
+		return webApp.getModule(moduleClass);
 	}
 	
 	@Override
-	public final <T extends Service> T getService(Class<T> service) {
-		return webApp.getService(service);
+	public final <T extends Service> T getService(Class<T> serviceClass) {
+		return webApp.getService(serviceClass);
 	}
 }

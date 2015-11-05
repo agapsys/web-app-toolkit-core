@@ -17,6 +17,7 @@
 package com.agapsys.web.toolkit;
 
 import com.agapsys.Utils;
+import com.agapsys.web.toolkit.mock.MockedApplication;
 import javax.persistence.EntityManager;
 import org.junit.Assert;
 import org.junit.Before;
@@ -28,7 +29,7 @@ public class AbstractPersistenceModuleTest {
 		private boolean methodCalled = false;
 
 		@Override
-		protected EntityManager getAppEntityManager() {
+		protected EntityManager _getEntityManager() {
 			methodCalled = true;
 			return null;
 		}
@@ -42,6 +43,7 @@ public class AbstractPersistenceModuleTest {
 	// =========================================================================
 
 	// INSTANCE SCOPE ==========================================================
+	private final AbstractWebApplication app = new MockedApplication();
 	private TestPersistenceModule module;
 	
 	@Before
@@ -68,7 +70,7 @@ public class AbstractPersistenceModuleTest {
 	public void testGetEntityManagerWhileRunning() {
 		Utils.printCurrentMethod();
 		
-		module.start(null);
+		module.start(app);
 		Assert.assertNull(module.getEntityManager());
 		Assert.assertTrue(module.methodCalled);
 	}

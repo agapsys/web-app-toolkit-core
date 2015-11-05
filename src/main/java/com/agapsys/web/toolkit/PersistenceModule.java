@@ -33,13 +33,13 @@ public class PersistenceModule extends AbstractPersistenceModule {
 	 * @return the name of default persistence unit name. Default implementation 
 	 * returns {@linkplain PersistenceModule#DEFAULT_PERSISTENCE_UNIT_NAME} 
 	 */
-	protected String getDefaultPersistenceUnitName() {
+	protected String getPersistenceUnitName() {
 		return DEFAULT_PERSISTENCE_UNIT_NAME;
 	}
 	
 	@Override
 	protected void onStart(AbstractWebApplication webapplication) {
-		emf = Persistence.createEntityManagerFactory(getDefaultPersistenceUnitName());
+		emf = Persistence.createEntityManagerFactory(getPersistenceUnitName());
 	}
 	
 	@Override
@@ -49,7 +49,7 @@ public class PersistenceModule extends AbstractPersistenceModule {
 	}
 	
 	@Override
-	protected EntityManager getAppEntityManager() {
+	protected EntityManager _getEntityManager() {
 		return emf.createEntityManager();
 	}
 	// =========================================================================

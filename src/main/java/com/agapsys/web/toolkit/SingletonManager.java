@@ -26,8 +26,7 @@ public class SingletonManager {
 	private final Map<Class<? extends Singleton>, Class<? extends Singleton>> ALIAS_MAP    = new LinkedHashMap<>();
 	
 	/**
-	 * Replaces a singleton class by an subclass.
-	 * This method is useful for testing.
+	 * Replaces a singleton class by a subclass.
 	 * @param baseClass singleton base class
 	 * @param subclass singleton subclass which will replace given base class
 	 */

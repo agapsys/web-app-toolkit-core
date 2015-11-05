@@ -16,6 +16,7 @@
 
 package com.agapsys.web.toolkit;
 
+import com.agapsys.web.toolkit.mock.MockedApplication;
 import com.agapsys.Utils;
 import java.io.File;
 import java.util.logging.Level;
@@ -228,21 +229,21 @@ public class AbstractWebApplicationTest  {
 		Assert.assertFalse(webApp.isOnSmtpModuleStopCalled());
 		Assert.assertFalse(webApp.isRunning());
 		Assert.assertTrue(webApp.isAfterApplicationStopCalled());
+		Assert.assertNull(AbstractWebApplication.getInstance());
 	}
 	
-	@Test(expected = IllegalStateException.class)
+	@Test
 	public void Simple_web_application_getName_test() {
 		Utils.printCurrentMethod();
-		
 		
 		AbstractWebApplication webApp = new WebApplicationBase();
 		webApp.contextInitialized(null);
 		Assert.assertEquals(TestDefs.APP_NAME, AbstractWebApplication.getInstance().getName());
+		
 		webApp.contextDestroyed(null);
-		AbstractWebApplication.getInstance().getName();
 	}
 	
-	@Test(expected = IllegalStateException.class)
+	@Test
 	public void Simple_web_application_getVersion_test() {
 		Utils.printCurrentMethod();
 		
@@ -251,10 +252,9 @@ public class AbstractWebApplicationTest  {
 		Assert.assertEquals(TestDefs.APP_VERSION, AbstractWebApplication.getInstance().getVersion());
 		
 		webApp.contextDestroyed(null);
-		AbstractWebApplication.getInstance().getVersion();
 	}
 	
-	@Test(expected = IllegalStateException.class)
+	@Test
 	public void Simple_web_application_getEnvironment_test() {
 		Utils.printCurrentMethod();
 		
@@ -263,21 +263,18 @@ public class AbstractWebApplicationTest  {
 		Assert.assertEquals(TestDefs.ENVIRONMENT, AbstractWebApplication.getInstance().getEnvironment());
 		
 		webApp.contextDestroyed(null);
-		AbstractWebApplication.getInstance().getEnvironment();
 	}
 	
-	@Test(expected = IllegalStateException.class)
+	@Test
 	public void Simple_web_application_getAppFolder_test() {
 		Utils.printCurrentMethod();
 		
 		AbstractWebApplication webApp = new WebApplicationBase();
 		webApp.contextInitialized(null);
-		
 		File appFolder = new File(System.getProperty("user.home"), String.format(".%s", AbstractWebApplication.getInstance().getName()));
 		Assert.assertEquals(appFolder.getAbsolutePath(), AbstractWebApplication.getInstance().getDirectory().getAbsolutePath());
 		
 		webApp.contextDestroyed(null);
-		AbstractWebApplication.getInstance().getDirectory();
 	}
 	
 	@Test
@@ -287,14 +284,10 @@ public class AbstractWebApplicationTest  {
 		AbstractWebApplication webApp = new WebApplicationBase();
 		webApp.contextInitialized(null);
 		
-		try {
-			AbstractPersistenceModule persistenceModule = (AbstractPersistenceModule) webApp.getModule(CustomPersistenceModule.class);
-		} catch (IllegalArgumentException ex) {
-			Assert.assertEquals("ID is not registered: " + CustomPersistenceModule.MODULE_ID, ex.getMessage());
-			webApp.contextDestroyed(null);
-			return;
-		}
-		throw new RuntimeException();
+		AbstractPersistenceModule persistenceModule = (AbstractPersistenceModule) webApp.getModule(CustomPersistenceModule.class);
+		Assert.assertNull(persistenceModule);
+			
+		webApp.contextDestroyed(null);
 	}
 	
 	
@@ -306,12 +299,10 @@ public class AbstractWebApplicationTest  {
 		webApp.contextInitialized(null);
 		Assert.assertTrue(webApp.isOnPersistenceModuleStartCalled());
 		
-		
 		AbstractPersistenceModule persistenceModule = (AbstractPersistenceModule) webApp.getModule(CustomPersistenceModule.class);
 		Assert.assertNotNull(persistenceModule.getEntityManager());
 		
 		webApp.contextDestroyed(null);
-		Assert.assertTrue(webApp.isOnPersistenceModuleStopCalled());
 	}
 	
 	@Test
@@ -359,7 +350,7 @@ public class AbstractWebApplicationTest  {
 	public void Full_fledged_application_with_standard_modules_test() {
 		Utils.printCurrentMethod();
 
-		TestApplication app = new TestApplication();
+		MockedApplication app = new MockedApplication();
 		app.contextInitialized(null);
 		app.contextDestroyed(null);
 	}

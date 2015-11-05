@@ -68,10 +68,11 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 		
 	private static AbstractWebApplication singleton = null;
 	
+	/**
+	 * Return application singleton instance.
+	 * @return application singleton instance. If application is not running returns null
+	 */
 	public static AbstractWebApplication getInstance() {
-		if (singleton == null)
-			throw new IllegalStateException("Web application is not running");
-		
 		return singleton;
 	}
 	// =========================================================================
@@ -129,6 +130,9 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	 * @return a boolean indicating if application is disabled.
 	 */
 	public final boolean isDisabled() {
+		if (!isRunning())
+			throw new RuntimeException("Application is not running");
+		
 		return disabled;
 	}
 	
@@ -138,6 +142,9 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	 * @return boolean indicating if given request is allowed to proceed.
 	 */
 	public final boolean isOriginAllowed(HttpServletRequest req) {
+		if (!isRunning())
+			throw new RuntimeException("Application is not running");
+		
 		boolean isOriginAllowed = allowedOrigins.length == 1 && allowedOrigins[0].equals(DEFAULT_APP_ALLOWED_ORIGINS);
 		
 		if (isOriginAllowed)
@@ -232,12 +239,11 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	
 	/**
 	 * Registers a module with application.
-	 * This is a convenience method for registerModule(moduleClass, moduleClass).
 	 * @param moduleClass module class to be registered
 	 */
 	public void registerModule(Class<? extends Module> moduleClass) {
 		if (isRunning())
-			throw new IllegalStateException("Cannot register a module into a running application");
+			throw new RuntimeException("Cannot register a module into a running application");
 		
 		if (moduleClassSet.contains(moduleClass))
 			throw new IllegalArgumentException("Duplicate module: " + moduleClass.getName());
@@ -246,14 +252,13 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	}
 	
 	/**
-	 * Registers a module replacement
-	 * This method is useful for testing.
+	 * Registers a module replacement.
 	 * @param baseClass module base class (will be replaced)
 	 * @param subclass module subclass.
 	 */
 	public void replaceModule(Class<? extends Module> baseClass, Class<? extends Module> subclass) {
 		if (isRunning())
-			throw new IllegalStateException("Cannot register a module into a running application");
+			throw new RuntimeException("Cannot register a module into a running application");
 		
 		moduleClassSet.remove(baseClass);
 		singletonManager.replaceSingleton(baseClass, subclass);
@@ -267,7 +272,7 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	 */
 	public <T extends Module> T getModule(Class<T> moduleClass) {
 		if (moduleClassSet.contains(moduleClass))
-			return singletonManager.getSingleton(moduleClass);
+			return singletonManager.getSingleton(moduleClass); // <-- At this point there is an initialized module instance
 		
 		return null;
 	}
@@ -284,7 +289,6 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 		Module moduleInstance = getModule(moduleClass);
 		
 		if (!moduleInstance.isRunning()) {
-			
 			if (callerModules.contains(moduleClass))
 				throw new RuntimeException("Cyclic dependency on module: " + moduleClass);
 
@@ -344,7 +348,6 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	
 	/**
 	 * Replaces a service by a subclass of it.
-	 * This method is useful for testing.
 	 * @param baseclass service base class
 	 * @param subclass service subclass.
 	 */
@@ -424,7 +427,7 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 		List<PropertyGroup> propertyGroups = new LinkedList<>();
 		
 		for (Class<? extends Module> moduleClass : moduleClassSet) {
-			Module module = (Module) singletonManager.getSingleton(moduleClass);
+			Module module = singletonManager.getSingleton(moduleClass);
 			Properties defaultModuleProperties = module.getDefaultProperties();
 			
 			if (defaultModuleProperties != null && !defaultModuleProperties.isEmpty()) {

@@ -13,23 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.agapsys.web.toolkit;
+package com.agapsys.web.toolkit.mock;
 
-public class TestApplication extends AbstractWebApplication {
+import com.agapsys.web.toolkit.AbstractWebApplication;
+
+public class MockedApplication extends AbstractWebApplication {
 	
 	@Override
 	public String getName() {
-		return TestDefs.APP_NAME;
+		return "test";
 	}
 
 	@Override
 	public String getVersion() {
-		return TestDefs.APP_VERSION;
+		return "0.1.0";
 	}
 
 	@Override
 	public String getEnvironment() {
-		return TestDefs.ENVIRONMENT;
+		return "test";
 	}
 
 	@Override

@@ -49,6 +49,8 @@ public class ErrorServlet extends HttpServlet {
 			
 			if (t != null && exceptionReporterModule != null)
 				exceptionReporterModule.reportException(t, req);
+			else
+				AbstractWebApplication.getInstance().log(AbstractWebApplication.LogType.WARNING, "There is no exception reporter module registered with the application");
 			
 		} catch (IllegalArgumentException ignored) {
 			// If module is not registered, an exception is thrown.

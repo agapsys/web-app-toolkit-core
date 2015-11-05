@@ -22,7 +22,7 @@ import com.agapsys.sevlet.test.ApplicationContext;
 import com.agapsys.sevlet.test.ServletContainer;
 import com.agapsys.web.toolkit.AbstractWebApplication;
 import com.agapsys.web.toolkit.WebApplicationFilter;
-import com.agapsys.web.toolkit.TestApplication;
+import com.agapsys.web.toolkit.mock.MockedApplication;
 import java.io.IOException;
 import java.util.Properties;
 import javax.servlet.ServletException;
@@ -38,7 +38,7 @@ import org.junit.Test;
 public class RestrictOriginTest {
 	// CLASS SCOPE =============================================================
 	@WebListener
-	public static class ForbiddenLocalHostApp extends TestApplication {
+	public static class ForbiddenLocalHostApp extends MockedApplication {
 
 		@Override
 		protected Properties getDefaultProperties() {
@@ -52,7 +52,7 @@ public class RestrictOriginTest {
 		}
 	}
 	
-	public static class AnyOriginApp extends TestApplication {}
+	public static class AnyOriginApp extends MockedApplication {}
 	
 	@WebServlet("/*")
 	public static class TestServlet extends HttpServlet {

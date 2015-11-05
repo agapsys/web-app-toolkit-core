@@ -24,7 +24,7 @@ public abstract class AbstractPersistenceModule extends AbstractModule {
 	 * This method will be called only when module is running.
 	 * @return an entity manager to be used by application.
 	 */
-	protected abstract EntityManager getAppEntityManager();
+	protected abstract EntityManager _getEntityManager();
 	
 	/**
 	 * Returns an entity manager to be used by application.
@@ -34,6 +34,6 @@ public abstract class AbstractPersistenceModule extends AbstractModule {
 		if (!isRunning())
 			throw new IllegalStateException("Module is not running");
 		
-		return getAppEntityManager();
+		return _getEntityManager();
 	}
 }

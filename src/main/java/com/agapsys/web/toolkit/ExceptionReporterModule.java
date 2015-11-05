@@ -49,51 +49,17 @@ public class ExceptionReporterModule extends AbstractExceptionReporterModule {
 	
 	private final List<String> stackTraceHistory = new LinkedList<>();
 	// -------------------------------------------------------------------------
-	
-	/**
-	 * Returns the default stack trace history size when there is no definition.
-	 * @return default stack trace history size
-	 */
-	protected int getDefaultStacktraceHistorySize() {
-		return DEFAULT_STACK_TRACE_HISTORY_SIZE;
-	}
-
-	/**
-	 * Returns the default node name when there is no definition.
-	 * @return default node name
-	 */
-	protected String getDefaultNodeName() {
-		return DEFAULT_NODE_NAME;
-	}
-	
-	/**
-	 * Returns the default enabling status of the module when there is no definition
-	 * @return default enabling status
-	 */
-	protected boolean getDefaultModuleEnableStatus() {
-		return DEFAULT_MODULE_ENABLED;
-	}
-	
 	@Override
 	public Properties getDefaultProperties() {
 		Properties properties = new Properties();
 		
-		String defaultNodeName = getDefaultNodeName();
-		if (defaultNodeName == null || defaultNodeName.trim().isEmpty())
-			throw new RuntimeException("Null/Empty default node name");
-		
-		int defaultStackTraceHistorySize = getDefaultStacktraceHistorySize();
-		if (defaultStackTraceHistorySize < 0)
-			throw new RuntimeException("Invalid default stack trace history size: " + defaultStackTraceHistorySize);
-		
-		boolean defaultModuleEnabled = getDefaultModuleEnableStatus();
-		
-		properties.setProperty(KEY_NODE_NAME,               defaultNodeName);
-		properties.setProperty(KEY_STACK_TRACE_HISTORY_SIZE, "" + defaultStackTraceHistorySize);
-		properties.setProperty(KEY_MODULE_ENABLED,          "" + defaultModuleEnabled);
+		properties.setProperty(KEY_NODE_NAME,                DEFAULT_NODE_NAME);
+		properties.setProperty(KEY_STACK_TRACE_HISTORY_SIZE, "" + DEFAULT_STACK_TRACE_HISTORY_SIZE);
+		properties.setProperty(KEY_MODULE_ENABLED,           "" + DEFAULT_MODULE_ENABLED);
 		
 		return properties;
 	}
+
 
 	@Override
 	protected void onStart(AbstractWebApplication webApp) {
@@ -102,25 +68,15 @@ public class ExceptionReporterModule extends AbstractExceptionReporterModule {
 		String val;
 		
 		// isEnabled
-		val = appProperties.getProperty(KEY_MODULE_ENABLED);
-		if (val == null || val.trim().isEmpty()) {
-			val = "" + getDefaultModuleEnableStatus();
-		}
+		val = getMandatoryProperty(appProperties, KEY_MODULE_ENABLED);
 		enabled = Boolean.parseBoolean(val);
 		
 		// nodeName
-		val = appProperties.getProperty(KEY_NODE_NAME);
-		if (val == null || val.trim().isEmpty()) {
-			nodeName = getDefaultNodeName();
-		} else {
-			nodeName = val;
-		}
+		val = getMandatoryProperty(appProperties, KEY_NODE_NAME);
+		nodeName = val;
 		
 		// stackTraceHistorySize
-		val = appProperties.getProperty(KEY_STACK_TRACE_HISTORY_SIZE);
-		if (val == null || val.trim().isEmpty()) {
-			val = "" + getDefaultStacktraceHistorySize();
-		}
+		val = getMandatoryProperty(appProperties, KEY_STACK_TRACE_HISTORY_SIZE);
 		stackTraceHistorySize = Integer.parseInt(val);
 	}
 
@@ -165,7 +121,6 @@ public class ExceptionReporterModule extends AbstractExceptionReporterModule {
 	 */
 	protected String getErrorMessage(Throwable throwable, HttpServletRequest req, String originalRequestUri) {
 		String stackTrace = getStackTrace(throwable);
-		
 		
 		String msg =
 			"An error was detected"

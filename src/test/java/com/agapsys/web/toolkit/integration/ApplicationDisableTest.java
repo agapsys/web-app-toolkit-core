@@ -22,7 +22,7 @@ import com.agapsys.sevlet.test.ApplicationContext;
 import com.agapsys.sevlet.test.ServletContainer;
 import com.agapsys.web.toolkit.AbstractWebApplication;
 import com.agapsys.web.toolkit.WebApplicationFilter;
-import com.agapsys.web.toolkit.TestApplication;
+import com.agapsys.web.toolkit.mock.MockedApplication;
 import java.io.IOException;
 import java.util.Properties;
 import javax.servlet.ServletException;
@@ -38,7 +38,7 @@ import org.junit.Test;
 public class ApplicationDisableTest {
 	// CLASS SCOPE =============================================================
 	@WebListener
-	public static class DisabledApplication extends TestApplication {
+	public static class DisabledApplication extends MockedApplication {
 
 		@Override
 		protected Properties getDefaultProperties() {
@@ -52,7 +52,7 @@ public class ApplicationDisableTest {
 		}
 	}
 	
-	public static class EnabledApplication extends TestApplication {}
+	public static class EnabledApplication extends MockedApplication {}
 	
 	@WebServlet("/*")
 	public static class TestServlet extends HttpServlet {

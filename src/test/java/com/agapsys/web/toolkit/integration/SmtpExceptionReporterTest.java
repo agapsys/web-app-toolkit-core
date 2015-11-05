@@ -20,11 +20,10 @@ import com.agapsys.http.HttpGet;
 import com.agapsys.http.HttpResponse;
 import com.agapsys.sevlet.test.ApplicationContext;
 import com.agapsys.sevlet.test.ServletContainer;
-import com.agapsys.web.toolkit.WebToolkit;
 import com.agapsys.web.toolkit.ErrorServlet;
+import com.agapsys.web.toolkit.ExceptionReporterModule;
 import com.agapsys.web.toolkit.SmtpExceptionReporterModule;
-import com.agapsys.web.toolkit.SmtpModule;
-import com.agapsys.web.toolkit.TestApplication;
+import com.agapsys.web.toolkit.mock.MockedApplication;
 import com.agapsys.web.toolkit.WebApplicationFilter;
 import javax.servlet.annotation.WebListener;
 import javax.servlet.annotation.WebServlet;
@@ -37,7 +36,7 @@ import org.junit.Test;
 public class SmtpExceptionReporterTest {
 	// CLASS SCOPE =============================================================
 	@WebListener
-	public static class Application extends TestApplication {
+	public static class Application extends MockedApplication {
 		@Override
 		protected String getPropertiesFilename() {
 			return "smtp-exception-test.properties";
@@ -56,8 +55,7 @@ public class SmtpExceptionReporterTest {
 		@Override
 		protected void beforeApplicationStart() {
 			super.beforeApplicationStart();
-			replaceModule(WebToolkit.SMTP_MODULE_ID, SmtpModule.class);
-			replaceModule(WebToolkit.EXCEPTION_REPORTER_MODULE_ID, SmtpExceptionReporterModule.class);
+			replaceModule(ExceptionReporterModule.class, SmtpExceptionReporterModule.class);
 		}
 	}
 	
