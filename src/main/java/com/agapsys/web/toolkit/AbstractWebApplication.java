@@ -109,6 +109,7 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	/**
 	 * Logs application messages.
 	 * Default implementation just prints to console.
+	 * @param logType log message type
 	 * @param message message to be logged
 	 * @param args message parameters (see {@linkplain String#format(String, Object...)})
 	 */
@@ -269,6 +270,7 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	 * Returns a module registered with this application.
 	 * @param moduleClass module class
 	 * @return module instance
+	 * @param <T> module type
 	 */
 	public <T extends Module> T getModule(Class<T> moduleClass) {
 		if (moduleClassSet.contains(moduleClass))

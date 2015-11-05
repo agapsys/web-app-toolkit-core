@@ -37,7 +37,11 @@ public abstract class AbstractService implements Service {
 		onInit(webApp);
 	}
 	
-	/** Called upon module initialization. Default implementation does nothing. */
+	/**
+	 * Called upon module initialization.
+	 * Default implementation does nothing.
+	 * @param webApp associated web application
+	 */
 	protected void onInit(AbstractWebApplication webApp) {}
 
 	@Override

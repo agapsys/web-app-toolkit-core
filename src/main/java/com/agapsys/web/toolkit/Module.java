@@ -26,7 +26,7 @@ import java.util.Properties;
 public interface Module extends Singleton {
 	/** 
 	 * Starts the module.
-	 * @param webApplication application initializing this module.
+	 * @param webApp application initializing this module.
 	 */
 	public void start(AbstractWebApplication webApp);
 	
