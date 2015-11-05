@@ -244,7 +244,7 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	 */
 	public void registerModule(Class<? extends Module> moduleClass) {
 		if (isRunning())
-			throw new RuntimeException("Cannot register a module into a running application");
+			throw new RuntimeException("Cannot register a module in a running application");
 		
 		if (moduleClassSet.contains(moduleClass))
 			throw new IllegalArgumentException("Duplicate module: " + moduleClass.getName());
@@ -254,12 +254,12 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	
 	/**
 	 * Registers a module replacement.
-	 * @param baseClass module base class (will be replaced)
+	 * @param baseClass module base class (will be replaced). If base class is not registered it will be automatically registered.
 	 * @param subclass module subclass.
 	 */
-	public void replaceModule(Class<? extends Module> baseClass, Class<? extends Module> subclass) {
+	public void registerModuleReplacement(Class<? extends Module> baseClass, Class<? extends Module> subclass) {
 		if (isRunning())
-			throw new RuntimeException("Cannot register a module into a running application");
+			throw new RuntimeException("Cannot register a module replacement in a running application");
 		
 		moduleClassSet.remove(baseClass);
 		singletonManager.replaceSingleton(baseClass, subclass);
@@ -353,7 +353,10 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	 * @param baseclass service base class
 	 * @param subclass service subclass.
 	 */
-	public void replaceService(Class<? extends Service> baseclass, Class<? extends Service> subclass) {
+	public void registerServiceReplacement(Class<? extends Service> baseclass, Class<? extends Service> subclass) {
+		if (isRunning())
+			throw new RuntimeException("Cannot register a service replacement in a running application");
+		
 		singletonManager.replaceSingleton(baseclass, subclass);
 	}
 	

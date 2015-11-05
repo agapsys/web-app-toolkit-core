@@ -55,7 +55,7 @@ public class SmtpExceptionReporterTest {
 		@Override
 		protected void beforeApplicationStart() {
 			super.beforeApplicationStart();
-			replaceModule(ExceptionReporterModule.class, SmtpExceptionReporterModule.class);
+			registerModuleReplacement(ExceptionReporterModule.class, SmtpExceptionReporterModule.class);
 		}
 	}
 	
