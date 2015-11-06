@@ -22,15 +22,15 @@ import java.util.Map;
 
 /** Represents a singleton object. */
 public class SingletonManager {
-	private final Map<Class<? extends Singleton>, Singleton>                  INSTANCE_MAP = new LinkedHashMap<>();
-	private final Map<Class<? extends Singleton>, Class<? extends Singleton>> ALIAS_MAP    = new LinkedHashMap<>();
+	private final Map<Class<?>, Object>   INSTANCE_MAP = new LinkedHashMap<>();
+	private final Map<Class<?>, Class<?>> ALIAS_MAP    = new LinkedHashMap<>();
 	
 	/**
 	 * Replaces a singleton class by a subclass.
 	 * @param baseClass singleton base class
 	 * @param subclass singleton subclass which will replace given base class
 	 */
-	public synchronized void replaceSingleton(Class<? extends Singleton> baseClass, Class<? extends Singleton> subclass) {
+	public synchronized void replaceSingleton(Class<?> baseClass, Class<?> subclass) {
 		if (baseClass == null)
 			throw new IllegalArgumentException("Null alias class");
 		
@@ -51,9 +51,9 @@ public class SingletonManager {
 	 * @param singletonClass singleton class
 	 * @return singleton instance.
 	 */
-	public synchronized <T extends Singleton> T getSingleton(Class<T> singletonClass) {
+	public synchronized <T> T getSingleton(Class<T> singletonClass) {
 		try {
-			Class<? extends Singleton> targetClass = ALIAS_MAP.get(singletonClass);
+			Class<?> targetClass = ALIAS_MAP.get(singletonClass);
 			
 			if (targetClass == null) {
 				// First attempt to get a singleton without an alias...
@@ -61,7 +61,7 @@ public class SingletonManager {
 				targetClass = singletonClass;
 			}
 			
-			Singleton targetSingleton = INSTANCE_MAP.get(singletonClass);
+			Object targetSingleton = INSTANCE_MAP.get(singletonClass);
 			if (targetSingleton != null && targetSingleton.getClass() != targetClass) {
 				targetSingleton = null;
 			}
@@ -93,7 +93,7 @@ public class SingletonManager {
 	 * Removes any singleton replacement associated with given class..
 	 * @param baseClass base class which was replaced by a subclass.
 	 */
-	public void clearReplacement(Class<? extends Singleton> baseClass) {
+	public void clearReplacement(Class<?> baseClass) {
 		ALIAS_MAP.remove(baseClass);
 	}
 	

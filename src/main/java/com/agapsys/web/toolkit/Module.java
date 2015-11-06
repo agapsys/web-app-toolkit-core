@@ -23,7 +23,7 @@ import java.util.Properties;
  * application initialization. A module share settings with the application and
  * will have a singleton scope controlled by associated application.
  */
-public interface Module extends Singleton {
+public interface Module {
 	/** 
 	 * Starts the module.
 	 * @param webApp application initializing this module.

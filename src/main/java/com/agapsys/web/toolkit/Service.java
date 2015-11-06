@@ -20,7 +20,7 @@ package com.agapsys.web.toolkit;
  * A service has a singleton scope managed by associated application and are
  * lazy loaded.
  */
-public interface Service extends Singleton {
+public interface Service {
 	/**
 	 * Initializes this module
 	 * @param webApp associated web application.

@@ -21,11 +21,11 @@ import org.junit.Test;
 
 public class SingletonManagerTest {
 	// CLASS SCOPE =============================================================
-	public static class TestSingleton implements Singleton {}
+	public static class TestSingleton {}
 	
 	public static class CustomTestSingleton extends TestSingleton {}
 	
-	private static class OntherSingleton implements Singleton {}
+	private static class OntherSingleton {}
 	// =========================================================================
 
 	// INSTANCE SCOPE ==========================================================
@@ -33,8 +33,8 @@ public class SingletonManagerTest {
 	public void testSingleton() {
 		SingletonManager sm = new SingletonManager();
 		
-		Singleton instance1 = sm.getSingleton(TestSingleton.class);
-		Singleton instance2 = sm.getSingleton(TestSingleton.class);
+		Object instance1 = sm.getSingleton(TestSingleton.class);
+		Object instance2 = sm.getSingleton(TestSingleton.class);
 		
 		Assert.assertTrue(instance1 == instance2);
 	}
