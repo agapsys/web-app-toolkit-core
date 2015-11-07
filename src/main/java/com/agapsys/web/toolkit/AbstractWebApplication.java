@@ -239,7 +239,7 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	}
 	
 	/**
-	 * Registers a module with application.
+	 * Registers a module to be initialized with the application.
 	 * @param moduleClass module class to be registered
 	 */
 	public void registerModule(Class<? extends Module> moduleClass) {
@@ -273,10 +273,11 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	 * @param <T> module type
 	 */
 	public <T extends Module> T getModule(Class<T> moduleClass) {
-		if (moduleClassSet.contains(moduleClass))
-			return singletonManager.getSingleton(moduleClass); // <-- At this point there is an initialized module instance
+		T module = singletonManager.getSingleton(moduleClass);
+		if (!module.isRunning())
+			startModule(moduleClass, null);
 		
-		return null;
+		return module;
 	}
 	
 	/** 
