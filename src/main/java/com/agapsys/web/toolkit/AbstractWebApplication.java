@@ -305,7 +305,7 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 			}
 
 			moduleInstance.start(this);
-			log(LogType.INFO, "Initialized module: %s", moduleClass.getName());
+			log(LogType.INFO, "Initialized module: %s", moduleInstance.getClass().getName());
 
 			loadedModules.add(moduleInstance);
 		}
