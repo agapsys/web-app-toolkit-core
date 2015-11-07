@@ -16,8 +16,8 @@
 
 package com.agapsys.web.toolkit;
 
-import com.agapsys.web.toolkit.mock.MockedApplication;
 import com.agapsys.Utils;
+import com.agapsys.web.toolkit.mock.MockedApplication;
 import java.io.File;
 import java.util.logging.Level;
 import org.junit.Assert;
@@ -276,20 +276,6 @@ public class AbstractWebApplicationTest  {
 		
 		webApp.contextDestroyed(null);
 	}
-	
-	@Test
-	public void Simple_web_application_getEntityManager_test() {
-		Utils.printCurrentMethod();
-		
-		AbstractWebApplication webApp = new WebApplicationBase();
-		webApp.contextInitialized(null);
-		
-		AbstractPersistenceModule persistenceModule = (AbstractPersistenceModule) webApp.getModule(CustomPersistenceModule.class);
-		Assert.assertNull(persistenceModule);
-			
-		webApp.contextDestroyed(null);
-	}
-	
 	
 	@Test
 	public void Web_application_with_persistence_test() {
