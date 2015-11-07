@@ -60,9 +60,9 @@ public class RuntimePersistenceModule extends PersistenceModule {
 	protected void onStart(AbstractWebApplication webApp) {
 		Properties properties = webApp.getProperties();
 		getMandatoryProperty(properties, KEY_JDBC_DRIVER_CLASS);
-		getMandatoryProperty(properties, DEFAULT_JDBC_URL);
-		getMandatoryProperty(properties, DEFAULT_JDBC_USER);
-		getMandatoryProperty(properties, DEFAULT_JDBC_PASSWORD);
+		getMandatoryProperty(properties, KEY_JDBC_URL);
+		getMandatoryProperty(properties, KEY_JDBC_USER);
+		getMandatoryProperty(properties, KEY_JDBC_PASSWORD);
 		
 		String jdbcFilename = properties.getProperty(KEY_JDBC_DRIVER_FILENAME);
 		
