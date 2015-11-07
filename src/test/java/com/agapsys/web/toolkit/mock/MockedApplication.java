@@ -16,8 +16,16 @@
 package com.agapsys.web.toolkit.mock;
 
 import com.agapsys.web.toolkit.AbstractWebApplication;
+import com.agapsys.web.toolkit.utils.FileUtils;
+import java.io.File;
 
 public class MockedApplication extends AbstractWebApplication {
+
+	@Override
+	protected String getDirectoryAbsolutePath() {
+		File tmpDirectory = new File(FileUtils.DEFAULT_TEMPORARY_FOLDER, "." + getName());
+		return tmpDirectory.getAbsolutePath();
+	}
 	
 	@Override
 	public String getName() {
@@ -32,16 +40,6 @@ public class MockedApplication extends AbstractWebApplication {
 	@Override
 	public String getEnvironment() {
 		return "test";
-	}
-
-	@Override
-	protected boolean isPropertiesFileCreationEnabled() {
-		return false;
-	}
-
-	@Override
-	protected boolean isPropertiesFileLoadingEnabled() {
-		return false;
 	}
 
 	@Override

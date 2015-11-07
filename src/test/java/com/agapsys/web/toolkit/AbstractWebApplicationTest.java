@@ -229,7 +229,7 @@ public class AbstractWebApplicationTest  {
 		Assert.assertFalse(webApp.isOnSmtpModuleStopCalled());
 		Assert.assertFalse(webApp.isRunning());
 		Assert.assertTrue(webApp.isAfterApplicationStopCalled());
-		Assert.assertNull(AbstractWebApplication.getInstance());
+		Assert.assertNull(AbstractWebApplication.getRunningInstance());
 	}
 	
 	@Test
@@ -238,7 +238,7 @@ public class AbstractWebApplicationTest  {
 		
 		AbstractWebApplication webApp = new WebApplicationBase();
 		webApp.contextInitialized(null);
-		Assert.assertEquals(TestDefs.APP_NAME, AbstractWebApplication.getInstance().getName());
+		Assert.assertEquals(TestDefs.APP_NAME, AbstractWebApplication.getRunningInstance().getName());
 		
 		webApp.contextDestroyed(null);
 	}
@@ -249,7 +249,7 @@ public class AbstractWebApplicationTest  {
 		
 		AbstractWebApplication webApp = new WebApplicationBase();
 		webApp.contextInitialized(null);
-		Assert.assertEquals(TestDefs.APP_VERSION, AbstractWebApplication.getInstance().getVersion());
+		Assert.assertEquals(TestDefs.APP_VERSION, AbstractWebApplication.getRunningInstance().getVersion());
 		
 		webApp.contextDestroyed(null);
 	}
@@ -260,7 +260,7 @@ public class AbstractWebApplicationTest  {
 		
 		AbstractWebApplication webApp = new WebApplicationBase();
 		webApp.contextInitialized(null);
-		Assert.assertEquals(TestDefs.ENVIRONMENT, AbstractWebApplication.getInstance().getEnvironment());
+		Assert.assertEquals(TestDefs.ENVIRONMENT, AbstractWebApplication.getRunningInstance().getEnvironment());
 		
 		webApp.contextDestroyed(null);
 	}
@@ -271,8 +271,8 @@ public class AbstractWebApplicationTest  {
 		
 		AbstractWebApplication webApp = new WebApplicationBase();
 		webApp.contextInitialized(null);
-		File appFolder = new File(System.getProperty("user.home"), String.format(".%s", AbstractWebApplication.getInstance().getName()));
-		Assert.assertEquals(appFolder.getAbsolutePath(), AbstractWebApplication.getInstance().getDirectory().getAbsolutePath());
+		File appFolder = new File(System.getProperty("user.home"), String.format(".%s", AbstractWebApplication.getRunningInstance().getName()));
+		Assert.assertEquals(appFolder.getAbsolutePath(), AbstractWebApplication.getRunningInstance().getDirectory().getAbsolutePath());
 		
 		webApp.contextDestroyed(null);
 	}

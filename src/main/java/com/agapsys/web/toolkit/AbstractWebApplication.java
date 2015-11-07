@@ -69,10 +69,10 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	private static AbstractWebApplication singleton = null;
 	
 	/**
-	 * Return application singleton instance.
-	 * @return application singleton instance. If application is not running returns null
+	 * Return application running instance.
+	 * @return application singleton instance. If an application is not running returns null
 	 */
-	public static AbstractWebApplication getInstance() {
+	public static AbstractWebApplication getRunningInstance() {
 		return singleton;
 	}
 	// =========================================================================
@@ -204,7 +204,7 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	 * Returns a file representing application directory
 	 * @return the directory where application stores resources outside application context in servlet container.
 	 */
-	public File getDirectory() {
+	public final File getDirectory() {
 		if (appDirectory == null) {
 			String directoryPath = getDirectoryAbsolutePath();
 			
@@ -242,7 +242,7 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	 * Registers a module to be initialized with the application.
 	 * @param moduleClass module class to be registered
 	 */
-	public void registerModule(Class<? extends Module> moduleClass) {
+	public final void registerModule(Class<? extends Module> moduleClass) {
 		if (isRunning())
 			throw new RuntimeException("Cannot register a module in a running application");
 		
@@ -257,7 +257,7 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	 * @param baseClass module base class (will be replaced). If base class is not registered it will be automatically registered.
 	 * @param subclass module subclass.
 	 */
-	public void registerModuleReplacement(Class<? extends Module> baseClass, Class<? extends Module> subclass) {
+	public final void registerModuleReplacement(Class<? extends Module> baseClass, Class<? extends Module> subclass) {
 		if (isRunning())
 			throw new RuntimeException("Cannot register a module replacement in a running application");
 		
@@ -272,7 +272,7 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	 * @return module instance
 	 * @param <T> module type
 	 */
-	public <T extends Module> T getModule(Class<T> moduleClass) {
+	public final <T extends Module> T getModule(Class<T> moduleClass) {
 		T module = singletonManager.getSingleton(moduleClass);
 		if (!module.isRunning()) {
 			log(LogType.WARNING, "Getting a non-registered module: %s", moduleClass);
@@ -343,7 +343,7 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	 * @param serviceClass expected service class
 	 * @return service instance.
 	 */
-	public <T extends Service> T getService(Class<T> serviceClass) {
+	public final <T extends Service> T getService(Class<T> serviceClass) {
 		T service = singletonManager.getSingleton(serviceClass);
 		if (!service.isActive())
 			service.init(this);
@@ -356,7 +356,7 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	 * @param baseclass service base class
 	 * @param subclass service subclass.
 	 */
-	public void registerServiceReplacement(Class<? extends Service> baseclass, Class<? extends Service> subclass) {
+	public final void registerServiceReplacement(Class<? extends Service> baseclass, Class<? extends Service> subclass) {
 		if (isRunning())
 			throw new RuntimeException("Cannot register a service replacement in a running application");
 		
@@ -368,7 +368,7 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	 * Returns application properties.
 	 * @return application properties. 
 	 */
-	public Properties getProperties() {
+	public final Properties getProperties() {
 		return properties;
 	}
 	
@@ -377,49 +377,27 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	 * @return application default properties. Default implementation returns null
 	 */
 	protected Properties getDefaultProperties() {
-		Properties props = new Properties();
-		props.setProperty(KEY_APP_DISABLE,         "" + DEFAULT_APP_DISABLED);
-		props.setProperty(KEY_APP_ALLOWED_ORIGINS, DEFAULT_APP_ALLOWED_ORIGINS);
-		return props;
+		return null;
 	}
 	
-	/** 
-	 * Returns a boolean indicating if a default properties file shall be created if there is none.
-	 * @return a boolean indicating if a default settings file shall be created if it does not exist. Default implementation returns true.
-	 */
-	protected boolean isPropertiesFileCreationEnabled() {
-		return true;
-	}
-	
-	/**
-	 * Returns a boolean if application shall read properties from its properties file.
-	 * @return a boolean indicating if properties shall be loaded from a settings file. Default implementation returns true.
-	 */
-	protected boolean isPropertiesFileLoadingEnabled() {
-		return true;
-	}
-
 	/** 
 	 * Load application settings.
 	 * @throws IOException if there is an error reading settings file.
 	 */
 	private void loadSettings() throws IOException {
 		// Priority: (1) Loaded from file, (2) getDefaultProperties, (3) modules default properties
-		File settingsFile = null;
-		if (isPropertiesFileLoadingEnabled()) {
-			String environment = getEnvironment();
+		String environment = getEnvironment();
 
-			settingsFile = new File(getDirectory(), getPropertiesFilename());
+		File settingsFile = new File(getDirectory(), getPropertiesFilename());
 
-			if (settingsFile.exists()) {
-				log(LogType.INFO, "Loading settings file...");
+		if (settingsFile.exists()) {
+			log(LogType.INFO, "Loading settings file...");
 
-				try (FileInputStream fis = new FileInputStream(settingsFile)) {
-					Properties tmpProperties = new Properties();
-					tmpProperties.load(fis);
-					tmpProperties = PropertyGroup.getSubProperties(tmpProperties, environment, PROPERTIES_ENV_ENCLOSING);
-					properties.putAll(tmpProperties);
-				}
+			try (FileInputStream fis = new FileInputStream(settingsFile)) {
+				Properties tmpProperties = new Properties();
+				tmpProperties.load(fis);
+				tmpProperties = PropertyGroup.getSubProperties(tmpProperties, environment, PROPERTIES_ENV_ENCLOSING);
+				properties.putAll(tmpProperties);
 			}
 		}
 		
@@ -453,7 +431,7 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 		}
 		
 		// Write properties to disk...
-		if (settingsFile != null && !settingsFile.exists() && isPropertiesFileCreationEnabled()) {
+		if (!settingsFile.exists()) {
 			log(LogType.INFO, "Creating default settings file...");
 			PropertyGroup.writeToFile(settingsFile, propertyGroups);
 		}
@@ -463,6 +441,9 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	/** Starts this application. */
 	private void start() {
 		if (!isRunning()) {
+			if (singleton != null)
+				throw new RuntimeException("Another application instance is already running: " + singleton.getClass().getName());
+			
 			String name = getName();
 			if (name != null)
 				name = name.trim();
@@ -500,8 +481,12 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 			startModules();
 			
 			_afterApplicationStart();
+			
+			singleton = this;
 			running = true;
 			log(LogType.INFO, "====== AGAPSYS WEB TOOLKIT IS READY! ======");
+		} else {
+			throw new RuntimeException("Application is already running");
 		}
 	}
 	
@@ -542,7 +527,10 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 			reset();
 			
 			afterApplicationStop();
+			singleton = null;
 			log(LogType.INFO, "====== AGAPSYS WEB TOOLKIT WAS SHUTTED DOWN! ======");
+		} else {
+			throw new RuntimeException("Application is not running");
 		}
 	}
 	
@@ -563,20 +551,12 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	
 	@Override
 	public final void contextInitialized(ServletContextEvent sce) {
-		if (singleton != null)
-			throw new RuntimeException("Only one web application instance is allowed to run");
-		
 		start();
-		singleton = this;
 	}
 
 	@Override
 	public final void contextDestroyed(ServletContextEvent sce) {
-		if (singleton == null)
-			throw new RuntimeException("Application is not running");
-		
 		stop();
-		singleton = null;
 	}
 	// =========================================================================
 }

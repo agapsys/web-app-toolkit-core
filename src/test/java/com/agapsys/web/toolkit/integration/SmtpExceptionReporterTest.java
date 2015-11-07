@@ -23,8 +23,8 @@ import com.agapsys.sevlet.test.ServletContainer;
 import com.agapsys.web.toolkit.ErrorServlet;
 import com.agapsys.web.toolkit.ExceptionReporterModule;
 import com.agapsys.web.toolkit.SmtpExceptionReporterModule;
-import com.agapsys.web.toolkit.mock.MockedApplication;
 import com.agapsys.web.toolkit.WebApplicationFilter;
+import com.agapsys.web.toolkit.mock.MockedApplication;
 import javax.servlet.annotation.WebListener;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletResponse;
@@ -40,16 +40,6 @@ public class SmtpExceptionReporterTest {
 		@Override
 		protected String getPropertiesFilename() {
 			return "smtp-exception-test.properties";
-		}
-
-		@Override
-		protected boolean isPropertiesFileCreationEnabled() {
-			return true;
-		}
-
-		@Override
-		protected boolean isPropertiesFileLoadingEnabled() {
-			return true;
 		}
 
 		@Override

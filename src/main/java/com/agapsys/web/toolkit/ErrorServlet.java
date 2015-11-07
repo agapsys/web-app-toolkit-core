@@ -37,23 +37,26 @@ public class ErrorServlet extends HttpServlet {
 
 	// INSTANCE SCOPE ==========================================================	
 	private <T extends Module> T getModule(Class<T> moduleClass) {
-		return AbstractWebApplication.getInstance().getModule(moduleClass);
+		AbstractWebApplication webApp = AbstractWebApplication.getRunningInstance();
+		
+		if (webApp == null)
+			return null;
+		
+		return webApp.getModule(moduleClass);
 	}
 	
 	@Override
 	protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		Throwable t = getException(req);
 		
-		try {
-			ExceptionReporterModule exceptionReporterModule = getModule(ExceptionReporterModule.class);
-			
-			if (t != null && exceptionReporterModule != null)
-				exceptionReporterModule.reportException(t, req);
-			else
-				AbstractWebApplication.getInstance().log(AbstractWebApplication.LogType.WARNING, "There is no exception reporter module registered with the application");
-			
-		} catch (IllegalArgumentException ignored) {
-			// If module is not registered, an exception is thrown.
+		ExceptionReporterModule exceptionReporterModule = getModule(ExceptionReporterModule.class);
+
+		if (t != null && exceptionReporterModule != null) {
+			exceptionReporterModule.reportException(t, req);
+		} else {
+			AbstractWebApplication webApp = AbstractWebApplication.getRunningInstance();
+			if (webApp != null)
+				webApp.log(AbstractWebApplication.LogType.WARNING, "There is no exception reporter module registered with the application");
 		}
 	}
 	// =========================================================================

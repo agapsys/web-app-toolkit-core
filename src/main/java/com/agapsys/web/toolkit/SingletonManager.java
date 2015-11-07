@@ -80,7 +80,15 @@ public class SingletonManager {
 				IllegalArgumentException |
 				InvocationTargetException ex
 			) {
-			throw new RuntimeException(ex);
+			
+			Throwable cause;
+			if (ex instanceof InvocationTargetException) {
+				cause = ((InvocationTargetException) ex).getTargetException();
+			} else {
+				cause = ex;
+			}
+			
+			throw new RuntimeException(cause);
 		}
 	}
 	
