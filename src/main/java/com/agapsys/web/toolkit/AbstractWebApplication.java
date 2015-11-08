@@ -273,12 +273,12 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	 * @param <T> module type
 	 */
 	public final <T extends Module> T getModule(Class<T> moduleClass) {
-		if (!moduleClassSet.contains(moduleClass))
-			log(LogType.WARNING, "Getting a non-registered module: %s", moduleClass);
-
 		T module = singletonManager.getSingleton(moduleClass);
-		if (!module.isRunning())
+		
+		if (!module.isRunning()) {
+			log(LogType.WARNING, "Requesting a non-registered module: %s", moduleClass);
 			startModule(moduleClass, null);
+		}
 		
 		return module;
 	}
