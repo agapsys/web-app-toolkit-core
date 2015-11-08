@@ -52,14 +52,18 @@ public class SingletonManager {
 	 * @return singleton instance.
 	 */
 	public synchronized <T> T getSingleton(Class<T> singletonClass) {
+		if (singletonClass == null)
+			throw new IllegalArgumentException("Null class");
+		
 		try {
 			Class<?> targetClass = ALIAS_MAP.get(singletonClass);
 			
 			if (targetClass == null) {
-				// First attempt to get a singleton without an alias...
 				ALIAS_MAP.put(singletonClass, singletonClass);
 				targetClass = singletonClass;
 			}
+			
+			boolean useAlias = singletonClass != targetClass;
 			
 			Object targetSingleton = INSTANCE_MAP.get(singletonClass);
 			if (targetSingleton != null && targetSingleton.getClass() != targetClass) {
@@ -69,6 +73,8 @@ public class SingletonManager {
 			if (targetSingleton == null) {
 				targetSingleton = targetClass.getConstructor().newInstance();
 				INSTANCE_MAP.put(singletonClass, targetSingleton);
+				if (useAlias)
+					INSTANCE_MAP.put(targetClass, targetSingleton);
 			}
 			
 			return (T) targetSingleton;
