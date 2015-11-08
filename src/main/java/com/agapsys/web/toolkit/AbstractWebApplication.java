@@ -467,7 +467,7 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 					environment = null;
 			}
 			
-			log(LogType.INFO, "====== AGAPSYS WEB TOOLKIT INITIALIZATION: %s%s ======", name, environment == null ? "" : String.format(" (%s)", environment));
+			log(LogType.INFO, "AGAPSYS WEB TOOLKIT INITIALIZATION: %s%s", name, environment == null ? "" : String.format(" (%s)", environment));
 			beforeApplicationStart();
 			
 			try {
@@ -484,7 +484,7 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 			
 			singleton = this;
 			running = true;
-			log(LogType.INFO, "====== AGAPSYS WEB TOOLKIT IS READY! ======");
+			log(LogType.INFO, "AGAPSYS WEB TOOLKIT IS READY!");
 		} else {
 			throw new RuntimeException("Application is already running");
 		}
@@ -520,7 +520,7 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	private void stop() {
 		if (isRunning()) {
 			String environment = getEnvironment();
-			log(LogType.INFO, "====== AGAPSYS WEB TOOLKIT SHUTDOWN: %s%s ======", getName(), environment == null ? "" : String.format(" (%s)", environment));
+			log(LogType.INFO, "AGAPSYS WEB TOOLKIT SHUTDOWN: %s%s", getName(), environment == null ? "" : String.format(" (%s)", environment));
 			beforeApplicationStop();
 			
 			shutdownModules();
@@ -528,7 +528,7 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 			
 			afterApplicationStop();
 			singleton = null;
-			log(LogType.INFO, "====== AGAPSYS WEB TOOLKIT WAS SHUTTED DOWN! ======");
+			log(LogType.INFO, "AGAPSYS WEB TOOLKIT WAS SHUTTED DOWN!");
 		} else {
 			throw new RuntimeException("Application is not running");
 		}
