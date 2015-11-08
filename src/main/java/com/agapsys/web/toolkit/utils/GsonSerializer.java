@@ -20,8 +20,11 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.Reader;
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.List;
@@ -99,6 +102,16 @@ public class GsonSerializer implements ObjectSerializer {
 		return _getGson().fromJson(json, targetClass);
 	}
 	
+	public <T> T readObject(InputStream json, String charset, Class<T> targetClass) {
+		try {
+			Reader reader = new InputStreamReader(json, charset);
+			return readObject(reader, targetClass);
+		} catch (UnsupportedEncodingException ex) {
+			throw new RuntimeException(ex);
+		}
+	}
+	
+	
 	public <T> List<T> getJsonList(String json, Class<T> elementType) {
 		return _getGson().fromJson(json, new ListType(elementType));
 	}
@@ -106,6 +119,16 @@ public class GsonSerializer implements ObjectSerializer {
 	public <T> List<T> getJsonList(Reader json, Class<T> elementType) {
 		return _getGson().fromJson(json, new ListType(elementType));
 	}
+	
+	public <T> List<T> getJsonList(InputStream json, String charset, Class<T> elementType) {
+		try {
+			Reader reader = new InputStreamReader(json, charset);
+			return getJsonList(reader, elementType);
+		} catch (UnsupportedEncodingException ex) {
+			throw new RuntimeException(ex);
+		}
+	}
+	
 	
 	public String toJson(Object obj) {
 		return _getGson().toJson(obj);
