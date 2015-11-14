@@ -126,8 +126,8 @@ public class SmtpModule extends AbstractSmtpModule {
 		if (isRunning()) {
 			try {
 				// Forces sender address if message's address not equals to application default sender.
-				if (!message.getSenderAddress().equals(sender)) {
-					message = new MessageBuilder(sender, message.getRecipients().toArray(new InternetAddress[message.getRecipients().size()]))
+				if (!message.getSenderAddress().equals(getSender())) {
+					message = new MessageBuilder(getSender(), message.getRecipients().toArray(new InternetAddress[message.getRecipients().size()]))
 						.setCharset(message.getCharset())
 						.setMimeSubtype(message.getMimeSubtype())
 						.setSubject(message.getSubject())
