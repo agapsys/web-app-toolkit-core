@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.agapsys.web.toolkit.utils;
+package com.agapsys.web.toolkit;
 
+import com.agapsys.web.toolkit.BadRequestException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -120,6 +121,39 @@ public class HttpUtils {
 	 */
 	public static void removeCookie(HttpServletRequest req, HttpServletResponse resp, String name) {
 		removeCookie(resp, name, req.getContextPath());
+	}
+	
+	/**
+	 * Returns an optional parameter contained in the request
+	 * @param req  HTTP request
+	 * @param paramName parameter name
+	 * @param defaultValue default value if given parameter is not contained in the request
+	 * @return parameter value
+	 */
+	public static String getOptionalParameter(HttpServletRequest req, String paramName, String defaultValue) {
+		
+		String val = req.getParameter(paramName);
+		if (val == null || val.trim().isEmpty())
+			val = defaultValue;
+		
+		val = val.trim();
+		
+		return val;
+	}
+	
+	/**
+	 * Returns a mandatory parameter contained in the request.
+	 * @param req  HTTP request
+	 * @param paramName parameter name
+	 * @return parameter value.
+	 * @throws BadRequestException if parameter is not contained in given request.
+	 */
+	public static String getMandatoryParamter(HttpServletRequest req, String paramName) throws BadRequestException {
+		String val = req.getParameter(paramName);
+		if (val == null || val.trim().isEmpty())
+			throw new BadRequestException("Missing parameter: " + paramName);
+		
+		return val;
 	}
 	// =========================================================================
 

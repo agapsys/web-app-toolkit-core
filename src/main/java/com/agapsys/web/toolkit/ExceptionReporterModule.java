@@ -18,7 +18,6 @@ package com.agapsys.web.toolkit;
 
 import com.agapsys.web.toolkit.AbstractWebApplication.LogType;
 import com.agapsys.web.toolkit.utils.DateUtils;
-import com.agapsys.web.toolkit.utils.HttpUtils;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;

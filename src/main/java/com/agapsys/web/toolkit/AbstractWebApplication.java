@@ -19,7 +19,6 @@ package com.agapsys.web.toolkit;
 import com.agapsys.utils.console.Console;
 import com.agapsys.web.toolkit.utils.DateUtils;
 import com.agapsys.web.toolkit.utils.FileUtils;
-import com.agapsys.web.toolkit.utils.HttpUtils;
 import com.agapsys.web.toolkit.utils.PropertyGroup;
 import java.io.File;
 import java.io.FileInputStream;
