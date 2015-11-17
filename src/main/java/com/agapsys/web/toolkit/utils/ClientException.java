@@ -16,15 +16,19 @@
 
 package com.agapsys.web.toolkit.utils;
 
-/** Exception thrown when a request does does not contain expected data. */
-public class BadRequestException extends ClientException {
-	// CLASS SCOPE =============================================================
-	public static final int CODE = 400;
-	// =========================================================================
+public class ClientException extends Exception {
+	private final int code;
 	
-	// INSTANCE SCOPE ==========================================================
-	public BadRequestException(String message) {
-		super(CODE, message);
+	public ClientException(int code) {
+		this.code = code;
 	}
-	// =========================================================================
+	
+	public ClientException(int code, String message) {
+		super(message);
+		this.code = code;
+	}
+	
+	public int getCode() {
+		return code;
+	}
 }
