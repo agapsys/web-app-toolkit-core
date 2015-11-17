@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.agapsys.web.toolkit.utils;
+package com.agapsys.web.toolkit;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;

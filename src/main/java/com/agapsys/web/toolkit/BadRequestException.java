@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.agapsys.web.toolkit.utils;
+package com.agapsys.web.toolkit;
 
 /** Exception thrown when a request does does not contain expected data. */
 public class BadRequestException extends ClientException {

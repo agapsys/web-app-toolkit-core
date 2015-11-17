@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.agapsys.web.toolkit.utils;
+package com.agapsys.web.toolkit;
 
 public class ClientException extends Exception {
 	private final int code;
