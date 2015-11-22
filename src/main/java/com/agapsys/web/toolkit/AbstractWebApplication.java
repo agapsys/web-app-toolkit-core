@@ -488,12 +488,11 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 
 			// Starts all modules
 			startModules();
-			
-			_afterApplicationStart();
-			
 			singleton = this;
 			running = true;
 			log(LogType.INFO, "AGAPSYS WEB TOOLKIT IS READY!");
+			
+			_afterApplicationStart();
 		} else {
 			throw new RuntimeException("Application is already running");
 		}
@@ -534,10 +533,11 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 			
 			shutdownModules();
 			reset();
-			
-			afterApplicationStop();
 			singleton = null;
 			log(LogType.INFO, "AGAPSYS WEB TOOLKIT WAS SHUTTED DOWN!");
+			
+			afterApplicationStop();
+
 		} else {
 			throw new RuntimeException("Application is not running");
 		}
