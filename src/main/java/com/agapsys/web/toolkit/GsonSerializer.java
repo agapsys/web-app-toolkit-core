@@ -13,11 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.agapsys.web.toolkit;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParseException;
+import com.google.gson.JsonPrimitive;
+import com.google.gson.JsonSerializationContext;
+import com.google.gson.JsonSerializer;
 import com.google.gson.JsonSyntaxException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -27,19 +33,28 @@ import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 public class GsonSerializer implements ObjectSerializer {
-	
+
 	// CLASS SCOPE =============================================================
 	public static final String JSON_CONTENT_TYPE = "application/json";
-	public static final String JSON_DATE_FORMAT = "yyyy-MM-dd";
 	public static final String JSON_ENCODING = "UTF-8";
+
+	private static final Gson DEFAULT_GSON;
 	
-	private static final Gson DEFAULT_GSON = new GsonBuilder().setDateFormat(JSON_DATE_FORMAT).create();
-	
+	static {
+		GsonBuilder builder = new GsonBuilder();
+		builder.registerTypeAdapter(Date.class, new IsoDateAdapter());
+		DEFAULT_GSON = builder.create();
+	}
+
 	// Check if given request is valid for GSON parsing
 	private static void checkJsonContentType(HttpServletRequest req) throws BadRequestException {
 		String reqContentType = req.getContentType();
@@ -48,7 +63,7 @@ public class GsonSerializer implements ObjectSerializer {
 			throw new BadRequestException("Invalid content-type: " + reqContentType);
 		}
 	}
-	
+
 	private static class ListType implements ParameterizedType {
 
 		private final Type[] typeArguments = new Type[1];
@@ -77,31 +92,59 @@ public class GsonSerializer implements ObjectSerializer {
 			return List.class;
 		}
 	}
+
+	private static class IsoDateAdapter implements JsonSerializer<Date>, JsonDeserializer<Date> {
+
+		private final SimpleDateFormat sdf;
+
+		public IsoDateAdapter() {
+			this.sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+			this.sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+		}
+
+		@Override
+		public JsonElement serialize(Date src, Type typeOfSrc, JsonSerializationContext context) {
+			return new JsonPrimitive(sdf.format(src));
+		}
+
+		@Override
+		public Date deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+			if (!(json instanceof JsonPrimitive)) {
+				throw new JsonParseException("Invalid date");
+			}
+			
+			try {
+				return sdf.parse(json.getAsString());
+			} catch (ParseException ex) {
+				throw new JsonSyntaxException(ex);
+			}
+		}
+	}
 	// =========================================================================
 
 	// INSTANCE SCOPE ==========================================================
 	private Gson gson = null;
-	
+
 	private synchronized Gson _getGson() {
 		if (gson == null) {
 			gson = getGson();
 		}
-		
+
 		return gson;
 	}
-	
+
 	protected Gson getGson() {
 		return DEFAULT_GSON;
 	}
-	
+
 	public <T> T readObject(String json, Class<T> targetClass) {
 		return _getGson().fromJson(json, targetClass);
 	}
-	
+
 	public <T> T readObject(Reader json, Class<T> targetClass) {
 		return _getGson().fromJson(json, targetClass);
 	}
-	
+
 	public <T> T readObject(InputStream json, String charset, Class<T> targetClass) {
 		try {
 			Reader reader = new InputStreamReader(json, charset);
@@ -110,16 +153,15 @@ public class GsonSerializer implements ObjectSerializer {
 			throw new RuntimeException(ex);
 		}
 	}
-	
-	
+
 	public <T> List<T> getJsonList(String json, Class<T> elementType) {
 		return _getGson().fromJson(json, new ListType(elementType));
 	}
-	
+
 	public <T> List<T> getJsonList(Reader json, Class<T> elementType) {
 		return _getGson().fromJson(json, new ListType(elementType));
 	}
-	
+
 	public <T> List<T> getJsonList(InputStream json, String charset, Class<T> elementType) {
 		try {
 			Reader reader = new InputStreamReader(json, charset);
@@ -128,15 +170,16 @@ public class GsonSerializer implements ObjectSerializer {
 			throw new RuntimeException(ex);
 		}
 	}
-	
-	
+
 	public String toJson(Object obj) {
 		return _getGson().toJson(obj);
 	}
-	
+
 	@Override
 	public <T> T readObject(HttpServletRequest req, Class<T> targetClass) throws BadRequestException {
-		if (targetClass == null)  throw new IllegalArgumentException("Null targetClass");
+		if (targetClass == null) {
+			throw new IllegalArgumentException("Null targetClass");
+		}
 
 		checkJsonContentType(req);
 
@@ -167,7 +210,6 @@ public class GsonSerializer implements ObjectSerializer {
 		String json = _getGson().toJson(object);
 		out.write(json);
 	}
-	
 
 	/**
 	 * Returns a list of objects from given request Request must have
