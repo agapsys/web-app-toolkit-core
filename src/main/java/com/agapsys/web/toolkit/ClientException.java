@@ -23,8 +23,8 @@ public class ClientException extends Exception {
 		this.code = code;
 	}
 	
-	public ClientException(int code, String message) {
-		super(message);
+	public ClientException(int code, String message, Object...args) {
+		super(String.format(message, args));
 		this.code = code;
 	}
 	
