@@ -23,8 +23,8 @@ public class BadRequestException extends ClientException {
 	// =========================================================================
 	
 	// INSTANCE SCOPE ==========================================================
-	public BadRequestException(String message) {
-		super(CODE, message);
+	public BadRequestException(String message, Object...args) {
+		super(CODE, message, args);
 	}
 	// =========================================================================
 }
