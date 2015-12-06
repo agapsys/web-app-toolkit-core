@@ -33,6 +33,8 @@ import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.sql.Time;
+import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -51,7 +53,11 @@ public class GsonSerializer implements ObjectSerializer {
 	
 	static {
 		GsonBuilder builder = new GsonBuilder();
-		builder.registerTypeAdapter(Date.class, new IsoDateAdapter());
+		IsoDateAdapter adapter = new IsoDateAdapter();
+		builder.registerTypeAdapter(Date.class, adapter);
+		builder.registerTypeAdapter(Time.class, adapter);
+		builder.registerTypeAdapter(java.sql.Date.class, adapter);
+		builder.registerTypeAdapter(Timestamp.class, adapter);
 		DEFAULT_GSON = builder.create();
 	}
 
