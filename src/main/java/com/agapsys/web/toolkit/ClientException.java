@@ -24,7 +24,7 @@ public class ClientException extends Exception {
 	}
 	
 	public ClientException(int code, String message, Object...args) {
-		super(String.format(message, args));
+		super(args.length > 0 ? String.format(message, args) : message);
 		this.code = code;
 	}
 	

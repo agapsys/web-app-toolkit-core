@@ -113,7 +113,10 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	 * @param args message parameters (see {@linkplain String#format(String, Object...)})
 	 */
 	public void log(LogType logType, String message, Object...args) {
-		Console.printlnf("%s [%s] %s", DateUtils.getLocalTimestamp(), logType.name(), String.format(message, args));
+		if (args.length > 0)
+			message = String.format(message, args);
+		
+		Console.printlnf("%s [%s] %s", DateUtils.getLocalTimestamp(), logType.name(), message);
 	}
 	
 	
