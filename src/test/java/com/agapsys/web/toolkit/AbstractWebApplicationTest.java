@@ -159,11 +159,6 @@ public class AbstractWebApplicationTest  {
 		public String getVersion() {
 			return TestDefs.APP_VERSION;
 		}
-
-		@Override
-		public String getEnvironment() {
-			return TestDefs.ENVIRONMENT;
-		}
 	}
 	
 	private static class WebApplicationWithPersistence extends WebApplicationBase {
@@ -250,17 +245,6 @@ public class AbstractWebApplicationTest  {
 		AbstractWebApplication webApp = new WebApplicationBase();
 		webApp.contextInitialized(null);
 		Assert.assertEquals(TestDefs.APP_VERSION, AbstractWebApplication.getRunningInstance().getVersion());
-		
-		webApp.contextDestroyed(null);
-	}
-	
-	@Test
-	public void Simple_web_application_getEnvironment_test() {
-		Utils.printCurrentMethod();
-		
-		AbstractWebApplication webApp = new WebApplicationBase();
-		webApp.contextInitialized(null);
-		Assert.assertEquals(TestDefs.ENVIRONMENT, AbstractWebApplication.getRunningInstance().getEnvironment());
 		
 		webApp.contextDestroyed(null);
 	}

@@ -13,30 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.agapsys.web.toolkit.mock;
+package com.agapsys.web.toolkit;
 
-import com.agapsys.web.toolkit.AbstractWebApplication;
-import com.agapsys.web.toolkit.utils.FileUtils;
-import java.io.File;
-
-public class MockedApplication extends AbstractWebApplication {
-
-	@Override
-	protected String getDirectoryAbsolutePath() {
-		File tmpDirectory = new File(FileUtils.DEFAULT_TEMPORARY_FOLDER, "." + getName());
-		return tmpDirectory.getAbsolutePath();
-	}
-	
-	@Override
-	public String getName() {
-		return "test";
-	}
-
-	@Override
-	public String getVersion() {
-		return "0.1.0";
-	}
-
-	@Override
-	protected void beforeApplicationStart() {}
+public enum LogType {
+	INFO,
+	WARNING,
+	ERROR;
 }

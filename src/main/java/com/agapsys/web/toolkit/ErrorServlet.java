@@ -56,7 +56,7 @@ public class ErrorServlet extends HttpServlet {
 		} else {
 			AbstractWebApplication webApp = AbstractWebApplication.getRunningInstance();
 			if (webApp != null)
-				webApp.log(AbstractWebApplication.LogType.WARNING, "There is no exception reporter module registered with the application");
+				webApp.log(LogType.WARNING, "There is no exception reporter module registered with the application");
 		}
 	}
 	// =========================================================================

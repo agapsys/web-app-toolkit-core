@@ -18,7 +18,6 @@ package com.agapsys.web.toolkit;
 
 public class TestDefs {
 	// CLASS SCOPE =============================================================
-	public static final String ENVIRONMENT = "test";
 	public static final String APP_NAME    = "web-toolkit-test";
 	public static final String APP_VERSION = "0.1.0";
 	// =========================================================================

@@ -42,21 +42,21 @@ import javax.servlet.http.HttpServletResponse;
  */
 public abstract class AbstractWebApplication implements ServletContextListener {
 	// CLASS SCOPE =============================================================
-	public static enum LogType {
-		INFO,
-		WARNING,
-		ERROR;
-	}
-
+	
 	// Global settings ---------------------------------------------------------
+	
 	/** Defines if application is disabled. When an application is disabled, all requests are ignored and a {@linkplain HttpServletResponse#SC_SERVICE_UNAVAILABLE} is sent to the client. */
 	public static final String KEY_APP_DISABLE = "com.agapsys.webtoolkit.appDisable";
 	
 	/** Defines a comma-delimited list of allowed origins for this application or '*' for any origin. If an origin is not accepted a {@linkplain HttpServletResponse#SC_FORBIDDEN} is sent to the client. */
 	public static final String KEY_APP_ALLOWED_ORIGINS = "com.agapsys.webtoolkit.allowedOrigins";
 	
+	/** Defines the environment used by application. */
+	public static final String KEY_ENVIRONMENT = "com.agapsys.webtoolkit.environment";
+	
 	public static final boolean DEFAULT_APP_DISABLED        = false;
 	public static final String  DEFAULT_APP_ALLOWED_ORIGINS = "*";
+	public static final String  DEFAULT_APP_ENVIRONMENT     = "default";
 	
 	private static final String ORIGIN_DELIMITER = ",";
 	// -------------------------------------------------------------------------
@@ -87,6 +87,8 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	private boolean  running;
 	private boolean  disabled;
 	private String[] allowedOrigins;
+	private String   environment;
+
 
 	public AbstractWebApplication() {
 		reset();
@@ -103,6 +105,7 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 		running = false;
 		disabled = DEFAULT_APP_DISABLED;
 		allowedOrigins = new String[] {DEFAULT_APP_ALLOWED_ORIGINS};
+		environment = DEFAULT_APP_ENVIRONMENT;
 	}
 	
 	/**
@@ -163,6 +166,17 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 		return false;
 	}
 	
+	/**
+	 * Returns the running environment.
+	 * @return the name of the currently running environment. Default implementation return null
+	 */
+	public String getEnvironment() {
+		if (!isRunning())
+			throw new RuntimeException("Application is not running");
+		
+		return environment;
+	}
+	
 	
 	/**
 	 * Returns application name.
@@ -175,14 +189,6 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	 * @return the application version 
 	 */
 	public abstract String getVersion();
-	
-	/**
-	 * Returns the running environment.
-	 * @return the name of the currently running environment. Default implementation return null
-	 */
-	public String getEnvironment() {
-		return null;
-	}
 	
 	
 	/**
@@ -398,8 +404,6 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	 */
 	private void loadSettings() throws IOException {
 		// Priority: (1) Loaded from file, (2) getDefaultProperties, (3) modules default properties
-		String environment = getEnvironment();
-
 		File settingsFile = new File(getDirectory(), getPropertiesFilename());
 
 		if (settingsFile.exists()) {
@@ -408,7 +412,16 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 			try (FileInputStream fis = new FileInputStream(settingsFile)) {
 				Properties tmpProperties = new Properties();
 				tmpProperties.load(fis);
-				tmpProperties = PropertyGroup.getSubProperties(tmpProperties, environment, PROPERTIES_ENV_ENCLOSING);
+				
+				environment = tmpProperties.getProperty(KEY_ENVIRONMENT, DEFAULT_APP_ENVIRONMENT);
+				String tmpEnvironment = environment;
+				
+				log (LogType.INFO, "Environment set: %s", environment);
+				
+				if (environment.equals(DEFAULT_APP_ENVIRONMENT))
+					tmpEnvironment = null;
+				
+				tmpProperties = PropertyGroup.getSubProperties(tmpProperties, tmpEnvironment, PROPERTIES_ENV_ENCLOSING);
 				properties.putAll(tmpProperties);
 			}
 		}
@@ -472,14 +485,7 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 			if (version == null || version.isEmpty())
 				throw new IllegalStateException("Missing application version");
 			
-			String environment = getEnvironment();
-			if (environment != null) {
-				environment = environment.trim();
-				if (environment.isEmpty())
-					environment = null;
-			}
-			
-			log(LogType.INFO, "AGAPSYS WEB TOOLKIT INITIALIZATION: %s%s", name, environment == null ? "" : String.format(" (%s)", environment));
+			log(LogType.INFO, "AGAPSYS WEB TOOLKIT INITIALIZATION: %s", name);
 			beforeApplicationStart();
 			
 			try {
@@ -510,9 +516,9 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	
 	/** Loads application-specific properties. */
 	private void _afterApplicationStart() {
-		disabled = Boolean.parseBoolean(getProperties().getProperty(KEY_APP_DISABLE, "" + DEFAULT_APP_DISABLED));
+		disabled       = Boolean.parseBoolean(getProperties().getProperty(KEY_APP_DISABLE, "" + DEFAULT_APP_DISABLED));
 		allowedOrigins = getProperties().getProperty(KEY_APP_ALLOWED_ORIGINS, AbstractWebApplication.DEFAULT_APP_ALLOWED_ORIGINS).split(Pattern.quote(ORIGIN_DELIMITER));
-		
+
 		for (int i = 0; i < allowedOrigins.length; i++) {
 			allowedOrigins[i] = allowedOrigins[i].trim();
 		}
@@ -530,8 +536,7 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	/** Stops this application. */
 	private void stop() {
 		if (isRunning()) {
-			String environment = getEnvironment();
-			log(LogType.INFO, "AGAPSYS WEB TOOLKIT SHUTDOWN: %s%s", getName(), environment == null ? "" : String.format(" (%s)", environment));
+			log(LogType.INFO, "AGAPSYS WEB TOOLKIT SHUTDOWN: %s", getName());
 			beforeApplicationStop();
 			
 			shutdownModules();
