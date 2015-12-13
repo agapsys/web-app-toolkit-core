@@ -407,7 +407,6 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 		File settingsFile = new File(getDirectory(), getPropertiesFilename());
 
 		if (settingsFile.exists()) {
-			log(LogType.INFO, "Loading settings file...");
 
 			try (FileInputStream fis = new FileInputStream(settingsFile)) {
 				Properties tmpProperties = new Properties();
