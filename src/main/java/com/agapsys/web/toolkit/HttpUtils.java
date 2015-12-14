@@ -15,7 +15,6 @@
  */
 package com.agapsys.web.toolkit;
 
-import com.agapsys.web.toolkit.BadRequestException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -28,11 +27,7 @@ public class HttpUtils {
 	 * @param req HTTP request
 	 */
 	public static String getOriginIp(HttpServletRequest req) {
-		String clientId = req.getHeader("X-FORWARDED-FOR");
-		if (clientId == null || clientId.isEmpty()) {
-			clientId = req.getRemoteAddr();
-		}
-		return clientId;
+		return req.getRemoteAddr();
 	}
 
 	/**
