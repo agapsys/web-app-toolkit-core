@@ -119,6 +119,7 @@ public class FileUtils {
 	/**
 	 * Returns a generated non-existent file
 	 * @param parentDirectory parent directory
+	 * @param nameLength filename length
 	 * @param maxAttempts maximum number of attempts trying to get a random non-existent file before an exception is thrown
 	 * @return non-existent file with random name
 	 * @throws FileNotFoundException if a non-existent file could not be found.
