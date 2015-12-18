@@ -115,6 +115,41 @@ public class FileUtils {
 			file.delete();
 		}
 	}
+	
+	/**
+	 * Returns a generated non-existent file
+	 * @param parentDirectory parent directory
+	 * @param maxAttempts maximum number of attempts trying to get a random non-existent file before an exception is thrown
+	 * @return non-existent file with random name
+	 * @throws FileNotFoundException if a non-existent file could not be found.
+	 */
+	public static File getRandomNonExistentFile(File parentDirectory, int nameLength, int maxAttempts) throws FileNotFoundException {
+		char[] chars = "abcdefghijklmnopqrstuvwxyz0123456789".toCharArray();
+
+		if (parentDirectory == null)
+			throw new IllegalArgumentException("Parent directory cannot be null");
+		
+		if (nameLength < 1)
+			throw new IllegalArgumentException("Name length must be greater than 1");
+		
+		if (maxAttempts < 1)
+			throw new IllegalArgumentException("Maximum attempts must be greater than 1");
+		
+		File file;
+		int attempts = 0;
+		
+		while(true) {
+			if (attempts >= maxAttempts)
+				throw new FileNotFoundException(String.format("It was not possible to generate a randon non-existent file after %d attempts", maxAttempts));
+			
+			file = new File(parentDirectory, StringUtils.getRandomString(nameLength, chars));
+			
+			if (!file.exists())
+				return file;
+			
+			attempts++;
+		}
+	}
 	// =========================================================================
 	
 	// INSTANCE SCOPE ==========================================================
