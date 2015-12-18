@@ -85,6 +85,9 @@ public class SmtpExceptionReporterModule extends ExceptionReporterModule {
 	public Properties getDefaultProperties() {
 		Properties properties = super.getDefaultProperties();
 		
+		if (properties == null)
+			properties = new Properties();
+		
 		properties.setProperty(KEY_SUBJECT,    DEFAULT_SUBJECT);
 		properties.setProperty(KEY_RECIPIENTS, DEFAULT_RECIPIENTS);
 		
