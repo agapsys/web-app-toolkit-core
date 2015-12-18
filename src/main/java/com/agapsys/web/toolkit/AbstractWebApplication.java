@@ -392,10 +392,14 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	
 	/**
 	 * Returns application default properties.
-	 * @return application default properties. Default implementation returns null
+	 * @return application default properties.
 	 */
 	protected Properties getDefaultProperties() {
-		return null;
+		Properties defaultProperties = new Properties();
+		defaultProperties.put(KEY_ENVIRONMENT,         DEFAULT_APP_ENVIRONMENT);
+		defaultProperties.put(KEY_APP_DISABLE,         DEFAULT_APP_DISABLED);
+		defaultProperties.put(KEY_APP_ALLOWED_ORIGINS, DEFAULT_APP_ALLOWED_ORIGINS);
+		return defaultProperties;
 	}
 	
 	/** 
@@ -403,16 +407,29 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	 * @throws IOException if there is an error reading settings file.
 	 */
 	private void loadSettings() throws IOException {
-		// Priority: (1) Loaded from file, (2) getDefaultProperties, (3) modules default properties
 		File settingsFile = new File(getDirectory(), getPropertiesFilename());
 
-		if (settingsFile.exists()) {
+		// Apply application default properties...
+		Properties defaultProperties = getDefaultProperties();
+		if (defaultProperties != null) {
+			for (Map.Entry<Object, Object> entry : defaultProperties.entrySet()) {
+				properties.put(entry.getKey(), entry.getValue());
+			}
+		}
+		environment = properties.getProperty(KEY_ENVIRONMENT, DEFAULT_APP_ENVIRONMENT);
+		if (environment.trim().isEmpty())
+			environment = DEFAULT_APP_ENVIRONMENT;
 
+		// Apply settings file properties if file exists...
+		if (settingsFile.exists()) {
 			try (FileInputStream fis = new FileInputStream(settingsFile)) {
 				Properties tmpProperties = new Properties();
 				tmpProperties.load(fis);
 				
 				environment = tmpProperties.getProperty(KEY_ENVIRONMENT, DEFAULT_APP_ENVIRONMENT);
+				if (environment.trim().isEmpty())
+					environment = DEFAULT_APP_ENVIRONMENT;
+				
 				String tmpEnvironment = environment;
 				
 				log (LogType.INFO, "Environment set: %s", environment);
@@ -425,14 +442,6 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 			}
 		}
 		
-		// Apply application default properties (keeping existing)...
-		Properties defaultProperties = getDefaultProperties();
-		if (defaultProperties != null) {
-			for (Map.Entry<Object, Object> entry : defaultProperties.entrySet()) {
-				properties.putIfAbsent(entry.getKey(), entry.getValue());
-			}
-		}
-
 		// Apply modules default properties (keeping existing)...
 		List<PropertyGroup> propertyGroups = new LinkedList<>();
 		
@@ -500,7 +509,7 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 			running = true;
 			log(LogType.INFO, "AGAPSYS WEB TOOLKIT IS READY!");
 			
-			_afterApplicationStart();
+			afterApplicationStart();
 		} else {
 			throw new RuntimeException("Application is already running");
 		}
@@ -513,23 +522,19 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	 */
 	protected void beforeApplicationStart() {}
 	
-	/** Loads application-specific properties. */
-	private void _afterApplicationStart() {
+	/** 
+	 * Called after application is initialized.
+	 * During this phase all modules associated with this application are running.
+	 * Always call super implementation.
+	 */
+	protected void afterApplicationStart() {
 		disabled       = Boolean.parseBoolean(getProperties().getProperty(KEY_APP_DISABLE, "" + DEFAULT_APP_DISABLED));
 		allowedOrigins = getProperties().getProperty(KEY_APP_ALLOWED_ORIGINS, AbstractWebApplication.DEFAULT_APP_ALLOWED_ORIGINS).split(Pattern.quote(ORIGIN_DELIMITER));
 
 		for (int i = 0; i < allowedOrigins.length; i++) {
 			allowedOrigins[i] = allowedOrigins[i].trim();
 		}
-		afterApplicationStart();
 	}
-	
-	/** 
-	 * Called after application is initialized.
-	 * During this phase all modules associated with this application are running.
-	 * Default implementation does nothing.
-	 */
-	protected void afterApplicationStart() {}
 	
 	
 	/** Stops this application. */
