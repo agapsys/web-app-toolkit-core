@@ -396,9 +396,9 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	 */
 	protected Properties getDefaultProperties() {
 		Properties defaultProperties = new Properties();
-		defaultProperties.put(KEY_ENVIRONMENT,         DEFAULT_APP_ENVIRONMENT);
-		defaultProperties.put(KEY_APP_DISABLE,         DEFAULT_APP_DISABLED);
-		defaultProperties.put(KEY_APP_ALLOWED_ORIGINS, DEFAULT_APP_ALLOWED_ORIGINS);
+		defaultProperties.setProperty(KEY_ENVIRONMENT,         DEFAULT_APP_ENVIRONMENT);
+		defaultProperties.setProperty(KEY_APP_DISABLE,         "" + DEFAULT_APP_DISABLED);
+		defaultProperties.setProperty(KEY_APP_ALLOWED_ORIGINS, DEFAULT_APP_ALLOWED_ORIGINS);
 		return defaultProperties;
 	}
 	
@@ -408,7 +408,8 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	 */
 	private void loadSettings() throws IOException {
 		File settingsFile = new File(getDirectory(), getPropertiesFilename());
-
+		List<PropertyGroup> propertyGroups = new LinkedList<>();
+		
 		// Apply application default properties...
 		Properties defaultProperties = getDefaultProperties();
 		if (defaultProperties != null) {
@@ -440,11 +441,11 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 				tmpProperties = PropertyGroup.getSubProperties(tmpProperties, tmpEnvironment, PROPERTIES_ENV_ENCLOSING);
 				properties.putAll(tmpProperties);
 			}
+		} else {
+			propertyGroups.add(new PropertyGroup(properties, "Application settings"));
 		}
 		
 		// Apply modules default properties (keeping existing)...
-		List<PropertyGroup> propertyGroups = new LinkedList<>();
-		
 		for (Class<? extends Module> moduleClass : moduleClassSet) {
 			Module module = singletonManager.getSingleton(moduleClass);
 			Properties defaultModuleProperties = module.getDefaultProperties();
