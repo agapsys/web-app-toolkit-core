@@ -20,11 +20,9 @@ import com.agapsys.http.HttpGet;
 import com.agapsys.http.HttpResponse;
 import com.agapsys.sevlet.test.ApplicationContext;
 import com.agapsys.sevlet.test.ServletContainer;
-import com.agapsys.web.toolkit.AbstractWebApplication;
 import com.agapsys.web.toolkit.WebApplicationFilter;
 import com.agapsys.web.toolkit.mock.MockedApplication;
 import java.io.IOException;
-import java.util.Properties;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebListener;
 import javax.servlet.annotation.WebServlet;
@@ -41,14 +39,8 @@ public class ApplicationDisableTest {
 	public static class DisabledApplication extends MockedApplication {
 
 		@Override
-		protected Properties getDefaultProperties() {
-			Properties properties = super.getDefaultProperties();
-			if (properties == null)
-				properties = new Properties();
-			
-			properties.setProperty(AbstractWebApplication.KEY_APP_DISABLE, "" + true);
-			
-			return properties;
+		public boolean isDisabled() {
+			return true;
 		}
 	}
 	

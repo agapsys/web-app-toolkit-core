@@ -14,7 +14,6 @@ Web Core Toolkit project requires Java 7 compatible runtime and depends on the f
 
 * Java EE 7 Web Specification APIs
 * Agapsys SMTP Sender (https://github.com/agapsys/smtp-sender)
-* Agapsys Console Utilities (https://github.com/agapsys/console-utils)
 * GSON (https://github.com/google/gson)
 
 For detailed information on external dependencies please see *pom.xml*.

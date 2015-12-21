@@ -16,7 +16,6 @@
 
 package com.agapsys.web.toolkit;
 
-import com.agapsys.utils.console.Console;
 import com.agapsys.web.toolkit.utils.DateUtils;
 import com.agapsys.web.toolkit.utils.FileUtils;
 import com.agapsys.web.toolkit.utils.PropertyGroup;
@@ -119,7 +118,7 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 		if (args.length > 0)
 			message = String.format(message, args);
 		
-		Console.printlnf("%s [%s] %s", DateUtils.getLocalTimestamp(), logType.name(), message);
+		System.out.println(String.format("%s [%s] %s", DateUtils.getLocalTimestamp(), logType.name(), message));
 	}
 	
 	
@@ -135,7 +134,7 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	 * Returns a boolean indicating if application is disabled.
 	 * @return a boolean indicating if application is disabled.
 	 */
-	public final boolean isDisabled() {
+	public boolean isDisabled() {
 		if (!isRunning())
 			throw new RuntimeException("Application is not running");
 		
@@ -147,7 +146,7 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	 * @param req HTTP request
 	 * @return boolean indicating if given request is allowed to proceed.
 	 */
-	public final boolean isOriginAllowed(HttpServletRequest req) {
+	public boolean isOriginAllowed(HttpServletRequest req) {
 		if (!isRunning())
 			throw new RuntimeException("Application is not running");
 		
