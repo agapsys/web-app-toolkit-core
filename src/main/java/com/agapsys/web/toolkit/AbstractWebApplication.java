@@ -493,7 +493,7 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 			if (version == null || version.isEmpty())
 				throw new IllegalStateException("Missing application version");
 			
-			log(LogType.INFO, "AGAPSYS WEB TOOLKIT INITIALIZATION: %s", name);
+			log(LogType.INFO, "Starting application: %s", name);
 			beforeApplicationStart();
 			
 			try {
@@ -507,7 +507,7 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 			startModules();
 			singleton = this;
 			running = true;
-			log(LogType.INFO, "AGAPSYS WEB TOOLKIT IS READY!");
+			log(LogType.INFO, "Application is ready: %s", name);
 			
 			afterApplicationStart();
 		} else {
@@ -540,13 +540,13 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	/** Stops this application. */
 	private void stop() {
 		if (isRunning()) {
-			log(LogType.INFO, "AGAPSYS WEB TOOLKIT SHUTDOWN: %s", getName());
+			log(LogType.INFO, "Application shutdown: %s", getName());
 			beforeApplicationStop();
 			
 			shutdownModules();
 			reset();
 			singleton = null;
-			log(LogType.INFO, "AGAPSYS WEB TOOLKIT WAS SHUTTED DOWN!");
+			log(LogType.INFO, "Application was shutted down: %s", getName());
 			
 			afterApplicationStop();
 
