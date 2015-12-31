@@ -18,8 +18,8 @@ package com.agapsys.web.toolkit.integration;
 
 import com.agapsys.http.HttpGet;
 import com.agapsys.http.HttpResponse;
-import com.agapsys.sevlet.test.ApplicationContext;
 import com.agapsys.sevlet.test.ServletContainer;
+import com.agapsys.sevlet.test.ServletContainerBuilder;
 import com.agapsys.web.toolkit.WebApplicationFilter;
 import com.agapsys.web.toolkit.mock.MockedApplication;
 import java.io.IOException;
@@ -65,13 +65,14 @@ public class RestrictOriginTest {
 	
 	@Test
 	public void testEnabledApplication() {
-		ApplicationContext anyOriginApp = new ApplicationContext();
-		anyOriginApp.registerEventListener(new AnyOriginApp());
-		anyOriginApp.registerServlet(TestServlet.class);
-		anyOriginApp.registerFilter(WebApplicationFilter.class, "/*");
+		sc = new ServletContainerBuilder()
+			.addContext("/enabled")
+				.registerEventListener(new AnyOriginApp())
+				.registerServlet(TestServlet.class)
+				.registerFilter(WebApplicationFilter.class, "/*")
+			.endContext()
+			.build();
 		
-		sc = new ServletContainer();
-		sc.registerContext(anyOriginApp, "/enabled");
 		sc.startServer();
 		
 		HttpResponse resp = sc.doRequest(new HttpGet("/enabled/test"));
@@ -80,13 +81,14 @@ public class RestrictOriginTest {
 	
 	@Test
 	public void testDisabledApplication() {
-		ApplicationContext forbiddenLocalHostApp = new ApplicationContext();
-		forbiddenLocalHostApp.registerEventListener(new ForbiddenLocalHostApp());
-		forbiddenLocalHostApp.registerServlet(TestServlet.class);
-		forbiddenLocalHostApp.registerFilter(WebApplicationFilter.class, "/*");
+		sc = new ServletContainerBuilder()
+			.addContext("/disabled")
+				.registerEventListener(new ForbiddenLocalHostApp())
+				.registerServlet(TestServlet.class)
+				.registerFilter(WebApplicationFilter.class, "/*")
+			.endContext()
+			.build();
 		
-		sc = new ServletContainer();
-		sc.registerContext(forbiddenLocalHostApp, "/disabled");
 		sc.startServer();
 		
 		HttpResponse resp =sc.doRequest(new HttpGet("/disabled/test"));

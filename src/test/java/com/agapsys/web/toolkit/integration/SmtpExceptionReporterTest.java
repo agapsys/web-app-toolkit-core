@@ -18,8 +18,8 @@ package com.agapsys.web.toolkit.integration;
 
 import com.agapsys.http.HttpGet;
 import com.agapsys.http.HttpResponse;
-import com.agapsys.sevlet.test.ApplicationContext;
 import com.agapsys.sevlet.test.ServletContainer;
+import com.agapsys.sevlet.test.ServletContainerBuilder;
 import com.agapsys.web.toolkit.ErrorServlet;
 import com.agapsys.web.toolkit.ExceptionReporterModule;
 import com.agapsys.web.toolkit.SmtpExceptionReporterModule;
@@ -60,16 +60,16 @@ public class SmtpExceptionReporterTest {
 	
 	@Before
 	public void before() {
-		sc = new ServletContainer();
+		sc = new ServletContainerBuilder()
+			.addRootContext()
+				.registerEventListener(new Application())
+				.registerServlet(CustomErrorServlet.class)
+				.registerServlet(ExceptionServlet.class)
+				.registerFilter(WebApplicationFilter.class, "/*")
+				.registerErrorPage(500, CustomErrorServlet.URL)
+			.endContext()
+			.build();
 		
-		ApplicationContext context = new ApplicationContext();
-		context.registerServlet(CustomErrorServlet.class);
-		context.registerServlet(ExceptionServlet.class);
-		context.registerEventListener(new Application());
-		context.registerFilter(WebApplicationFilter.class, "/*");
-		context.registerErrorPage(500, CustomErrorServlet.URL);
-		
-		sc.registerContext(context);
 		sc.startServer();
 	}
 	

@@ -18,8 +18,8 @@ package com.agapsys.web.toolkit.integration;
 
 import com.agapsys.http.HttpGet;
 import com.agapsys.http.HttpResponse;
-import com.agapsys.sevlet.test.ApplicationContext;
 import com.agapsys.sevlet.test.ServletContainer;
+import com.agapsys.sevlet.test.ServletContainerBuilder;
 import com.agapsys.web.toolkit.WebApplicationFilter;
 import com.agapsys.web.toolkit.mock.MockedApplication;
 import java.io.IOException;
@@ -65,28 +65,29 @@ public class ApplicationDisableTest {
 	
 	@Test
 	public void testEnabledApplication() {
-		ApplicationContext enabledContext = new ApplicationContext();
-		enabledContext.registerEventListener(new EnabledApplication());
-		enabledContext.registerServlet(TestServlet.class);
-		enabledContext.registerFilter(WebApplicationFilter.class, "/*");
+		sc = new ServletContainerBuilder()
+			.addContext("/enabled")
+				.registerEventListener(new EnabledApplication())
+				.registerServlet(TestServlet.class)
+				.registerFilter(WebApplicationFilter.class, "/*")
+			.endContext()
+			.build();
 		
-		sc = new ServletContainer();
-		sc.registerContext(enabledContext, "/enabled");
 		sc.startServer();
-		
 		HttpResponse resp = sc.doRequest(new HttpGet("/enabled/test"));
 		Assert.assertEquals(HttpServletResponse.SC_OK, resp.getStatusCode());
 	}
 	
 	@Test
 	public void testDisabledApplication() {
-		ApplicationContext disabledContext = new ApplicationContext();
-		disabledContext.registerEventListener(new DisabledApplication());
-		disabledContext.registerServlet(TestServlet.class);
-		disabledContext.registerFilter(WebApplicationFilter.class, "/*");
+		sc = new ServletContainerBuilder()
+			.addContext("/disabled")
+				.registerEventListener(new DisabledApplication())
+				.registerServlet(TestServlet.class)
+				.registerFilter(WebApplicationFilter.class, "/*")
+			.endContext()
+			.build();
 		
-		sc = new ServletContainer();
-		sc.registerContext(disabledContext, "/disabled");
 		sc.startServer();
 		
 		HttpResponse resp = sc.doRequest(new HttpGet("/disabled/test"));
