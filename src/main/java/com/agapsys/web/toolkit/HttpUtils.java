@@ -143,10 +143,27 @@ public class HttpUtils {
 	 * @return parameter value.
 	 * @throws BadRequestException if parameter is not contained in given request.
 	 */
-	public static String getMandatoryParamter(HttpServletRequest req, String paramName) throws BadRequestException {
+	public static String getMandatoryParameter(HttpServletRequest req, String paramName) throws BadRequestException {
+		return getMandatoryParameter(req, paramName, "Missing parameter: %s", paramName);
+	}
+	
+	/**
+	 * Returns a mandatory parameter contained in the request.
+	 * @param req  HTTP request
+	 * @param paramName parameter name
+	 * @param errorMessage error message used by thrown exception
+	 * @param errMsgArgs optional error message args if error message is a formatted string.
+	 * @return parameter value.
+	 * @throws BadRequestException if parameter is not contained in given request.
+	 */
+	public static String getMandatoryParameter(HttpServletRequest req, String paramName, String errorMessage, Object...errMsgArgs) throws BadRequestException {
 		String val = req.getParameter(paramName);
-		if (val == null || val.trim().isEmpty())
-			throw new BadRequestException("Missing parameter: " + paramName);
+		if (val == null || val.trim().isEmpty()) {
+			if (errMsgArgs.length > 0)
+				errorMessage = String.format(errorMessage, errMsgArgs);
+			
+			throw new BadRequestException(errorMessage);
+		}
 		
 		return val;
 	}
