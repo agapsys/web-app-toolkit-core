@@ -23,7 +23,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializationContext;
-import com.google.gson.JsonSerializer;
 import com.google.gson.JsonSyntaxException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -43,7 +42,7 @@ import java.util.TimeZone;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-public class GsonSerializer implements ObjectSerializer {
+public class GsonSerializer implements JsonSerializer {
 
 	// CLASS SCOPE =============================================================
 	public static final String JSON_CONTENT_TYPE = "application/json";
@@ -99,7 +98,7 @@ public class GsonSerializer implements ObjectSerializer {
 		}
 	}
 
-	private static class IsoDateAdapter implements JsonSerializer<Date>, JsonDeserializer<Date> {
+	private static class IsoDateAdapter implements com.google.gson.JsonSerializer<Date>, JsonDeserializer<Date> {
 
 		private final SimpleDateFormat sdf;
 
@@ -143,14 +142,17 @@ public class GsonSerializer implements ObjectSerializer {
 		return DEFAULT_GSON;
 	}
 
+	@Override
 	public <T> T readObject(String json, Class<T> targetClass) {
 		return _getGson().fromJson(json, targetClass);
 	}
 
+	@Override
 	public <T> T readObject(Reader json, Class<T> targetClass) {
 		return _getGson().fromJson(json, targetClass);
 	}
 
+	@Override
 	public <T> T readObject(InputStream json, String charset, Class<T> targetClass) {
 		try {
 			Reader reader = new InputStreamReader(json, charset);
@@ -160,14 +162,17 @@ public class GsonSerializer implements ObjectSerializer {
 		}
 	}
 
+	@Override
 	public <T> List<T> getJsonList(String json, Class<T> elementType) {
 		return _getGson().fromJson(json, new ListType(elementType));
 	}
 
+	@Override
 	public <T> List<T> getJsonList(Reader json, Class<T> elementType) {
 		return _getGson().fromJson(json, new ListType(elementType));
 	}
 
+	@Override
 	public <T> List<T> getJsonList(InputStream json, String charset, Class<T> elementType) {
 		try {
 			Reader reader = new InputStreamReader(json, charset);
@@ -177,6 +182,7 @@ public class GsonSerializer implements ObjectSerializer {
 		}
 	}
 
+	@Override
 	public String toJson(Object obj) {
 		return _getGson().toJson(obj);
 	}
@@ -217,17 +223,8 @@ public class GsonSerializer implements ObjectSerializer {
 		out.write(json);
 	}
 
-	/**
-	 * Returns a list of objects from given request Request must have
-	 * 'application/json' content-type.
-	 *
-	 * @param <T> generic type
-	 * @param req HTTP request
-	 * @param elementType type of the list elements
-	 * @return list stored in request content body
-	 * @throws BadRequestException if given request content-type does not match
-	 * with expected
-	 */
+
+	@Override
 	public <T> List<T> getJsonList(HttpServletRequest req, Class<T> elementType) throws BadRequestException {
 		checkJsonContentType(req);
 
