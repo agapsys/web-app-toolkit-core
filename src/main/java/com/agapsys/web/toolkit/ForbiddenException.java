@@ -1,8 +1,5 @@
 package com.agapsys.web.toolkit;
 
-
-import com.agapsys.web.toolkit.ClientException;
-
 /*
  * Copyright 2016 Agapsys Tecnologia Ltda-ME.
  *
