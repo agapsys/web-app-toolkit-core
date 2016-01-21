@@ -16,9 +16,9 @@
 
 package com.agapsys.web.toolkit;
 
-import com.agapsys.agreste.utils.HttpUtils;
 import com.agapsys.web.toolkit.utils.DateUtils;
 import com.agapsys.web.toolkit.utils.FileUtils;
+import com.agapsys.web.toolkit.utils.HttpUtils;
 import com.agapsys.web.toolkit.utils.PropertyGroup;
 import java.io.File;
 import java.io.FileInputStream;
@@ -56,7 +56,6 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	
 	public static final boolean DEFAULT_APP_DISABLED        = false;
 	public static final String  DEFAULT_APP_ALLOWED_ORIGINS = "*";
-	public static final String  DEFAULT_APP_ENVIRONMENT     = "default";
 	
 	private static final String ORIGIN_DELIMITER = ",";
 	// -------------------------------------------------------------------------
@@ -87,7 +86,6 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	private boolean  running;
 	private boolean  disabled;
 	private String[] allowedOrigins;
-	private String   environment;
 
 
 	public AbstractWebApplication() {
@@ -105,7 +103,6 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 		running = false;
 		disabled = DEFAULT_APP_DISABLED;
 		allowedOrigins = new String[] {DEFAULT_APP_ALLOWED_ORIGINS};
-		environment = DEFAULT_APP_ENVIRONMENT;
 	}
 	
 	/**
@@ -164,19 +161,7 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 		}
 		
 		return false;
-	}
-	
-	/**
-	 * Returns the running environment.
-	 * @return the name of the currently running environment. Default implementation return null
-	 */
-	public String getEnvironment() {
-		if (!isRunning())
-			throw new RuntimeException("Application is not running");
-		
-		return environment;
-	}
-	
+	}	
 	
 	/**
 	 * Returns application name.
@@ -396,7 +381,6 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	 */
 	protected Properties getDefaultProperties() {
 		Properties defaultProperties = new Properties();
-		defaultProperties.setProperty(KEY_ENVIRONMENT,         DEFAULT_APP_ENVIRONMENT);
 		defaultProperties.setProperty(KEY_APP_DISABLE,         "" + DEFAULT_APP_DISABLED);
 		defaultProperties.setProperty(KEY_APP_ALLOWED_ORIGINS, DEFAULT_APP_ALLOWED_ORIGINS);
 		return defaultProperties;
@@ -417,28 +401,12 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 				properties.put(entry.getKey(), entry.getValue());
 			}
 		}
-		environment = properties.getProperty(KEY_ENVIRONMENT, DEFAULT_APP_ENVIRONMENT);
-		if (environment.trim().isEmpty())
-			environment = DEFAULT_APP_ENVIRONMENT;
 
 		// Apply settings file properties if file exists...
 		if (settingsFile.exists()) {
 			try (FileInputStream fis = new FileInputStream(settingsFile)) {
 				Properties tmpProperties = new Properties();
 				tmpProperties.load(fis);
-				
-				environment = tmpProperties.getProperty(KEY_ENVIRONMENT, DEFAULT_APP_ENVIRONMENT);
-				if (environment.trim().isEmpty())
-					environment = DEFAULT_APP_ENVIRONMENT;
-				
-				String tmpEnvironment = environment;
-				
-				log (LogType.INFO, "Environment set: %s", environment);
-				
-				if (environment.equals(DEFAULT_APP_ENVIRONMENT))
-					tmpEnvironment = null;
-				
-				tmpProperties = PropertyGroup.getSubProperties(tmpProperties, tmpEnvironment, PROPERTIES_ENV_ENCLOSING);
 				properties.putAll(tmpProperties);
 			}
 		} else {

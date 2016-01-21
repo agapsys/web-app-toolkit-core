@@ -17,7 +17,6 @@
 package com.agapsys.web.toolkit;
 
 import com.agapsys.web.toolkit.modules.ExceptionReporterModule;
-import com.agapsys.Utils;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -42,8 +41,6 @@ public class ExceptionReporterModuleTest {
 	// INSTANCE SCOPE ==========================================================
 	@Test
 	public void skipReportTest() {
-		Utils.printCurrentMethod();
-		
 		TestModule module = new TestModule();
 		
 		RuntimeException re1 = new RuntimeException();

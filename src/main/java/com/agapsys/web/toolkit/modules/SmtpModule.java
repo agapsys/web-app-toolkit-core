@@ -16,7 +16,6 @@
 
 package com.agapsys.web.toolkit.modules;
 
-import com.agapsys.web.toolkit.modules.AbstractSmtpModule;
 import com.agapsys.mail.Message;
 import com.agapsys.mail.MessageBuilder;
 import com.agapsys.mail.SecurityType;

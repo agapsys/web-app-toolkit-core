@@ -15,14 +15,19 @@
  */
 package com.agapsys.web.toolkit.utils;
 
-import com.agapsys.agreste.exceptions.BadRequestException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 public class HttpUtils {
-
 	// CLASS SCOPE =============================================================
+	public static class BadRequestException extends RuntimeException {
+
+		private BadRequestException(String message, Object...msgArgs) {
+			super(msgArgs.length > 0 ? String.format(message, msgArgs) : message);
+		}
+	}
+	
 	/**
 	 * @return request's origin IP
 	 * @param req HTTP request

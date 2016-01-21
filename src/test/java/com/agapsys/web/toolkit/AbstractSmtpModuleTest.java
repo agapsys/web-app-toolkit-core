@@ -16,11 +16,10 @@
 
 package com.agapsys.web.toolkit;
 
-import com.agapsys.web.toolkit.modules.AbstractSmtpModule;
-import com.agapsys.Utils;
 import com.agapsys.mail.Message;
 import com.agapsys.mail.MessageBuilder;
 import com.agapsys.web.toolkit.mock.MockedApplication;
+import com.agapsys.web.toolkit.modules.AbstractSmtpModule;
 import javax.mail.internet.AddressException;
 import org.junit.Assert;
 import org.junit.Before;
@@ -61,23 +60,17 @@ public class AbstractSmtpModuleTest {
 	
 	@Test(expected = IllegalArgumentException.class)
 	public void sendNullMessage() {
-		Utils.printCurrentMethod();
-		
 		module.sendMessage(null);
 	}
 	
 	@Test(expected = IllegalStateException.class)
 	public void sendMessageWhileNotRunning() {
-		Utils.printCurrentMethod();
-		
 		Assert.assertFalse(module.isRunning());
 		module.sendMessage(testMessage);
 	}
 	
 	@Test
 	public void sendMessageWhileRunning() {
-		Utils.printCurrentMethod();
-		
 		module.start(app);
 		module.sendMessage(testMessage);
 		Assert.assertTrue(module.methodCalled);

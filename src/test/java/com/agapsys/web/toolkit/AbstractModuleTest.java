@@ -16,7 +16,6 @@
 
 package com.agapsys.web.toolkit;
 
-import com.agapsys.Utils;
 import com.agapsys.web.toolkit.mock.MockedApplication;
 import org.junit.Assert;
 import org.junit.Before;
@@ -51,8 +50,6 @@ public class AbstractModuleTest {
 	
 	@Test
 	public void testDefaults() {
-		Utils.printCurrentMethod();
-		
 		Assert.assertNull(module.getDefaultProperties());
 		Assert.assertFalse(module.isStartCalled);
 		Assert.assertFalse(module.isStopCalled);
@@ -60,8 +57,6 @@ public class AbstractModuleTest {
 	
 	@Test
 	public void testRunning() {
-		Utils.printCurrentMethod();
-		
 		Assert.assertFalse(module.isRunning());
 		
 		module.start(app);

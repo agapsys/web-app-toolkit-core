@@ -16,12 +16,11 @@
 
 package com.agapsys.web.toolkit;
 
+import com.agapsys.web.toolkit.mock.MockedApplication;
+import com.agapsys.web.toolkit.modules.AbstractPersistenceModule;
+import com.agapsys.web.toolkit.modules.ExceptionReporterModule;
 import com.agapsys.web.toolkit.modules.PersistenceModule;
 import com.agapsys.web.toolkit.modules.SmtpModule;
-import com.agapsys.web.toolkit.modules.ExceptionReporterModule;
-import com.agapsys.web.toolkit.modules.AbstractPersistenceModule;
-import com.agapsys.Utils;
-import com.agapsys.web.toolkit.mock.MockedApplication;
 import java.io.File;
 import java.util.logging.Level;
 import org.junit.Assert;
@@ -208,8 +207,6 @@ public class AbstractWebApplicationTest  {
 	// INSTANCE SCOPE ==========================================================
 	@Test
 	public void Simple_web_application_start_stop_test() {
-		Utils.printCurrentMethod();
-		
 		WebApplicationBase webApp = new WebApplicationBase();
 		webApp.contextInitialized(null);
 		Assert.assertTrue(webApp.isBeforeApplicationStartCalled());
@@ -233,8 +230,6 @@ public class AbstractWebApplicationTest  {
 	
 	@Test
 	public void Simple_web_application_getName_test() {
-		Utils.printCurrentMethod();
-		
 		AbstractWebApplication webApp = new WebApplicationBase();
 		webApp.contextInitialized(null);
 		Assert.assertEquals(TestDefs.APP_NAME, AbstractWebApplication.getRunningInstance().getName());
@@ -244,8 +239,6 @@ public class AbstractWebApplicationTest  {
 	
 	@Test
 	public void Simple_web_application_getVersion_test() {
-		Utils.printCurrentMethod();
-		
 		AbstractWebApplication webApp = new WebApplicationBase();
 		webApp.contextInitialized(null);
 		Assert.assertEquals(TestDefs.APP_VERSION, AbstractWebApplication.getRunningInstance().getVersion());
@@ -255,8 +248,6 @@ public class AbstractWebApplicationTest  {
 	
 	@Test
 	public void Simple_web_application_getAppFolder_test() {
-		Utils.printCurrentMethod();
-		
 		AbstractWebApplication webApp = new WebApplicationBase();
 		webApp.contextInitialized(null);
 		File appFolder = new File(System.getProperty("user.home"), String.format(".%s", AbstractWebApplication.getRunningInstance().getName()));
@@ -267,8 +258,6 @@ public class AbstractWebApplicationTest  {
 	
 	@Test
 	public void Web_application_with_persistence_test() {
-		Utils.printCurrentMethod();
-		
 		WebApplicationBase webApp = new WebApplicationWithPersistence();
 		webApp.contextInitialized(null);
 		Assert.assertTrue(webApp.isOnPersistenceModuleStartCalled());
@@ -281,8 +270,6 @@ public class AbstractWebApplicationTest  {
 	
 	@Test
 	public void Web_application_with_error_report_test() {
-		Utils.printCurrentMethod();
-		
 		WebApplicationBase webApp = new WebApplicationWithErrorReport();
 		webApp.contextInitialized(null);
 		Assert.assertTrue(webApp.isOnExceptionReporterModuleStartCalled());
@@ -293,8 +280,6 @@ public class AbstractWebApplicationTest  {
 	
 	@Test
 	public void Web_application_with_smtp_sender_test() {
-		Utils.printCurrentMethod();
-		
 		WebApplicationBase webApp = new WebApplicationWithSmtpSender();
 		webApp.contextInitialized(null);
 		Assert.assertTrue(webApp.isOnSmtpModuleStartCalled());
@@ -305,8 +290,6 @@ public class AbstractWebApplicationTest  {
 	
 	@Test
 	public void Full_fledged_application_test() {
-		Utils.printCurrentMethod();
-		
 		WebApplicationBase webApp = new FullFledgedApplication();
 		webApp.contextInitialized(null);
 		
@@ -322,8 +305,6 @@ public class AbstractWebApplicationTest  {
 	
 	@Test
 	public void Full_fledged_application_with_standard_modules_test() {
-		Utils.printCurrentMethod();
-
 		MockedApplication app = new MockedApplication();
 		app.contextInitialized(null);
 		app.contextDestroyed(null);

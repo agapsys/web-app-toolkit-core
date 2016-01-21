@@ -17,7 +17,6 @@
 package com.agapsys.web.toolkit.modules;
 
 import com.agapsys.web.toolkit.AbstractWebApplication;
-import com.agapsys.web.toolkit.modules.AbstractPersistenceModule;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;

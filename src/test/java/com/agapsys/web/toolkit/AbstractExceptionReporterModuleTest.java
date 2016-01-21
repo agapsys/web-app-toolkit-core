@@ -16,9 +16,8 @@
 
 package com.agapsys.web.toolkit;
 
-import com.agapsys.web.toolkit.modules.AbstractExceptionReporterModule;
-import com.agapsys.Utils;
 import com.agapsys.web.toolkit.mock.MockedApplication;
+import com.agapsys.web.toolkit.modules.AbstractExceptionReporterModule;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -422,21 +421,17 @@ public class AbstractExceptionReporterModuleTest {
 	
 	@Test(expected = IllegalArgumentException.class)
 	public void nullThrowable() {
-		Utils.printCurrentMethod();
-		
 		module.reportException(null, req);
 	}
 	
 	@Test(expected = IllegalArgumentException.class)
 	public void nullRequest() {
-		Utils.printCurrentMethod();
 		Throwable t = new Throwable();
 		module.reportException(t, null);
 	}
 	
 	@Test(expected = IllegalStateException.class)
 	public void reportWhileNotRunning() {
-		Utils.printCurrentMethod();
 		Throwable t = new Throwable();
 		Assert.assertFalse(module.isRunning());
 		module.reportException(t, req);
@@ -444,7 +439,6 @@ public class AbstractExceptionReporterModuleTest {
 	
 	@Test
 	public void reportWhileRunning() {
-		Utils.printCurrentMethod();
 		Throwable t = new Throwable();
 		module.start(app);
 		module.reportException(t, req);

@@ -14,7 +14,6 @@ Web Application Toolkit project requires Java 7 compatible runtime and depends o
 
 * Java EE 7 Web Specification APIs
 * Agapsys SMTP Sender (https://github.com/agapsys/smtp-sender)
-* GSON (https://github.com/google/gson)
 
 For detailed information on external dependencies please see *pom.xml*.
 
