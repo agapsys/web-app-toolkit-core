@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package com.agapsys.web.toolkit;
+package com.agapsys.web.toolkit.modules;
 
+import com.agapsys.web.toolkit.AbstractWebApplication;
 import com.agapsys.web.toolkit.utils.RuntimeJarLoader;
 import java.io.File;
 import java.util.Properties;

@@ -14,8 +14,13 @@
  * limitations under the License.
  */
 
-package com.agapsys.web.toolkit;
+package com.agapsys.web.toolkit.modules;
 
+import com.agapsys.web.toolkit.AbstractWebApplication;
+import com.agapsys.agreste.utils.HttpUtils;
+import com.agapsys.web.toolkit.LogType;
+import com.agapsys.web.toolkit.WebApplicationFilter;
+import com.agapsys.web.toolkit.modules.AbstractExceptionReporterModule;
 import com.agapsys.web.toolkit.utils.DateUtils;
 import java.util.LinkedList;
 import java.util.List;

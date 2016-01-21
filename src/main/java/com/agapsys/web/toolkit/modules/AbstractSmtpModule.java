@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.agapsys.web.toolkit;
+package com.agapsys.web.toolkit.modules;
 
 import com.agapsys.mail.Message;
+import com.agapsys.web.toolkit.AbstractModule;
 
 /** E-mail sender module. */
 public abstract class AbstractSmtpModule extends AbstractModule {

@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
-package com.agapsys.web.toolkit;
+package com.agapsys.web.toolkit.modules;
 
+import com.agapsys.web.toolkit.modules.AbstractSmtpModule;
 import com.agapsys.mail.Message;
 import com.agapsys.mail.MessageBuilder;
 import com.agapsys.mail.SecurityType;
 import com.agapsys.mail.SmtpSender;
 import com.agapsys.mail.SmtpSettings;
+import com.agapsys.web.toolkit.AbstractWebApplication;
 import com.agapsys.web.toolkit.utils.DateUtils;
 import java.io.File;
 import java.io.FileOutputStream;

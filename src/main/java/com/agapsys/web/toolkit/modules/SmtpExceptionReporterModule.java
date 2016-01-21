@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-package com.agapsys.web.toolkit;
+package com.agapsys.web.toolkit.modules;
 
 import com.agapsys.mail.Message;
 import com.agapsys.mail.MessageBuilder;
+import com.agapsys.web.toolkit.AbstractWebApplication;
+import com.agapsys.web.toolkit.Module;
 import java.util.Properties;
 import java.util.regex.Pattern;
 import javax.mail.internet.AddressException;

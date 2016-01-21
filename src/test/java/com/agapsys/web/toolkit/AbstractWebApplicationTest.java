@@ -16,6 +16,10 @@
 
 package com.agapsys.web.toolkit;
 
+import com.agapsys.web.toolkit.modules.PersistenceModule;
+import com.agapsys.web.toolkit.modules.SmtpModule;
+import com.agapsys.web.toolkit.modules.ExceptionReporterModule;
+import com.agapsys.web.toolkit.modules.AbstractPersistenceModule;
 import com.agapsys.Utils;
 import com.agapsys.web.toolkit.mock.MockedApplication;
 import java.io.File;

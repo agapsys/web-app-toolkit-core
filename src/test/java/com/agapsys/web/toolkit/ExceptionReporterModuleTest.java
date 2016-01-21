@@ -16,6 +16,7 @@
 
 package com.agapsys.web.toolkit;
 
+import com.agapsys.web.toolkit.modules.ExceptionReporterModule;
 import com.agapsys.Utils;
 import org.junit.Assert;
 import org.junit.Test;

@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.agapsys.web.toolkit;
+package com.agapsys.web.toolkit.utils;
 
+import com.agapsys.agreste.exceptions.BadRequestException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;

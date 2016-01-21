@@ -16,6 +16,7 @@
 
 package com.agapsys.web.toolkit;
 
+import com.agapsys.agreste.utils.HttpUtils;
 import com.agapsys.web.toolkit.utils.DateUtils;
 import com.agapsys.web.toolkit.utils.FileUtils;
 import com.agapsys.web.toolkit.utils.PropertyGroup;

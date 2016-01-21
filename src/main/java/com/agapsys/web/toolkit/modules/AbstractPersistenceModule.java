@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.agapsys.web.toolkit;
+package com.agapsys.web.toolkit.modules;
 
+import com.agapsys.web.toolkit.AbstractModule;
 import javax.persistence.EntityManager;
 
 /** Persistence module. */

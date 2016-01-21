@@ -16,6 +16,7 @@
 
 package com.agapsys.web.toolkit;
 
+import com.agapsys.web.toolkit.modules.AbstractSmtpModule;
 import com.agapsys.Utils;
 import com.agapsys.mail.Message;
 import com.agapsys.mail.MessageBuilder;
