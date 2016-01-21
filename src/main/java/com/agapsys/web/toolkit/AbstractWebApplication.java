@@ -61,8 +61,6 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	// -------------------------------------------------------------------------
 	
 	private static final String PROPERTIES_FILENAME = "application.properties";
-	
-	private static final String PROPERTIES_ENV_ENCLOSING = "[]";
 		
 	private static AbstractWebApplication singleton = null;
 	

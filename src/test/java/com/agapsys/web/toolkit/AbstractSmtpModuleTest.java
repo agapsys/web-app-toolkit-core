@@ -18,8 +18,8 @@ package com.agapsys.web.toolkit;
 
 import com.agapsys.mail.Message;
 import com.agapsys.mail.MessageBuilder;
-import com.agapsys.web.toolkit.mock.MockedApplication;
 import com.agapsys.web.toolkit.modules.AbstractSmtpModule;
+import com.agapsys.web.toolkit.test.MockedWebApplication;
 import javax.mail.internet.AddressException;
 import org.junit.Assert;
 import org.junit.Before;
@@ -46,7 +46,7 @@ public class AbstractSmtpModuleTest {
 	// INSTANCE SCOPE ==========================================================
 	private TestSmtpModule module;
 	private final Message testMessage;
-	private final AbstractWebApplication app = new MockedApplication();
+	private final AbstractWebApplication app = new MockedWebApplication();
 
 
 	public AbstractSmtpModuleTest() throws AddressException {

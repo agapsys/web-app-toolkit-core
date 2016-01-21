@@ -16,8 +16,8 @@
 
 package com.agapsys.web.toolkit;
 
-import com.agapsys.web.toolkit.mock.MockedApplication;
 import com.agapsys.web.toolkit.modules.AbstractExceptionReporterModule;
+import com.agapsys.web.toolkit.test.MockedWebApplication;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -410,7 +410,7 @@ public class AbstractExceptionReporterModuleTest {
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 	};
-	private final AbstractWebApplication app = new MockedApplication();
+	private final AbstractWebApplication app = new MockedWebApplication();
 	
 	private TestExceptionReporterModule module;
 	

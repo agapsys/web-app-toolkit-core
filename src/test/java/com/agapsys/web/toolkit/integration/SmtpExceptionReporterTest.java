@@ -21,10 +21,10 @@ import com.agapsys.http.HttpResponse;
 import com.agapsys.sevlet.test.ServletContainer;
 import com.agapsys.sevlet.test.ServletContainerBuilder;
 import com.agapsys.web.toolkit.ErrorServlet;
+import com.agapsys.web.toolkit.WebApplicationFilter;
 import com.agapsys.web.toolkit.modules.ExceptionReporterModule;
 import com.agapsys.web.toolkit.modules.SmtpExceptionReporterModule;
-import com.agapsys.web.toolkit.WebApplicationFilter;
-import com.agapsys.web.toolkit.mock.MockedApplication;
+import com.agapsys.web.toolkit.test.MockedWebApplication;
 import javax.servlet.annotation.WebListener;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletResponse;
@@ -36,7 +36,7 @@ import org.junit.Test;
 public class SmtpExceptionReporterTest {
 	// CLASS SCOPE =============================================================
 	@WebListener
-	public static class Application extends MockedApplication {
+	public static class Application extends MockedWebApplication {
 		@Override
 		protected String getPropertiesFilename() {
 			return "smtp-exception-test.properties";

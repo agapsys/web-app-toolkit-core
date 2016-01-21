@@ -16,11 +16,11 @@
 
 package com.agapsys.web.toolkit;
 
-import com.agapsys.web.toolkit.mock.MockedApplication;
 import com.agapsys.web.toolkit.modules.AbstractPersistenceModule;
 import com.agapsys.web.toolkit.modules.ExceptionReporterModule;
 import com.agapsys.web.toolkit.modules.PersistenceModule;
 import com.agapsys.web.toolkit.modules.SmtpModule;
+import com.agapsys.web.toolkit.test.MockedWebApplication;
 import java.io.File;
 import java.util.logging.Level;
 import org.junit.Assert;
@@ -305,7 +305,7 @@ public class AbstractWebApplicationTest  {
 	
 	@Test
 	public void Full_fledged_application_with_standard_modules_test() {
-		MockedApplication app = new MockedApplication();
+		MockedWebApplication app = new MockedWebApplication();
 		app.contextInitialized(null);
 		app.contextDestroyed(null);
 	}

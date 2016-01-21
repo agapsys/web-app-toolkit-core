@@ -16,8 +16,8 @@
 
 package com.agapsys.web.toolkit;
 
-import com.agapsys.web.toolkit.mock.MockedApplication;
 import com.agapsys.web.toolkit.modules.AbstractPersistenceModule;
+import com.agapsys.web.toolkit.test.MockedWebApplication;
 import javax.persistence.EntityManager;
 import org.junit.Assert;
 import org.junit.Before;
@@ -43,7 +43,7 @@ public class AbstractPersistenceModuleTest {
 	// =========================================================================
 
 	// INSTANCE SCOPE ==========================================================
-	private final AbstractWebApplication app = new MockedApplication();
+	private final AbstractWebApplication app = new MockedWebApplication();
 	private TestPersistenceModule module;
 	
 	@Before
