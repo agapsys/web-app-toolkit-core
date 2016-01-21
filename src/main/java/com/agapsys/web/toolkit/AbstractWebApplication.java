@@ -472,7 +472,7 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 
 	
 	/** Starts this application. */
-	protected void start() {
+	public void start() {
 		if (!isRunning()) {
 			if (singleton != null)
 				throw new RuntimeException("Another application instance is already running: " + singleton.getClass().getName());
@@ -538,7 +538,7 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	
 	
 	/** Stops this application. */
-	protected void stop() {
+	public void stop() {
 		if (isRunning()) {
 			log(LogType.INFO, "Application shutdown: %s", getName());
 			beforeApplicationStop();
