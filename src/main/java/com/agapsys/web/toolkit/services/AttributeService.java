@@ -22,7 +22,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Global attribute service for thread-safe access.
- * @author leandro-agapsys
+ * @author Leandro Oliveira (leandro@agapsys.com)
  */
 public class AttributeService extends AbstractService {
 	private final Map<Thread, Map<String, Object>> threadMap = new ConcurrentHashMap<>();
