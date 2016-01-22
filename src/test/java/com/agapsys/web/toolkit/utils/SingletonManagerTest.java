@@ -16,7 +16,6 @@
 
 package com.agapsys.web.toolkit.utils;
 
-import com.agapsys.web.toolkit.utils.SingletonManager;
 import org.junit.Assert;
 import org.junit.Test;
 

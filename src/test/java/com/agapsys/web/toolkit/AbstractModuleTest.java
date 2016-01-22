@@ -16,8 +16,6 @@
 
 package com.agapsys.web.toolkit;
 
-import com.agapsys.web.toolkit.AbstractModule;
-import com.agapsys.web.toolkit.AbstractWebApplication;
 import com.agapsys.web.toolkit.test.MockedWebApplication;
 import org.junit.Assert;
 import org.junit.Before;

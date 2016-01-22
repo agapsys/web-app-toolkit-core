@@ -17,7 +17,6 @@
 package com.agapsys.web.toolkit.modules;
 
 import com.agapsys.web.toolkit.AbstractWebApplication;
-import com.agapsys.web.toolkit.modules.AbstractExceptionReporterModule;
 import com.agapsys.web.toolkit.test.MockedWebApplication;
 import java.io.BufferedReader;
 import java.io.IOException;

@@ -17,7 +17,6 @@
 package com.agapsys.web.toolkit.modules;
 
 import com.agapsys.web.toolkit.AbstractWebApplication;
-import com.agapsys.web.toolkit.modules.AbstractPersistenceModule;
 import com.agapsys.web.toolkit.test.MockedWebApplication;
 import javax.persistence.EntityManager;
 import org.junit.Assert;
