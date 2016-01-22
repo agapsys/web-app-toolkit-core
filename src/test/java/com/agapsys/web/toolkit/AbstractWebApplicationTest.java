@@ -28,6 +28,9 @@ import org.junit.Test;
 
 public class AbstractWebApplicationTest  {
 	// CLASS SCOPE =============================================================
+	private static final String APP_NAME   = "test-app";
+	private static final String APP_VERSION = "0.1.0";
+	
 	// Custom modules ----------------------------------------------------------
 	public static class CustomPersistenceModule extends PersistenceModule {
 		public static final String MODULE_ID = "persistence";
@@ -155,12 +158,12 @@ public class AbstractWebApplicationTest  {
 		
 		@Override
 		public String getName() {
-			return TestDefs.APP_NAME;
+			return APP_NAME;
 		}
 
 		@Override
 		public String getVersion() {
-			return TestDefs.APP_VERSION;
+			return APP_VERSION;
 		}
 	}
 	
@@ -232,7 +235,7 @@ public class AbstractWebApplicationTest  {
 	public void Simple_web_application_getName_test() {
 		AbstractWebApplication webApp = new WebApplicationBase();
 		webApp.contextInitialized(null);
-		Assert.assertEquals(TestDefs.APP_NAME, AbstractWebApplication.getRunningInstance().getName());
+		Assert.assertEquals(APP_NAME, AbstractWebApplication.getRunningInstance().getName());
 		
 		webApp.contextDestroyed(null);
 	}
@@ -241,7 +244,7 @@ public class AbstractWebApplicationTest  {
 	public void Simple_web_application_getVersion_test() {
 		AbstractWebApplication webApp = new WebApplicationBase();
 		webApp.contextInitialized(null);
-		Assert.assertEquals(TestDefs.APP_VERSION, AbstractWebApplication.getRunningInstance().getVersion());
+		Assert.assertEquals(APP_VERSION, AbstractWebApplication.getRunningInstance().getVersion());
 		
 		webApp.contextDestroyed(null);
 	}

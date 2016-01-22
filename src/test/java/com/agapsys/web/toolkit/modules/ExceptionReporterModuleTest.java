@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.agapsys.web.toolkit;
+package com.agapsys.web.toolkit.modules;
 
 import com.agapsys.web.toolkit.modules.ExceptionReporterModule;
 import org.junit.Assert;

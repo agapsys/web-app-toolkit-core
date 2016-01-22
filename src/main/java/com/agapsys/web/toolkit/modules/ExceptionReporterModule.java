@@ -19,6 +19,7 @@ package com.agapsys.web.toolkit.modules;
 import com.agapsys.web.toolkit.AbstractWebApplication;
 import com.agapsys.web.toolkit.LogType;
 import com.agapsys.web.toolkit.WebApplicationFilter;
+import com.agapsys.web.toolkit.services.AttributeService;
 import com.agapsys.web.toolkit.utils.DateUtils;
 import com.agapsys.web.toolkit.utils.HttpUtils;
 import java.util.LinkedList;
@@ -49,6 +50,8 @@ public class ExceptionReporterModule extends AbstractExceptionReporterModule {
 	private int     stackTraceHistorySize = 0;
 	private boolean enabled               = DEFAULT_MODULE_ENABLED;
 	
+	private AttributeService attributeService;
+	
 	private final List<String> stackTraceHistory = new LinkedList<>();
 	// -------------------------------------------------------------------------
 	@Override
@@ -65,6 +68,8 @@ public class ExceptionReporterModule extends AbstractExceptionReporterModule {
 
 	@Override
 	protected void onStart(AbstractWebApplication webApp) {
+		attributeService = getService(AttributeService.class);
+		
 		Properties appProperties = webApp.getProperties();
 		
 		String val;
@@ -163,7 +168,7 @@ public class ExceptionReporterModule extends AbstractExceptionReporterModule {
 	protected void onExceptionReport(Throwable t, HttpServletRequest req) {
 		if (isModuleEnabled()) {
 			if (!skipErrorReport(t)) {
-				String originalRequestStr = (String) req.getAttribute(WebApplicationFilter.ATTR_ORIGINAL_REQUEST_URI);
+				String originalRequestStr = (String) attributeService.getAttribute(WebApplicationFilter.ATTR_ORIGINAL_REQUEST_URI);
 				reportErrorMessage(getErrorMessage(t, req, originalRequestStr));
 			} else {
 				getWebApplication().log(LogType.ERROR, "Application error (already reported): %s", t.getMessage());

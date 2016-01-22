@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.agapsys.web.toolkit;
+package com.agapsys.web.toolkit.utils;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.LinkedHashMap;

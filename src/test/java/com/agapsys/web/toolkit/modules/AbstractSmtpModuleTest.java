@@ -14,24 +14,26 @@
  * limitations under the License.
  */
 
-package com.agapsys.web.toolkit;
+package com.agapsys.web.toolkit.modules;
 
-import com.agapsys.web.toolkit.modules.AbstractPersistenceModule;
+import com.agapsys.mail.Message;
+import com.agapsys.mail.MessageBuilder;
+import com.agapsys.web.toolkit.AbstractWebApplication;
+import com.agapsys.web.toolkit.modules.AbstractSmtpModule;
 import com.agapsys.web.toolkit.test.MockedWebApplication;
-import javax.persistence.EntityManager;
+import javax.mail.internet.AddressException;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-public class AbstractPersistenceModuleTest {
+public class AbstractSmtpModuleTest {
 	// CLASS SCOPE =============================================================
-	private static class TestPersistenceModule extends AbstractPersistenceModule {
+	private static class TestSmtpModule extends AbstractSmtpModule {
 		private boolean methodCalled = false;
-
+		
 		@Override
-		protected EntityManager _getEntityManager() {
+		protected void onSendMessage(Message message) {
 			methodCalled = true;
-			return null;
 		}
 
 		@Override
@@ -43,29 +45,35 @@ public class AbstractPersistenceModuleTest {
 	// =========================================================================
 
 	// INSTANCE SCOPE ==========================================================
+	private TestSmtpModule module;
+	private final Message testMessage;
 	private final AbstractWebApplication app = new MockedWebApplication();
-	private TestPersistenceModule module;
+
+
+	public AbstractSmtpModuleTest() throws AddressException {
+		this.testMessage = new MessageBuilder("sender@host.com", "recipient@host.com").build();
+	}	
 	
 	@Before
 	public void before() {
-		module = new TestPersistenceModule();
+		module = new TestSmtpModule();
 	}
 	
-	@Test
-	public void sanityCheck() {
-		Assert.assertFalse(module.methodCalled);
-		Assert.assertFalse(module.isRunning());
+	@Test(expected = IllegalArgumentException.class)
+	public void sendNullMessage() {
+		module.sendMessage(null);
 	}
 	
 	@Test(expected = IllegalStateException.class)
-	public void testGetEntityManagerWhileNotRunning() {
-		module.getEntityManager();
+	public void sendMessageWhileNotRunning() {
+		Assert.assertFalse(module.isRunning());
+		module.sendMessage(testMessage);
 	}
 	
 	@Test
-	public void testGetEntityManagerWhileRunning() {
+	public void sendMessageWhileRunning() {
 		module.start(app);
-		Assert.assertNull(module.getEntityManager());
+		module.sendMessage(testMessage);
 		Assert.assertTrue(module.methodCalled);
 	}
 	// =========================================================================

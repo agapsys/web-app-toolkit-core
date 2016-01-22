@@ -16,6 +16,7 @@
 
 package com.agapsys.web.toolkit;
 
+import com.agapsys.web.toolkit.services.AttributeService;
 import com.agapsys.web.toolkit.utils.HttpUtils;
 import java.io.IOException;
 import javax.servlet.Filter;
@@ -29,7 +30,9 @@ import javax.servlet.http.HttpServletResponse;
 
 public class WebApplicationFilter implements Filter {
 	// CLASS SCOPE =============================================================
-	public static final String ATTR_ORIGINAL_REQUEST_URI = "com.agapsys.web.toolkit.originalRequestUri";
+	public static final String ATTR_ORIGINAL_REQUEST_URI = WebApplicationFilter.class.getName() + ".originalRequestUri";
+	public static final String ATTR_HTTP_REQUEST        = WebApplicationFilter.class.getName() + ".httpRequest";
+	public static final String ATTR_HTTP_RESPONSE       = WebApplicationFilter.class.getName() + ".httpResponse";
 	// =========================================================================
 
 	// INSTANCE SCOPE ==========================================================
@@ -44,6 +47,7 @@ public class WebApplicationFilter implements Filter {
 		AbstractWebApplication webApp = AbstractWebApplication.getRunningInstance();
 		
 		if (webApp != null) {
+			
 			if (webApp.isDisabled()) {
 				resp.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
 				resp.flushBuffer();
@@ -55,10 +59,17 @@ public class WebApplicationFilter implements Filter {
 				resp.flushBuffer();
 				return;
 			}
+			
+			webApp.getService(AttributeService.class).setAttribute(ATTR_HTTP_REQUEST, req);
+			webApp.getService(AttributeService.class).setAttribute(ATTR_HTTP_RESPONSE, resp);
+			webApp.getService(AttributeService.class).setAttribute(ATTR_ORIGINAL_REQUEST_URI, HttpUtils.getRequestUri(req));
 		}
 		
-		request.setAttribute(ATTR_ORIGINAL_REQUEST_URI, HttpUtils.getRequestUri((HttpServletRequest) request));
 		chain.doFilter(request, response);
+		
+		if (webApp != null) {
+			webApp.getService(AttributeService.class).destroyAttributes();
+		}
 	}
 
 	@Override
