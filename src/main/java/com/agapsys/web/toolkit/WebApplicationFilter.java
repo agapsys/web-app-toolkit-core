@@ -65,10 +65,12 @@ public class WebApplicationFilter implements Filter {
 			webApp.getService(AttributeService.class).setAttribute(ATTR_ORIGINAL_REQUEST_URI, HttpUtils.getRequestUri(req));
 		}
 		
-		chain.doFilter(request, response);
-		
-		if (webApp != null) {
-			webApp.getService(AttributeService.class).destroyAttributes();
+		try {
+			chain.doFilter(request, response);
+		} finally {
+			if (webApp != null) {
+				webApp.getService(AttributeService.class).destroyAttributes();
+			}
 		}
 	}
 
