@@ -25,6 +25,8 @@ import com.agapsys.web.toolkit.WebApplicationFilter;
 import com.agapsys.web.toolkit.modules.ExceptionReporterModule;
 import com.agapsys.web.toolkit.modules.SmtpExceptionReporterModule;
 import com.agapsys.web.toolkit.test.MockedWebApplication;
+import javax.servlet.ServletContextEvent;
+import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletResponse;
@@ -36,7 +38,7 @@ import org.junit.Test;
 public class SmtpExceptionReporterTest {
 	// CLASS SCOPE =============================================================
 	@WebListener
-	public static class Application extends MockedWebApplication {
+	public static class Application extends MockedWebApplication implements ServletContextListener {
 		@Override
 		protected String getPropertiesFilename() {
 			return "smtp-exception-test.properties";
@@ -46,6 +48,16 @@ public class SmtpExceptionReporterTest {
 		protected void beforeApplicationStart() {
 			super.beforeApplicationStart();
 			registerModuleReplacement(ExceptionReporterModule.class, SmtpExceptionReporterModule.class);
+		}
+
+		@Override
+		public void contextInitialized(ServletContextEvent sce) {
+			start();
+		}
+
+		@Override
+		public void contextDestroyed(ServletContextEvent sce) {
+			stop();
 		}
 	}
 	

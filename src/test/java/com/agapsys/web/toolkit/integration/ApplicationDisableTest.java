@@ -23,6 +23,8 @@ import com.agapsys.sevlet.test.ServletContainerBuilder;
 import com.agapsys.web.toolkit.WebApplicationFilter;
 import com.agapsys.web.toolkit.test.MockedWebApplication;
 import java.io.IOException;
+import javax.servlet.ServletContextEvent;
+import javax.servlet.ServletContextListener;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebListener;
 import javax.servlet.annotation.WebServlet;
@@ -36,15 +38,36 @@ import org.junit.Test;
 public class ApplicationDisableTest {
 	// CLASS SCOPE =============================================================
 	@WebListener
-	public static class DisabledApplication extends MockedWebApplication {
+	public static class DisabledApplication extends MockedWebApplication implements ServletContextListener {
 
 		@Override
 		public boolean isDisabled() {
 			return true;
 		}
+
+		@Override
+		public void contextInitialized(ServletContextEvent sce) {
+			start();
+		}
+
+		@Override
+		public void contextDestroyed(ServletContextEvent sce) {
+			stop();
+		}
 	}
 	
-	public static class EnabledApplication extends MockedWebApplication {}
+	public static class EnabledApplication extends MockedWebApplication implements ServletContextListener {
+
+		@Override
+		public void contextInitialized(ServletContextEvent sce) {
+			start();
+		}
+
+		@Override
+		public void contextDestroyed(ServletContextEvent sce) {
+			stop();
+		}
+	}
 	
 	@WebServlet("/*")
 	public static class TestServlet extends HttpServlet {

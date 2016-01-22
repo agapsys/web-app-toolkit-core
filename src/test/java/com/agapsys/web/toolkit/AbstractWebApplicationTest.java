@@ -211,7 +211,7 @@ public class AbstractWebApplicationTest  {
 	@Test
 	public void Simple_web_application_start_stop_test() {
 		WebApplicationBase webApp = new WebApplicationBase();
-		webApp.contextInitialized(null);
+		webApp.start();
 		Assert.assertTrue(webApp.isBeforeApplicationStartCalled());
 		Assert.assertTrue(webApp.isRunning());
 		Assert.assertFalse(webApp.isOnPersistenceModuleStartCalled());
@@ -221,7 +221,7 @@ public class AbstractWebApplicationTest  {
 		Assert.assertFalse(webApp.isBeforeApplicationStopCalled());
 		Assert.assertFalse(webApp.isAfterApplicationStopCalled());
 		
-		webApp.contextDestroyed(null);
+		webApp.stop();
 		Assert.assertTrue(webApp.isBeforeApplicationStopCalled());
 		Assert.assertFalse(webApp.isOnPersistenceModuleStopCalled());
 		Assert.assertFalse(webApp.isOnExceptionReporterModuleStopCalled());
@@ -234,73 +234,73 @@ public class AbstractWebApplicationTest  {
 	@Test
 	public void Simple_web_application_getName_test() {
 		AbstractWebApplication webApp = new WebApplicationBase();
-		webApp.contextInitialized(null);
+		webApp.start();
 		Assert.assertEquals(APP_NAME, AbstractWebApplication.getRunningInstance().getName());
 		
-		webApp.contextDestroyed(null);
+		webApp.stop();
 	}
 	
 	@Test
 	public void Simple_web_application_getVersion_test() {
 		AbstractWebApplication webApp = new WebApplicationBase();
-		webApp.contextInitialized(null);
+		webApp.start();
 		Assert.assertEquals(APP_VERSION, AbstractWebApplication.getRunningInstance().getVersion());
 		
-		webApp.contextDestroyed(null);
+		webApp.stop();
 	}
 	
 	@Test
 	public void Simple_web_application_getAppFolder_test() {
 		AbstractWebApplication webApp = new WebApplicationBase();
-		webApp.contextInitialized(null);
+		webApp.start();
 		File appFolder = new File(System.getProperty("user.home"), String.format(".%s", AbstractWebApplication.getRunningInstance().getName()));
 		Assert.assertEquals(appFolder.getAbsolutePath(), AbstractWebApplication.getRunningInstance().getDirectory().getAbsolutePath());
 		
-		webApp.contextDestroyed(null);
+		webApp.stop();
 	}
 	
 	@Test
 	public void Web_application_with_persistence_test() {
 		WebApplicationBase webApp = new WebApplicationWithPersistence();
-		webApp.contextInitialized(null);
+		webApp.start();
 		Assert.assertTrue(webApp.isOnPersistenceModuleStartCalled());
 		
 		AbstractPersistenceModule persistenceModule = (AbstractPersistenceModule) webApp.getModule(CustomPersistenceModule.class);
 		Assert.assertNotNull(persistenceModule.getEntityManager());
 		
-		webApp.contextDestroyed(null);
+		webApp.stop();
 	}
 	
 	@Test
 	public void Web_application_with_error_report_test() {
 		WebApplicationBase webApp = new WebApplicationWithErrorReport();
-		webApp.contextInitialized(null);
+		webApp.start();
 		Assert.assertTrue(webApp.isOnExceptionReporterModuleStartCalled());
 		
-		webApp.contextDestroyed(null);
+		webApp.stop();
 		Assert.assertTrue(webApp.isOnExceptionReporterModuleStopCalled());
 	}
 	
 	@Test
 	public void Web_application_with_smtp_sender_test() {
 		WebApplicationBase webApp = new WebApplicationWithSmtpSender();
-		webApp.contextInitialized(null);
+		webApp.start();
 		Assert.assertTrue(webApp.isOnSmtpModuleStartCalled());
 		
-		webApp.contextDestroyed(null);
+		webApp.stop();
 		Assert.assertTrue(webApp.isOnSmtpModuleStopCalled());
 	}
 	
 	@Test
 	public void Full_fledged_application_test() {
 		WebApplicationBase webApp = new FullFledgedApplication();
-		webApp.contextInitialized(null);
+		webApp.start();
 		
 		Assert.assertTrue(webApp.isOnPersistenceModuleStartCalled());
 		Assert.assertTrue(webApp.isOnSmtpModuleStartCalled());
 		Assert.assertTrue(webApp.isOnExceptionReporterModuleStartCalled());
 		
-		webApp.contextDestroyed(null);
+		webApp.stop();
 		Assert.assertTrue(webApp.isOnPersistenceModuleStopCalled());
 		Assert.assertTrue(webApp.isOnSmtpModuleStopCalled());
 		Assert.assertTrue(webApp.isOnExceptionReporterModuleStopCalled());
@@ -309,8 +309,8 @@ public class AbstractWebApplicationTest  {
 	@Test
 	public void Full_fledged_application_with_standard_modules_test() {
 		MockedWebApplication app = new MockedWebApplication();
-		app.contextInitialized(null);
-		app.contextDestroyed(null);
+		app.start();
+		app.stop();
 	}
 	// =========================================================================
 }

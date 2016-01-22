@@ -16,11 +16,11 @@
 
 package com.agapsys.web.toolkit;
 
-import com.agapsys.web.toolkit.utils.SingletonManager;
 import com.agapsys.web.toolkit.utils.DateUtils;
 import com.agapsys.web.toolkit.utils.FileUtils;
 import com.agapsys.web.toolkit.utils.HttpUtils;
 import com.agapsys.web.toolkit.utils.PropertyGroup;
+import com.agapsys.web.toolkit.utils.SingletonManager;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -31,8 +31,6 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.regex.Pattern;
-import javax.servlet.ServletContextEvent;
-import javax.servlet.ServletContextListener;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -41,7 +39,7 @@ import javax.servlet.http.HttpServletResponse;
  * This class is not thread-safe
  * @author Leandro Oliveira (leandro@agapsys.com)
  */
-public abstract class AbstractWebApplication implements ServletContextListener {
+public abstract class AbstractWebApplication {
 	// CLASS SCOPE =============================================================
 	
 	// Global settings ---------------------------------------------------------
@@ -536,16 +534,5 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	 * Default implementation does nothing.
 	 */
 	protected void afterApplicationStop() {}
-	
-	
-	@Override
-	public final void contextInitialized(ServletContextEvent sce) {
-		start();
-	}
-
-	@Override
-	public final void contextDestroyed(ServletContextEvent sce) {
-		stop();
-	}
 	// =========================================================================
 }
