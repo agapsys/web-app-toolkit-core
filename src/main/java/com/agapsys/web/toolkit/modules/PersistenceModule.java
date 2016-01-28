@@ -19,6 +19,7 @@ package com.agapsys.web.toolkit.modules;
 import com.agapsys.web.toolkit.AbstractWebApplication;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
+import javax.persistence.FlushModeType;
 import javax.persistence.Persistence;
 
 public class PersistenceModule extends AbstractPersistenceModule {
@@ -51,7 +52,9 @@ public class PersistenceModule extends AbstractPersistenceModule {
 	
 	@Override
 	protected EntityManager _getEntityManager() {
-		return emf.createEntityManager();
+		EntityManager em = emf.createEntityManager();
+		em.setFlushMode(FlushModeType.COMMIT);
+		return em;
 	}
 	// =========================================================================
 }
