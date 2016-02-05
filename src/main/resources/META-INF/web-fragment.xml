@@ -17,6 +17,7 @@ limitations under the License.
 -->
 
 <web-fragment>
+	<name>com.agapsys.libs.web-app-toolkit</name>
 	
 	<filter>
 		<filter-name>com.agapsys.web.toolkit.WebApplicationFilter</filter-name>
