@@ -4,9 +4,8 @@
  * Proprietary and confidential
  */
 
-package com.agapsys.web.toolkit.test;
+package com.agapsys.web.toolkit;
 
-import com.agapsys.web.toolkit.AbstractWebApplication;
 import com.agapsys.web.toolkit.utils.FileUtils;
 import java.io.File;
 import java.io.FileNotFoundException;
