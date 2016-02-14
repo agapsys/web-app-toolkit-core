@@ -17,7 +17,7 @@
 package com.agapsys.web.toolkit.modules;
 
 import com.agapsys.web.toolkit.AbstractWebApplication;
-import com.agapsys.web.toolkit.test.MockedWebApplication;
+import com.agapsys.web.toolkit.MockedWebApplication;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;

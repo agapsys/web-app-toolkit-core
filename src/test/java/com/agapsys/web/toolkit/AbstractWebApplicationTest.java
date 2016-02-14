@@ -20,7 +20,6 @@ import com.agapsys.web.toolkit.modules.AbstractPersistenceModule;
 import com.agapsys.web.toolkit.modules.ExceptionReporterModule;
 import com.agapsys.web.toolkit.modules.PersistenceModule;
 import com.agapsys.web.toolkit.modules.SmtpModule;
-import com.agapsys.web.toolkit.test.MockedWebApplication;
 import java.io.File;
 import java.util.logging.Level;
 import org.junit.Assert;

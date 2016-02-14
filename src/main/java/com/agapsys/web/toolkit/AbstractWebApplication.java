@@ -31,6 +31,8 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.regex.Pattern;
+import javax.servlet.ServletContextEvent;
+import javax.servlet.ServletContextListener;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -39,7 +41,7 @@ import javax.servlet.http.HttpServletResponse;
  * This class is not thread-safe
  * @author Leandro Oliveira (leandro@agapsys.com)
  */
-public abstract class AbstractWebApplication {
+public abstract class AbstractWebApplication implements ServletContextListener {
 	// CLASS SCOPE =============================================================
 	
 	// Global settings ---------------------------------------------------------
@@ -534,5 +536,15 @@ public abstract class AbstractWebApplication {
 	 * Default implementation does nothing.
 	 */
 	protected void afterApplicationStop() {}
+	
+	@Override
+	public void contextInitialized(ServletContextEvent sce) {
+		start();
+	}
+
+	@Override
+	public void contextDestroyed(ServletContextEvent sce) {
+		stop();
+	}
 	// =========================================================================
 }

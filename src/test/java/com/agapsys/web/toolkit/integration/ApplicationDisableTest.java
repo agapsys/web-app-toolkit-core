@@ -18,10 +18,10 @@ package com.agapsys.web.toolkit.integration;
 
 import com.agapsys.http.HttpGet;
 import com.agapsys.http.HttpResponse;
-import com.agapsys.sevlet.test.ServletContainer;
-import com.agapsys.sevlet.test.ServletContainerBuilder;
+import com.agapsys.sevlet.container.ServletContainer;
+import com.agapsys.sevlet.container.ServletContainerBuilder;
 import com.agapsys.web.toolkit.WebApplicationFilter;
-import com.agapsys.web.toolkit.test.MockedWebApplication;
+import com.agapsys.web.toolkit.MockedWebApplication;
 import java.io.IOException;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;

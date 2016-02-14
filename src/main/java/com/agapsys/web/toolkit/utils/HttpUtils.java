@@ -21,7 +21,7 @@ import javax.servlet.http.HttpServletResponse;
 
 public class HttpUtils {
 	// CLASS SCOPE =============================================================
-	public static class BadRequestException extends RuntimeException {
+	public static class BadRequestException extends Exception {
 
 		private BadRequestException(String message, Object...msgArgs) {
 			super(msgArgs.length > 0 ? String.format(message, msgArgs) : message);
