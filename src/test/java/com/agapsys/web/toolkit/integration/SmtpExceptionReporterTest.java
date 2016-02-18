@@ -21,10 +21,10 @@ import com.agapsys.http.HttpResponse;
 import com.agapsys.sevlet.container.ServletContainer;
 import com.agapsys.sevlet.container.ServletContainerBuilder;
 import com.agapsys.web.toolkit.ErrorServlet;
+import com.agapsys.web.toolkit.MockedWebApplication;
 import com.agapsys.web.toolkit.WebApplicationFilter;
 import com.agapsys.web.toolkit.modules.ExceptionReporterModule;
 import com.agapsys.web.toolkit.modules.SmtpExceptionReporterModule;
-import com.agapsys.web.toolkit.MockedWebApplication;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
@@ -74,7 +74,7 @@ public class SmtpExceptionReporterTest {
 	public void before() {
 		sc = new ServletContainerBuilder()
 			.addRootContext()
-				.registerEventListener(new Application())
+				.registerEventListener(Application.class)
 				.registerServlet(CustomErrorServlet.class)
 				.registerServlet(ExceptionServlet.class)
 				.registerFilter(WebApplicationFilter.class, "/*")
