@@ -21,12 +21,12 @@ limitations under the License.
 	<name>com.agapsys.libs.web-app-toolkit</name>
 	
 	<filter>
-		<filter-name>com.agapsys.web.toolkit.webApplicationFilter</filter-name>
+		<filter-name>com.agapsys.web.toolkit.WebApplicationFilter</filter-name>
 		<filter-class>com.agapsys.web.toolkit.WebApplicationFilter</filter-class>
 	</filter>
 	
 	<filter-mapping>
-		<filter-name>com.agapsys.web.toolkit.webApplicationFilter</filter-name>
+		<filter-name>com.agapsys.web.toolkit.WebApplicationFilter</filter-name>
 		<url-pattern>/*</url-pattern>
 	</filter-mapping>
 	
