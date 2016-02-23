@@ -89,32 +89,28 @@ public class RestrictOriginTest {
 	@Test
 	public void testEnabledApplication() {
 		sc = new ServletContainerBuilder()
-			.addContext("/enabled")
-				.registerEventListener(AnyOriginApp.class)
-				.registerServlet(TestServlet.class)
-				.registerFilter(WebApplicationFilter.class, "/*")
-			.endContext()
+			.registerEventListener(AnyOriginApp.class)
+			.registerServlet(TestServlet.class)
+			.registerFilter(WebApplicationFilter.class, "/*")
 			.build();
 		
 		sc.startServer();
 		
-		HttpResponse resp = sc.doRequest(new HttpGet("/enabled/test"));
+		HttpResponse resp = sc.doRequest(new HttpGet("/test"));
 		Assert.assertEquals(HttpServletResponse.SC_OK, resp.getStatusCode());
 	}
 	
 	@Test
 	public void testDisabledApplication() {
 		sc = new ServletContainerBuilder()
-			.addContext("/disabled")
-				.registerEventListener(ForbiddenLocalHostApp.class)
-				.registerServlet(TestServlet.class)
-				.registerFilter(WebApplicationFilter.class, "/*")
-			.endContext()
+			.registerEventListener(ForbiddenLocalHostApp.class)
+			.registerServlet(TestServlet.class)
+			.registerFilter(WebApplicationFilter.class, "/*")
 			.build();
 		
 		sc.startServer();
 		
-		HttpResponse resp =sc.doRequest(new HttpGet("/disabled/test"));
+		HttpResponse resp =sc.doRequest(new HttpGet("/test"));
 		Assert.assertEquals(HttpServletResponse.SC_FORBIDDEN, resp.getStatusCode());
 	}
 	// =========================================================================
