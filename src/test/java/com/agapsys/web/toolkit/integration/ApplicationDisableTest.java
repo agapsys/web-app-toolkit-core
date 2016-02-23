@@ -89,31 +89,27 @@ public class ApplicationDisableTest {
 	@Test
 	public void testEnabledApplication() {
 		sc = new ServletContainerBuilder()
-			.addContext("/enabled")
-				.registerEventListener(EnabledApplication.class)
-				.registerServlet(TestServlet.class)
-				.registerFilter(WebApplicationFilter.class, "/*")
-			.endContext()
+			.registerEventListener(EnabledApplication.class)
+			.registerServlet(TestServlet.class)
+			.registerFilter(WebApplicationFilter.class, "/*")
 			.build();
 		
 		sc.startServer();
-		HttpResponse resp = sc.doRequest(new HttpGet("/enabled/test"));
+		HttpResponse resp = sc.doRequest(new HttpGet("/test"));
 		Assert.assertEquals(HttpServletResponse.SC_OK, resp.getStatusCode());
 	}
 	
 	@Test
 	public void testDisabledApplication() {
 		sc = new ServletContainerBuilder()
-			.addContext("/disabled")
-				.registerEventListener(DisabledApplication.class)
-				.registerServlet(TestServlet.class)
-				.registerFilter(WebApplicationFilter.class, "/*")
-			.endContext()
+			.registerEventListener(DisabledApplication.class)
+			.registerServlet(TestServlet.class)
+			.registerFilter(WebApplicationFilter.class, "/*")
 			.build();
 		
 		sc.startServer();
 		
-		HttpResponse resp = sc.doRequest(new HttpGet("/disabled/test"));
+		HttpResponse resp = sc.doRequest(new HttpGet("/test"));
 		Assert.assertEquals(HttpServletResponse.SC_SERVICE_UNAVAILABLE, resp.getStatusCode());
 	}
 	// =========================================================================

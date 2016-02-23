@@ -73,13 +73,11 @@ public class SmtpExceptionReporterTest {
 	@Before
 	public void before() {
 		sc = new ServletContainerBuilder()
-			.addRootContext()
-				.registerEventListener(Application.class)
-				.registerServlet(CustomErrorServlet.class)
-				.registerServlet(ExceptionServlet.class)
-				.registerFilter(WebApplicationFilter.class, "/*")
-				.registerErrorPage(500, CustomErrorServlet.URL)
-			.endContext()
+			.registerEventListener(Application.class)
+			.registerServlet(CustomErrorServlet.class)
+			.registerServlet(ExceptionServlet.class)
+			.registerFilter(WebApplicationFilter.class, "/*")
+			.registerErrorPage(500, CustomErrorServlet.URL)
 			.build();
 		
 		sc.startServer();
