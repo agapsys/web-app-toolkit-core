@@ -45,7 +45,7 @@ public class SingletonManagerTest {
 		Assert.assertTrue(obj1.getClass() == TestSingleton.class);
 		sm.clear();
 		
-		sm.replaceSingleton(TestSingleton.class, CustomTestSingleton.class);
+		sm.registerClassReplacement(TestSingleton.class, CustomTestSingleton.class);
 		Object obj2 = sm.getSingleton(TestSingleton.class);
 		Assert.assertTrue(obj2.getClass() == CustomTestSingleton.class);
 		
@@ -67,7 +67,7 @@ public class SingletonManagerTest {
 		
 		Throwable error = null;
 		try {
-			sm.replaceSingleton(TestSingleton.class, CustomTestSingleton.class);
+			sm.registerClassReplacement(TestSingleton.class, CustomTestSingleton.class);
 		} catch (IllegalStateException ex) {
 			error = ex;
 		}
@@ -75,7 +75,7 @@ public class SingletonManagerTest {
 		Assert.assertNotNull(error);
 		
 		sm.clear();
-		sm.replaceSingleton(TestSingleton.class, CustomTestSingleton.class);
+		sm.registerClassReplacement(TestSingleton.class, CustomTestSingleton.class);
 		Object obj2 = sm.getSingleton(TestSingleton.class);
 		Assert.assertTrue(obj2.getClass() == CustomTestSingleton.class);
 		

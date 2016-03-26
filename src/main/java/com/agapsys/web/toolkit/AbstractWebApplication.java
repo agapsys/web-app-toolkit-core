@@ -76,7 +76,7 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	
 	// INSTANCE SCOPE ==========================================================
 	private final Set<Class<? extends Module>> moduleClassSet = new LinkedHashSet<>();
-	private final List<Module>                 loadedModules  = new LinkedList<>();
+	private final List<Module>                 startedModules  = new LinkedList<>();
 	
 	private final Properties       properties       = new Properties();
 	private final SingletonManager singletonManager = new SingletonManager();
@@ -94,7 +94,7 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	/** Resets application state. */
 	private void reset() {
 		moduleClassSet.clear();
-		loadedModules.clear();
+		startedModules.clear();
 		properties.clear();
 		singletonManager.clear();
 		
@@ -209,27 +209,7 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 		return appDirectory;
 	}
 	
-	
-	/**
-	 * Registers a module and all transitive dependencies.
-	 * @param moduleClass module class to be registered.
-	 */
-	private void _registerModule(Class<? extends Module> moduleClass) {
-		if (!moduleClassSet.contains(moduleClass)) {
-			
-			Class<? extends Module>[] dependencies = singletonManager.getSingleton(moduleClass).getDependencies();
-			
-			if (dependencies == null)
-				dependencies = new Class[] {};
-			
-			for (Class<? extends Module> dep : dependencies) {
-				_registerModule(dep);
-			}
-			
-			moduleClassSet.add(moduleClass);
-		}
-	}
-	
+		
 	/**
 	 * Registers a module to be initialized with the application.
 	 * @param moduleClass module class to be registered
@@ -238,10 +218,8 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 		if (isRunning())
 			throw new RuntimeException("Cannot register a module in a running application");
 		
-		if (moduleClassSet.contains(moduleClass))
+		if (!moduleClassSet.add(moduleClass))
 			throw new IllegalArgumentException("Duplicate module: " + moduleClass.getName());
-		
-		_registerModule(moduleClass);
 	}
 	
 	/**
@@ -254,9 +232,8 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 		if (isRunning())
 			throw new RuntimeException("Cannot register a module replacement in a running application");
 		
-		moduleClassSet.remove(baseClass);
-		singletonManager.replaceSingleton(baseClass, subclass);
-		_registerModule(baseClass);
+		moduleClassSet.add(baseClass);
+		singletonManager.registerClassReplacement(baseClass, subclass);
 	}
 	
 	/**
@@ -270,20 +247,25 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 
 		if (!module.isRunning()) {
 			log(LogType.WARNING, "Requesting an uninitialized module: %s", moduleClass);
-			startModule(moduleClass, null);
+			loadModule(moduleClass, null, null, true);
 		}
 
 		return module;
 	}
 	
 	/** 
-	 * Starts a module.
+	 * Loads a module and optionally starts it.
 	 * @param moduleClass module class to be loaded
-	 * @param callerModules recursive caller list.
+	 * @param callerModules recursive caller list. Used to detect cyclic dependencies
+	 * @param transientModules used to store transient dependencies which are not registered by application
+	 * @param start defines if given module shall be started
 	 */
-	private void startModule(Class<? extends Module> moduleClass, List<Class<? extends Module>> callerModules) {
+	private void loadModule(Class<? extends Module> moduleClass, List<Class<? extends Module>> callerModules, Set<Class<? extends Module>> transientModules, boolean start) {
 		if (callerModules == null)
 			callerModules = new LinkedList<>();
+		
+		if (transientModules == null)
+			transientModules = new LinkedHashSet<>();
 		
 		Module moduleInstance = singletonManager.getSingleton(moduleClass);
 		
@@ -298,42 +280,52 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 				dependencies = new Class[] {};
 			
 			for (Class<? extends Module> dep : dependencies) {
-				startModule(dep, callerModules);
+				if (!moduleClassSet.contains(dep))
+					transientModules.add(dep); // <-- Probably transient dependencies are not explicitly registered, so register them here (required for settings loading of not-registered modules).
+				
+				loadModule(dep, callerModules, transientModules, start);
 			}
 
-			try {
-				moduleInstance.start(this);
-				log(LogType.INFO, "Initialized module: %s", moduleInstance.getClass().getName());
-			} catch (Throwable t) {
-				log(LogType.ERROR, "Error starting module: %s (%s)", moduleInstance.getClass().getName(), t.getMessage());
-				if (t instanceof RuntimeException)
-					throw (RuntimeException) t;
-				else
-					throw new RuntimeException(t);
-			}
-			
+			if (start) {
+				try {
+					moduleInstance.start(this);
+					log(LogType.INFO, "Initialized module: %s", moduleInstance.getClass().getName());
+				} catch (Throwable t) {
+					log(LogType.ERROR, "Error starting module: %s (%s)", moduleInstance.getClass().getName(), t.getMessage());
+					if (t instanceof RuntimeException)
+						throw (RuntimeException) t;
+					else
+						throw new RuntimeException(t);
+				}
 
-			loadedModules.add(moduleInstance);
+				startedModules.add(moduleInstance);
+			}
 		}
 	}
 	
 	/** Starts modules. */
-	private void startModules() {
-		if (!moduleClassSet.isEmpty())
+	private void loadModules(boolean start) {
+		if (!moduleClassSet.isEmpty() && start)
 			log(LogType.INFO, "Starting modules...");
 		
+		Set<Class<? extends Module>> transientModules = new LinkedHashSet<>();
+		
 		for (Class<? extends Module> moduleClass : moduleClassSet) {
-			startModule(moduleClass, null);
+			loadModule(moduleClass, null, transientModules, start);
+		}
+		
+		for (Class<? extends Module> transientDep : transientModules) {
+			moduleClassSet.add(transientDep); // <-- required for settings loading of not-registered modules.
 		}
 	}
 	
 	/** Shutdown initialized modules in appropriate sequence. */
 	private void shutdownModules() {
-		if (loadedModules.size() > 0)
+		if (startedModules.size() > 0)
 			log(LogType.INFO, "Stopping modules...");
 
-		for (int i = loadedModules.size() - 1; i >= 0; i--) {
-			Module module = loadedModules.get(i);
+		for (int i = startedModules.size() - 1; i >= 0; i--) {
+			Module module = startedModules.get(i);
 			module.stop();
 			log(LogType.INFO, "Shutted down module: %s", module.getClass().getName());
 		}
@@ -365,7 +357,7 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 		if (isRunning())
 			throw new RuntimeException("Cannot register a service replacement in a running application");
 		
-		singletonManager.replaceSingleton(baseclass, subclass);
+		singletonManager.registerClassReplacement(baseclass, subclass);
 	}
 	
 	
@@ -468,6 +460,7 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 			beforeApplicationStart();
 			
 			try {
+				loadModules(false); // <-- required in order to retrieve transient modules default settings...
 				log(LogType.INFO, "Loading settings...");
 				loadSettings();
 			} catch (IOException ex) {
@@ -475,7 +468,7 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 			}
 
 			// Starts all modules
-			startModules();
+			loadModules(true);
 			singleton = this;
 			running = true;
 			log(LogType.INFO, "Application is ready: %s", name);

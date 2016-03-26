@@ -26,14 +26,14 @@ public class SingletonManager {
 	private final Map<Class<?>, Class<?>> REPLACEMENT_MAP = new LinkedHashMap<>();
 	
 	/**
-	 * Replaces a singleton class by a subclass.
+	 * Replaces a class replacement to be used when getting a singleton
 	 * @param <T> base Class type
 	 * @param clazz singleton base class
 	 * @param subclass singleton subclass which will replace given base class
 	 * @throws IllegalStateException if there is an instance associated with base class
 	 * 
 	 */
-	public synchronized <T> void replaceSingleton(Class<T> clazz, Class<? extends T> subclass) throws IllegalStateException {
+	public synchronized <T> void registerClassReplacement(Class<T> clazz, Class<? extends T> subclass) throws IllegalStateException {
 		if (clazz == null)
 			throw new IllegalArgumentException("clazz == null");
 		
@@ -51,7 +51,7 @@ public class SingletonManager {
 	
 	/**
 	 * Returns a singleton instance associated with given class.
-	 * If given class was replaced (via {@linkplain SingletonManager#replaceSingleton(Class, Class)}) returned
+	 * If given class was replaced (via {@link SingletonManager#registerClassReplacement(Class, Class)}) returned
 	 * instance will be an instance of associated subclass.
 	 * @param <T> returned singleton type
 	 * @param clazz singleton class
