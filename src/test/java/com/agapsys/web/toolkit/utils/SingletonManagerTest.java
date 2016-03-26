@@ -24,8 +24,6 @@ public class SingletonManagerTest {
 	public static class TestSingleton {}
 	
 	public static class CustomTestSingleton extends TestSingleton {}
-	
-	private static class OntherSingleton {}
 	// =========================================================================
 
 	// INSTANCE SCOPE ==========================================================
@@ -39,16 +37,10 @@ public class SingletonManagerTest {
 		Assert.assertTrue(instance1 == instance2);
 	}
 	
-	@Test(expected = IllegalArgumentException.class)
-	public void testInvalidSingletonReplace() {
-		SingletonManager sm = new SingletonManager();
-		
-		sm.replaceSingleton(TestSingleton.class, OntherSingleton.class);
-	}
-	
 	@Test
 	public void testSingletonReplace() {
 		SingletonManager sm = new SingletonManager();
+		
 		Object obj1 = sm.getSingleton(TestSingleton.class);
 		Assert.assertTrue(obj1.getClass() == TestSingleton.class);
 		sm.clear();
@@ -60,26 +52,37 @@ public class SingletonManagerTest {
 		Object obj3 = sm.getSingleton(CustomTestSingleton.class);
 		Assert.assertTrue(obj3 == obj2);
 		
-		sm.clearReplacement();
+		sm.clear();
 		Object obj4 = sm.getSingleton(TestSingleton.class);
 		Assert.assertTrue(obj4.getClass() == TestSingleton.class);
-		Assert.assertFalse(obj4 == obj1); // Because of clear
+		Assert.assertFalse(obj4 == obj1); // <-- due to sm.clear()
 	}
 	
 	@Test
 	public void testSingletonReplace1() {
 		SingletonManager sm = new SingletonManager();
+		
 		Object obj1 = sm.getSingleton(TestSingleton.class);
 		Assert.assertTrue(obj1.getClass() == TestSingleton.class);
 		
-		sm.replaceSingleton(TestSingleton.class, CustomTestSingleton.class); // Previous instance associated to TestSingleton.class (before replacement) will be lost
+		Throwable error = null;
+		try {
+			sm.replaceSingleton(TestSingleton.class, CustomTestSingleton.class);
+		} catch (IllegalStateException ex) {
+			error = ex;
+		}
+		
+		Assert.assertNotNull(error);
+		
+		sm.clear();
+		sm.replaceSingleton(TestSingleton.class, CustomTestSingleton.class);
 		Object obj2 = sm.getSingleton(TestSingleton.class);
 		Assert.assertTrue(obj2.getClass() == CustomTestSingleton.class);
 		
 		Object obj3 = sm.getSingleton(CustomTestSingleton.class);
 		Assert.assertTrue(obj3 == obj2);
 		
-		sm.clearReplacement();
+		sm.clear();
 		Object obj4 = sm.getSingleton(TestSingleton.class);
 		Assert.assertTrue(obj4.getClass() == TestSingleton.class);
 		Assert.assertTrue(obj4 != obj1);

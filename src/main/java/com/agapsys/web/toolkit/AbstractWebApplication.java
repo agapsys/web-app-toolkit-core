@@ -246,10 +246,11 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	
 	/**
 	 * Registers a module replacement.
+	 * @param <T> base module type
 	 * @param baseClass module base class (will be replaced). If base class is not registered it will be automatically registered.
 	 * @param subclass module subclass.
 	 */
-	public final void registerModuleReplacement(Class<? extends Module> baseClass, Class<? extends Module> subclass) {
+	public final <T extends Module> void registerModuleReplacement(Class<T> baseClass, Class<? extends T> subclass) {
 		if (isRunning())
 			throw new RuntimeException("Cannot register a module replacement in a running application");
 		
@@ -265,9 +266,6 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	 * @param <T> module type
 	 */
 	public final <T extends Module> T getModule(Class<T> moduleClass) {
-		if (!moduleClassSet.contains(moduleClass))
-			return null;
-		
 		T module = singletonManager.getSingleton(moduleClass);
 
 		if (!module.isRunning()) {
@@ -276,7 +274,6 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 		}
 
 		return module;
-
 	}
 	
 	/** 
@@ -351,6 +348,7 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	 */
 	public final <T extends Service> T getService(Class<T> serviceClass) {
 		T service = singletonManager.getSingleton(serviceClass);
+		
 		if (!service.isActive())
 			service.init(this);
 		
@@ -359,10 +357,11 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	
 	/**
 	 * Replaces a service by a subclass of it.
+	 * @param <T> base service type
 	 * @param baseclass service base class
 	 * @param subclass service subclass.
 	 */
-	public final void registerServiceReplacement(Class<? extends Service> baseclass, Class<? extends Service> subclass) {
+	public final <T extends Service> void registerServiceReplacement(Class<T> baseclass, Class<? extends T> subclass) {
 		if (isRunning())
 			throw new RuntimeException("Cannot register a service replacement in a running application");
 		

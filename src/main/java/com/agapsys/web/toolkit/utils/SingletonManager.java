@@ -22,62 +22,67 @@ import java.util.Map;
 
 /** Represents a singleton object. */
 public class SingletonManager {
-	private final Map<Class<?>, Object>   INSTANCE_MAP = new LinkedHashMap<>();
-	private final Map<Class<?>, Class<?>> ALIAS_MAP    = new LinkedHashMap<>();
+	private final Map<Class<?>, Object>   INSTANCE_MAP    = new LinkedHashMap<>();
+	private final Map<Class<?>, Class<?>> REPLACEMENT_MAP = new LinkedHashMap<>();
 	
 	/**
 	 * Replaces a singleton class by a subclass.
-	 * @param baseClass singleton base class
+	 * @param <T> base Class type
+	 * @param clazz singleton base class
 	 * @param subclass singleton subclass which will replace given base class
+	 * @throws IllegalStateException if there is an instance associated with base class
+	 * 
 	 */
-	public synchronized void replaceSingleton(Class<?> baseClass, Class<?> subclass) {
-		if (baseClass == null)
-			throw new IllegalArgumentException("Null alias class");
+	public synchronized <T> void replaceSingleton(Class<T> clazz, Class<? extends T> subclass) throws IllegalStateException {
+		if (clazz == null)
+			throw new IllegalArgumentException("clazz == null");
 		
 		if (subclass == null)
-			throw new IllegalArgumentException("Null singleton class");
+			throw new IllegalArgumentException("subclass == null");
 		
-		if (!baseClass.isAssignableFrom(subclass))
-			throw new IllegalArgumentException(String.format("%s cannot be cast to %s", subclass.getName(), baseClass.getName()));
+		if (clazz == subclass)
+			throw new IllegalArgumentException("clazz = subClass");
 		
-		ALIAS_MAP.put(baseClass, subclass);
+		if (INSTANCE_MAP.get(clazz) != null)
+			throw new IllegalStateException("There is an instance associated with clazz");
+		
+		REPLACEMENT_MAP.put(clazz, subclass);
 	}
 	
 	/**
 	 * Returns a singleton instance associated with given class.
 	 * If given class was replaced (via {@linkplain SingletonManager#replaceSingleton(Class, Class)}) returned
 	 * instance will be an instance of associated subclass.
-	 * @param <T> returned singleton class
-	 * @param singletonClass singleton class
+	 * @param <T> returned singleton type
+	 * @param clazz singleton class
 	 * @return singleton instance.
 	 */
-	public synchronized <T> T getSingleton(Class<T> singletonClass) {
-		if (singletonClass == null)
-			throw new IllegalArgumentException("Null class");
+	public synchronized <T> T getSingleton(Class<T> clazz) {
+		if (clazz == null)
+			throw new IllegalArgumentException("Null singletonClass");
 		
 		try {
-			Class<?> targetClass = ALIAS_MAP.get(singletonClass);
+			T targetInstance = (T) INSTANCE_MAP.get(clazz);
+			
+			if (targetInstance != null)
+				return targetInstance;
+			
+			Class<? extends T> targetClass = (Class<? extends T>) REPLACEMENT_MAP.get(clazz);
 			
 			if (targetClass == null) {
-				ALIAS_MAP.put(singletonClass, singletonClass);
-				targetClass = singletonClass;
+				REPLACEMENT_MAP.put(clazz, clazz);
+				targetClass = clazz;
 			}
 			
-			boolean useAlias = singletonClass != targetClass;
+			boolean hasReplacement = clazz != targetClass;
 			
-			Object targetSingleton = INSTANCE_MAP.get(singletonClass);
-			if (targetSingleton != null && targetSingleton.getClass() != targetClass) {
-				targetSingleton = null;
-			}
+			targetInstance = (T) targetClass.getConstructor().newInstance();
+			INSTANCE_MAP.put(clazz, targetInstance);
 			
-			if (targetSingleton == null) {
-				targetSingleton = targetClass.getConstructor().newInstance();
-				INSTANCE_MAP.put(singletonClass, targetSingleton);
-				if (useAlias)
-					INSTANCE_MAP.put(targetClass, targetSingleton);
-			}
+			if (hasReplacement)
+				INSTANCE_MAP.put(targetClass, targetInstance);
 			
-			return (T) targetSingleton;
+			return targetInstance;
 		} catch (
 				NoSuchMethodException | 
 				SecurityException | 
@@ -98,22 +103,18 @@ public class SingletonManager {
 		}
 	}
 	
-	/** Removes any singleton replacement associated with this manager. */
-	public void clearReplacement() {
-		ALIAS_MAP.clear();
-	}
-	
 	/**
-	 * Removes any singleton replacement associated with given class..
-	 * @param baseClass base class which was replaced by a subclass.
+	 * Removes any singleton/replacement associated with given class..
+	 * @param clazz base class which was replaced by a subclass.
 	 */
-	public void clearReplacement(Class<?> baseClass) {
-		ALIAS_MAP.remove(baseClass);
+	public void clear(Class<?> clazz) {
+		REPLACEMENT_MAP.remove(clazz);
+		INSTANCE_MAP.remove(clazz);
 	}
 	
 	/** Removes all singletons and replacements registered with this manager. */
 	public void clear() {
 		INSTANCE_MAP.clear();
-		ALIAS_MAP.clear();
+		REPLACEMENT_MAP.clear();
 	}
 }
