@@ -15,26 +15,29 @@
  */
 package com.agapsys.web.toolkit.modules;
 
-import com.agapsys.web.toolkit.AbstractModule;
+import com.agapsys.web.toolkit.Module;
 import javax.persistence.EntityManager;
 
 /** Persistence module. */
-public abstract class AbstractPersistenceModule extends AbstractModule {
+public abstract class AbstractPersistenceModule extends Module {
 	/**
 	 * Returns an entity manager to be used by application.
-	 * This method will be called only when module is running.
+	 * 
 	 * @return an entity manager to be used by application.
 	 */
-	protected abstract EntityManager _getEntityManager();
+	protected abstract EntityManager getCustomEntityManager();
 	
 	/**
 	 * Returns an entity manager to be used by application.
+	 * 
 	 * @return an entity manager to be used by application.
 	 */
 	public final EntityManager getEntityManager() {
-		if (!isRunning())
-			throw new IllegalStateException("Module is not running");
-		
-		return _getEntityManager();
+		synchronized(this) {
+			if (!isActive())
+				throw new IllegalStateException("Module is not active");
+
+			return getCustomEntityManager();
+		}
 	}
 }

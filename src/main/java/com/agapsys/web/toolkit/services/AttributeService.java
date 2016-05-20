@@ -15,7 +15,7 @@
  */
 package com.agapsys.web.toolkit.services;
 
-import com.agapsys.web.toolkit.AbstractService;
+import com.agapsys.web.toolkit.Service;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -24,7 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Global attribute service for thread-safe access.
  * @author Leandro Oliveira (leandro@agapsys.com)
  */
-public class AttributeService extends AbstractService {
+public class AttributeService extends Service {
 	private final Map<Thread, Map<String, Object>> threadMap = new ConcurrentHashMap<>();
 
 	private Map<String, Object> getAttributeMap() {

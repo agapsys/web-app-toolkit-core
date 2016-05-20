@@ -29,18 +29,39 @@ public class PersistenceModule extends AbstractPersistenceModule {
 
 	// INSTANCE SCOPE ==========================================================
 	private EntityManagerFactory emf = null;
-
+	
+	private final String persistenceUnitName;
+	
 	/**
-	 * Return the name of default persistence unit name. 
-	 * @return the name of default persistence unit name. Default implementation 
-	 * returns {@linkplain PersistenceModule#DEFAULT_PERSISTENCE_UNIT_NAME} 
+	 * Default constructor. Default persistence name equals to {@linkplain PersistenceModule#DEFAULT_PERSISTENCE_UNIT_NAME}.
+	 */
+	public PersistenceModule() {
+		this(DEFAULT_PERSISTENCE_UNIT_NAME);
+	}
+	
+	/**
+	 * Constructor. Allows a custom persistence unit name.
+	 * 
+	 * @param persistenceUnitName persistence unit name used by this module.
+	 */
+	public PersistenceModule(String persistenceUnitName) {
+		if (persistenceUnitName == null || persistenceUnitName.trim().isEmpty())
+			throw new IllegalArgumentException("Null/Empty name");
+		
+		this.persistenceUnitName = persistenceUnitName;
+	}
+	
+	/**
+	 * Return the name of persistence unit associated with this instance.
+	 * 
+	 * @return the name of persistence unit associated with this instance.
 	 */
 	protected String getPersistenceUnitName() {
-		return DEFAULT_PERSISTENCE_UNIT_NAME;
+		return persistenceUnitName;
 	}
 	
 	@Override
-	protected void onStart(AbstractWebApplication webapplication) {
+	protected void onInit(AbstractWebApplication webapplication) {
 		emf = Persistence.createEntityManagerFactory(getPersistenceUnitName());
 	}
 	
@@ -51,7 +72,7 @@ public class PersistenceModule extends AbstractPersistenceModule {
 	}
 	
 	@Override
-	protected EntityManager _getEntityManager() {
+	protected EntityManager getCustomEntityManager() {
 		EntityManager em = emf.createEntityManager();
 		em.setFlushMode(FlushModeType.COMMIT);
 		return em;

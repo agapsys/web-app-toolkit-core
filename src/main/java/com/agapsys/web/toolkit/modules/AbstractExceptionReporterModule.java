@@ -15,17 +15,18 @@
  */
 package com.agapsys.web.toolkit.modules;
 
-import com.agapsys.web.toolkit.AbstractModule;
+import com.agapsys.web.toolkit.Module;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import javax.servlet.http.HttpServletRequest;
 
 /** Represents an exception reporter. */
-public abstract class AbstractExceptionReporterModule extends AbstractModule {
+public abstract class AbstractExceptionReporterModule extends Module {
 	// CLASS SCOPE =============================================================
 	/** 
-	 * Return a string representation of a stack trace for given error
-	 * @return a string representation of a stack trace for given error
+	 * Return a string representation of a stack trace for given error.
+	 * 
+	 * @return a string representation of a stack trace for given error.
 	 * @param throwable error
 	 */
 	public static String getStackTrace(Throwable throwable) {
@@ -38,28 +39,32 @@ public abstract class AbstractExceptionReporterModule extends AbstractModule {
 	// INSTANCE SCOPE ==========================================================
 	/**
 	 * Actual exception report code.
+	 * 
 	 * This method will be called only when module is running.
-	 * @param t exception to be reported
-	 * @param req HTTP request which thrown the exception
+	 * @param t exception to be reported.
+	 * @param req HTTP request which thrown the exception.
 	 */
 	protected abstract void onExceptionReport(Throwable t, HttpServletRequest req);
 	
 	/**
 	 * Reports an error in the application.
-	 * @param t exception to be reported
-	 * @param req HTTP request which thrown the exception
+	 * 
+	 * @param t exception to be reported.
+	 * @param req HTTP request which thrown the exception.
 	 */
 	public final void reportException(Throwable t, HttpServletRequest req) {
-		if (t == null)
-			throw new IllegalArgumentException("null throwable");
-		
-		if (req == null)
-			throw new IllegalArgumentException("Null request");
-		
-		if (!isRunning())
-			throw new IllegalStateException("Module is not running");
-		
-		onExceptionReport(t, req);
+		synchronized(this) {
+			if (t == null)
+				throw new IllegalArgumentException("null throwable");
+
+			if (req == null)
+				throw new IllegalArgumentException("Null request");
+
+			if (!isActive())
+				throw new IllegalStateException("Module is not running");
+
+			onExceptionReport(t, req);
+		}
 	}
 	// =========================================================================
 }

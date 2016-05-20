@@ -65,25 +65,22 @@ public class ExceptionReporterModule extends AbstractExceptionReporterModule {
 		return properties;
 	}
 
-
 	@Override
-	protected void onStart(AbstractWebApplication webApp) {
+	protected void onInit(AbstractWebApplication webApp) {
 		attributeService = getService(AttributeService.class);
-		
-		Properties appProperties = webApp.getProperties();
-		
+				
 		String val;
 		
 		// isEnabled
-		val = getMandatoryProperty(appProperties, KEY_MODULE_ENABLED);
+		val = getMandatoryProperty(KEY_MODULE_ENABLED);
 		enabled = Boolean.parseBoolean(val);
 		
 		// nodeName
-		val = getMandatoryProperty(appProperties, KEY_NODE_NAME);
+		val = getMandatoryProperty(KEY_NODE_NAME);
 		nodeName = val;
 		
 		// stackTraceHistorySize
-		val = getMandatoryProperty(appProperties, KEY_STACK_TRACE_HISTORY_SIZE);
+		val = getMandatoryProperty(KEY_STACK_TRACE_HISTORY_SIZE);
 		stackTraceHistorySize = Integer.parseInt(val);
 	}
 
@@ -96,8 +93,9 @@ public class ExceptionReporterModule extends AbstractExceptionReporterModule {
 	}	
 	
 	/**
-	 * Returns the stack trace history size defined in application settings
-	 * @return stack trace history size defined in application settings
+	 * Returns the stack trace history size defined in application settings.
+	 * 
+	 * @return stack trace history size defined in application settings.
 	 */
 	public int getStacktraceHistorySize() {
 		return stackTraceHistorySize;
@@ -105,6 +103,7 @@ public class ExceptionReporterModule extends AbstractExceptionReporterModule {
 	
 	/**
 	 * Returns the node name defined in application settings.
+	 * 
 	 * @return the node name defined in application settings.
 	 */
 	public String getNodeName() {
@@ -112,7 +111,8 @@ public class ExceptionReporterModule extends AbstractExceptionReporterModule {
 	}
 	
 	/**
-	 * Returns a boolean status indicating if module is enabled
+	 * Returns a boolean status indicating if module is enabled.
+	 * 
 	 * @return a boolean status indicating if module is enabled (this property is defined in application settings).
 	 */
 	public boolean isModuleEnabled() {
@@ -121,10 +121,11 @@ public class ExceptionReporterModule extends AbstractExceptionReporterModule {
 	
 	/** 
 	 * Returns the message generated for exception report.
-	 * @param throwable exception instance
-	 * @param req HTTP request which thrown the exception
-	 * @param originalRequestUri original request URI
-	 * @return error message
+	 * 
+	 * @param throwable exception instance.
+	 * @param req HTTP request which thrown the exception.
+	 * @param originalRequestUri original request URI.
+	 * @return error message.
 	 */
 	protected String getErrorMessage(Throwable throwable, HttpServletRequest req, String originalRequestUri) {
 		String stackTrace = getStackTrace(throwable);
@@ -147,8 +148,9 @@ public class ExceptionReporterModule extends AbstractExceptionReporterModule {
 	}
 		
 	/**
-	 * @param t error to test
-	 * @return a boolean indicating if report shall be skipped for given error
+	 * @param t error to test.
+	 * 
+	 * @return a boolean indicating if report shall be skipped for given error.
 	 */
 	protected boolean skipErrorReport(Throwable t) {
 		String stackTrace = getStackTrace(t);
@@ -178,7 +180,8 @@ public class ExceptionReporterModule extends AbstractExceptionReporterModule {
 	
 	/** 
 	 * Report the error message.
-	 * @param message complete error message
+	 * 
+	 * @param message complete error message.
 	 */
 	protected void reportErrorMessage(String message) {
 		getWebApplication().log(LogType.ERROR, "Application error:\n----\n%s\n----", message);

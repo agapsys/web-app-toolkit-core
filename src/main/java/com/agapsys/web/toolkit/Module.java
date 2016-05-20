@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Agapsys Tecnologia Ltda-ME.
+ * Copyright 2016 Agapsys Tecnologia Ltda-ME.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.agapsys.web.toolkit;
 
 import java.util.Properties;
@@ -23,58 +24,66 @@ import java.util.Properties;
  * application initialization. A module share settings with the application and
  * will have a singleton scope controlled by associated application.
  */
-public interface Module {
-	/** 
-	 * Starts the module.
-	 * @param webApp application initializing this module.
-	 */
-	public void start(AbstractWebApplication webApp);
+
+public abstract class Module extends Service {
 	
-	/** Stops the module. */
-	public void stop();
-	
-	/** 
-	 * Returns a boolean indicating if this module is running.
-	 * @return a boolean indicating if this module is running.
+	/**
+	 * Returns an application property.
+	 * 
+	 * @param key property key.
+	 * @return property value or null if there is not such property.
 	 */
-	public boolean isRunning();
+	protected final String getAppProperty(String key) {
+		synchronized(this) {
+			if (!isActive())
+				throw new IllegalStateException("Instance is not active");
+			
+			Properties defaultProperties = getDefaultProperties();
+
+			String defaultValue = defaultProperties != null ? defaultProperties.getProperty(key, null) : null;
+			String value = getWebApplication().getProperties().getProperty(key, defaultValue);
+
+			if (value != null)
+				value = value.trim();
+			
+			return value;
+		}
+	}
+	
+	/**
+	 * Returns a mandatory property
+	 * @param key property key
+	 * @return application property
+	 * @throws RuntimeException if such property isn't defined.
+	 */
+	protected final String getMandatoryProperty(String key) throws RuntimeException {
+		String prop = getAppProperty(key);
+		
+		if (prop == null || prop.isEmpty())
+			throw new RuntimeException(String.format("Missing property: %s", key));
+		
+		return prop;
+	}
 	
 	/**
 	 * Return default properties associated with this module.
+	 * 
 	 * @return default properties associated with this module. Returning null or
-	 * an empty Properties instance have the same meaning: There is no default 
-	 * properties associated with the module.
+	 * an empty Properties instance have the same meaning (There is no default 
+	 * properties associated with the module).
 	 */
-	public Properties getDefaultProperties();
+	public Properties getDefaultProperties() {
+		return null;
+	}
 	
 	/**
 	 * Return required modules used by this module.
+	 * 
 	 * @return required modules used by this module. Returning either null or
-	 * an empty array has the same effect: Module has no dependency.
+	 * an empty array has the same effect (module has no dependency).
 	 */
-	public Class<? extends Module>[] getDependencies();
+	public Class<? extends Module>[] getDependencies() {
+		return null;
+	}
 	
-	/**
-	 * Return the application managing this module instance
-	 * @return the application managing this module instance.
-	 */
-	public AbstractWebApplication getWebApplication();
-	
-	/**
-	 * Returns another module registered in the same application as this module
-	 * is registered with.
-	 * @param <T> Module type
-	 * @param moduleClass module class
-	 * @return module class or null if given module class was not registered with
-	 * associated application.
-	 */
-	public <T extends Module> T getModule(Class<T> moduleClass);
-	
-	/**
-	 * Returns a service instance
-	 * @param <T> Module type
-	 * @param serviceClass service class
-	 * @return service instance.
-	 */
-	public <T extends Service> T getService(Class<T> serviceClass);
 }

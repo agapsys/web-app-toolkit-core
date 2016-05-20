@@ -100,15 +100,16 @@ public class SmtpModule extends AbstractSmtpModule {
 	}
 	
 	/**
-	 * Returns the sender address defined in application settings
-	 * @return sender address
+	 * Returns the sender address defined in application settings.
+	 * 
+	 * @return sender address.
 	 */
 	public InternetAddress getSender() {
 		return sender;
 	}
 	
 	@Override
-	protected void onStart(AbstractWebApplication webApp) {
+	protected void onInit(AbstractWebApplication webApp) {
 		Properties properties = webApp.getProperties();
 		
 		SmtpSettings settings = new SmtpSettings(properties);
@@ -124,25 +125,24 @@ public class SmtpModule extends AbstractSmtpModule {
 	
 	@Override
 	protected void onSendMessage(Message message) {
-		if (isRunning()) {
-			try {
-				// Forces sender address if message's address not equals to application default sender.
-				if (!message.getSenderAddress().equals(getSender())) {
-					message = new MessageBuilder(getSender(), message.getRecipients().toArray(new InternetAddress[message.getRecipients().size()]))
-						.setCharset(message.getCharset())
-						.setMimeSubtype(message.getMimeSubtype())
-						.setSubject(message.getSubject())
-						.setText(message.getText()).build();
-				}
-				smtpSender.sendMessage(message);
-			} catch (MessagingException ex) {
-				onError(ex, message);
+		try {
+			// Forces sender address if message's address not equals to application default sender.
+			if (!message.getSenderAddress().equals(getSender())) {
+				message = new MessageBuilder(getSender(), message.getRecipients().toArray(new InternetAddress[message.getRecipients().size()]))
+					.setCharset(message.getCharset())
+					.setMimeSubtype(message.getMimeSubtype())
+					.setSubject(message.getSubject())
+					.setText(message.getText()).build();
 			}
+			smtpSender.sendMessage(message);
+		} catch (MessagingException ex) {
+			onError(ex, message);
 		}
 	}
 	
 	/**
 	 * Called when there is an error while sending a message.
+	 * 
 	 * Default implementation writes the error in a log file (see {@linkplain SmtpModule#getSmtpErrorLogFilename()})
 	 * @param ex error
 	 * @param message message

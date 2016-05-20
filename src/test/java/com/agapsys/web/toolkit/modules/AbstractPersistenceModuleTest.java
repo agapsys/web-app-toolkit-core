@@ -29,7 +29,7 @@ public class AbstractPersistenceModuleTest {
 		private boolean methodCalled = false;
 
 		@Override
-		protected EntityManager _getEntityManager() {
+		protected EntityManager getCustomEntityManager() {
 			methodCalled = true;
 			return null;
 		}

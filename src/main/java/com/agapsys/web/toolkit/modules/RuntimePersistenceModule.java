@@ -44,6 +44,12 @@ public class RuntimePersistenceModule extends PersistenceModule {
 
 	// INSTANCE SCOPE ==========================================================
 	private EntityManagerFactory emf = null;
+
+	public RuntimePersistenceModule() {}
+
+	public RuntimePersistenceModule(String persistenceUnitName) {
+		super(persistenceUnitName);
+	}
 	
 	@Override
 	public Properties getDefaultProperties() {
@@ -59,21 +65,22 @@ public class RuntimePersistenceModule extends PersistenceModule {
 	}	
 	
 	@Override
-	protected void onStart(AbstractWebApplication webApp) {
-		Properties properties = webApp.getProperties();
-		getMandatoryProperty(properties, KEY_JDBC_DRIVER_CLASS);
-		getMandatoryProperty(properties, KEY_JDBC_URL);
-		getMandatoryProperty(properties, KEY_JDBC_USER);
-		getMandatoryProperty(properties, KEY_JDBC_PASSWORD);
+	protected void onInit(AbstractWebApplication webApp) {
+		Properties appProperties = webApp.getProperties();
 		
-		String jdbcFilename = properties.getProperty(KEY_JDBC_DRIVER_FILENAME);
+		getMandatoryProperty(KEY_JDBC_DRIVER_CLASS);
+		getMandatoryProperty(KEY_JDBC_URL);
+		getMandatoryProperty(KEY_JDBC_USER);
+		getMandatoryProperty(KEY_JDBC_PASSWORD);
+		
+		String jdbcFilename = appProperties.getProperty(KEY_JDBC_DRIVER_FILENAME);
 		
 		if (jdbcFilename != null && !jdbcFilename.trim().isEmpty()) {
 			File jdbcDriverFile = new File(webApp.getDirectory(), jdbcFilename);
 			RuntimeJarLoader.loadJar(jdbcDriverFile);
 		}
 		
-		emf = Persistence.createEntityManagerFactory(getPersistenceUnitName(), properties);
+		emf = Persistence.createEntityManagerFactory(getPersistenceUnitName(), appProperties);
 	}
 	
 	@Override
@@ -83,7 +90,7 @@ public class RuntimePersistenceModule extends PersistenceModule {
 	}
 	
 	@Override
-	protected EntityManager _getEntityManager() {
+	protected EntityManager getCustomEntityManager() {
 		EntityManager em = emf.createEntityManager();
 		em.setFlushMode(FlushModeType.COMMIT);
 		return em;

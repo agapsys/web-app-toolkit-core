@@ -31,8 +31,8 @@ import javax.servlet.http.HttpServletResponse;
 public class WebApplicationFilter implements Filter {
 	// CLASS SCOPE =============================================================
 	public static final String ATTR_ORIGINAL_REQUEST_URI = WebApplicationFilter.class.getName() + ".originalRequestUri";
-	public static final String ATTR_HTTP_REQUEST        = WebApplicationFilter.class.getName() + ".httpRequest";
-	public static final String ATTR_HTTP_RESPONSE       = WebApplicationFilter.class.getName() + ".httpResponse";
+	public static final String ATTR_HTTP_REQUEST         = WebApplicationFilter.class.getName() + ".httpRequest";
+	public static final String ATTR_HTTP_RESPONSE        = WebApplicationFilter.class.getName() + ".httpResponse";
 	// =========================================================================
 
 	// INSTANCE SCOPE ==========================================================

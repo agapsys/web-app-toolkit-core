@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Agapsys Tecnologia Ltda-ME.
+ * Copyright 2016 Agapsys Tecnologia Ltda-ME.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,47 +13,111 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.agapsys.web.toolkit;
 
-/** 
- * Represents a service in a {@linkplain AbstractWebApplication web application}.
- * A service has a singleton scope managed by associated application and are
- * lazy loaded.
- */
-public interface Service {
+/** Basic service implementation. */
+public class Service {
+	private AbstractWebApplication webApp;
+	
 	/**
-	 * Initializes this module
+	 * Returns a boolean indicating if this instance was initialized.
+	 * 
+	 * @return a boolean indicating if this instance was initialized.
+	 */
+	public final boolean isActive() {
+		synchronized(this) {
+			return webApp != null;
+		}
+	}
+	
+	/**
+	 * Initializes this instance.
+	 * 
 	 * @param webApp associated web application.
 	 */
-	public void init(AbstractWebApplication webApp);
+	public final void init(AbstractWebApplication webApp) {
+		synchronized(this) {
+			if (isActive())
+				throw new IllegalStateException("Instance was already initialized");
+
+			if (webApp == null)
+				throw new IllegalArgumentException("webApp cannot be null");
+
+			this.webApp = webApp;
+			onInit(webApp);
+		}
+	}
 	
 	/**
-	 * Returns a boolean indicating if this module was initialized.
-	 * @return a boolean indicating if this module was initialized.
+	 * Called upon instance initialization. Default implementation does nothing.
+	 * 
+	 * @param webApp associated web application
 	 */
-	public boolean isActive();
+	protected void onInit(AbstractWebApplication webApp) {}
 	
 	/**
-	 * Return the application managing this module instance
-	 * @return the application managing this module instance.
+	 * Stops the instance.
 	 */
-	public AbstractWebApplication getWebApplication();
+	public final void stop() {
+		synchronized(this) {
+			if (!isActive())
+				throw new IllegalStateException("Instance is not active");
+
+			onStop();
+
+			this.webApp = null;
+		}
+	}
 	
 	/**
-	 * Returns another module registered in the same application as this module
-	 * is registered with.
-	 * @param <T> Module type
+	 * Actual instance shutdown code.
+	 * 
+	 * Default implementation does nothing.
+	 */
+	protected void onStop() {}
+
+	/**
+	 * Return the application managing this instance.
+	 * 
+	 * @return the application managing this instance.
+	 */
+	public final AbstractWebApplication getWebApplication() {
+		synchronized(this) {
+			return webApp;
+		}
+	}
+
+	/**
+	 * Returns a module registered in the same application as this instance is registered with.
+	 * 
+	 * @param <M> Module type
 	 * @param moduleClass module class
-	 * @return module class or null if given module class was not registered with
-	 * associated application.
+	 * @return module instance or null if given module class was not registered with associated application.
 	 */
-	public <T extends Module> T getModule(Class<T> moduleClass);
+	public final <M extends Module> M getModule(Class<M> moduleClass) {
+		synchronized(this) {
+			if (!isActive())
+				throw new IllegalStateException("Instance is not active");
+			
+			return webApp.getModule(moduleClass);
+		}
+	}
 	
 	/**
-	 * Returns a service instance
-	 * @param <T> Module type
+	 * Returns a service instance.
+	 * 
+	 * @param <S> Service type
 	 * @param serviceClass service class
 	 * @return service instance.
 	 */
-	public <T extends Service> T getService(Class<T> serviceClass);
+	public final <S extends Service> S getService(Class<S> serviceClass) {
+		synchronized(this) {
+			if (!isActive())
+				throw new IllegalStateException("Instance is not active");
+			
+			return webApp.getService(serviceClass);
+		}
+	}
+
 }

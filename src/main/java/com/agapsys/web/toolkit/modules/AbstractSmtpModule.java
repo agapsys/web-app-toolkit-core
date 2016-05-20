@@ -16,12 +16,14 @@
 package com.agapsys.web.toolkit.modules;
 
 import com.agapsys.mail.Message;
-import com.agapsys.web.toolkit.AbstractModule;
+import com.agapsys.web.toolkit.Module;
 
 /** E-mail sender module. */
-public abstract class AbstractSmtpModule extends AbstractModule {
+public abstract class AbstractSmtpModule extends Module {
+	
 	/**
 	 * Actual message sending code.
+	 * 
 	 * This method will be called only when module is running.
 	 * @param message message to be sent
 	 */
@@ -29,15 +31,18 @@ public abstract class AbstractSmtpModule extends AbstractModule {
 	
 	/** 
 	 * Sends a email message.
-	 * @param message message to be sent
+	 * 
+	 * @param message message to be sent.
 	 */
 	public final void sendMessage(Message message) {
-		if (message == null)
-			throw new IllegalArgumentException("null message");
-			
-		if (!isRunning())
-			throw new IllegalStateException("Module is not running");
-		
-		onSendMessage(message);
+		synchronized(this) {
+			if (message == null)
+				throw new IllegalArgumentException("null message");
+
+			if (!isActive())
+				throw new IllegalStateException("Module is not active");
+
+			onSendMessage(message);
+		}
 	}
 }

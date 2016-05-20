@@ -97,8 +97,9 @@ public class SmtpExceptionReporterModule extends ExceptionReporterModule {
 	}
 		
 	@Override
-	protected void onStart(AbstractWebApplication webApp) {
-		super.onStart(webApp);
+	protected void onInit(AbstractWebApplication webApp) {
+		super.onInit(webApp);
+		
 		Properties properties = webApp.getProperties();
 		
 		String val;
