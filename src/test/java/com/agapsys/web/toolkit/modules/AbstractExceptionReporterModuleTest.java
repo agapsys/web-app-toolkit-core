@@ -55,7 +55,7 @@ public class AbstractExceptionReporterModuleTest {
 		}
 
 		@Override
-		protected void onStart(AbstractWebApplication webApp) {}
+		protected void onInit(AbstractWebApplication webApp) {}
 
 		@Override
 		protected void onStop() {}
@@ -433,14 +433,14 @@ public class AbstractExceptionReporterModuleTest {
 	@Test(expected = IllegalStateException.class)
 	public void reportWhileNotRunning() {
 		Throwable t = new Throwable();
-		Assert.assertFalse(module.isRunning());
+		Assert.assertFalse(module.isActive());
 		module.reportException(t, req);
 	}
 	
 	@Test
 	public void reportWhileRunning() {
 		Throwable t = new Throwable();
-		module.start(app);
+		module.init(app);
 		module.reportException(t, req);
 		Assert.assertTrue(module.methodCalled);
 	}

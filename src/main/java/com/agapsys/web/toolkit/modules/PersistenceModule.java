@@ -17,13 +17,21 @@
 package com.agapsys.web.toolkit.modules;
 
 import com.agapsys.web.toolkit.AbstractWebApplication;
+import com.agapsys.web.toolkit.Module;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.FlushModeType;
 import javax.persistence.Persistence;
 
-public class PersistenceModule extends AbstractPersistenceModule {
+/**
+ * Represents a JPA persistence module.
+ * 
+ * @author Leandro Oliveira (leandro@agapsys.com)
+ */
+public class PersistenceModule extends Module {
 	// CLASS SCOPE =============================================================
+	public static final String SETTINGS_GROUP_NAME = PersistenceModule.class.getName();
+
 	public static final String DEFAULT_PERSISTENCE_UNIT_NAME = "default";
 	// =========================================================================
 
@@ -50,6 +58,11 @@ public class PersistenceModule extends AbstractPersistenceModule {
 		
 		this.persistenceUnitName = persistenceUnitName;
 	}
+
+	@Override
+	protected final String getSettingsGroupName() {
+		return SETTINGS_GROUP_NAME;
+	}
 	
 	/**
 	 * Return the name of persistence unit associated with this instance.
@@ -61,21 +74,41 @@ public class PersistenceModule extends AbstractPersistenceModule {
 	}
 	
 	@Override
-	protected void onInit(AbstractWebApplication webapplication) {
+	protected void onModuleInit(AbstractWebApplication webapplication) {
+		super.onInit(webapplication);
+		
 		emf = Persistence.createEntityManagerFactory(getPersistenceUnitName());
 	}
 	
 	@Override
-	protected void onStop() {
+	protected void onModuleStop() {
 		emf.close();
 		emf = null;
 	}
 	
-	@Override
+	/**
+	 * Returns an entity manager to be used by application.
+	 * 
+	 * @return an entity manager to be used by application.
+	 */
 	protected EntityManager getCustomEntityManager() {
 		EntityManager em = emf.createEntityManager();
 		em.setFlushMode(FlushModeType.COMMIT);
 		return em;
+	}
+	
+	/**
+	 * Returns an entity manager to be used by application.
+	 * 
+	 * @return an entity manager to be used by application.
+	 */
+	public final EntityManager getEntityManager() {
+		synchronized(this) {
+			if (!isActive())
+				throw new IllegalStateException("Module is not active");
+
+			return getCustomEntityManager();
+		}
 	}
 	// =========================================================================
 }

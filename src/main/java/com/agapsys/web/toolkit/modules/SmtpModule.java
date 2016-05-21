@@ -22,6 +22,7 @@ import com.agapsys.mail.SecurityType;
 import com.agapsys.mail.SmtpSender;
 import com.agapsys.mail.SmtpSettings;
 import com.agapsys.web.toolkit.AbstractWebApplication;
+import com.agapsys.web.toolkit.Module;
 import com.agapsys.web.toolkit.utils.DateUtils;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -32,9 +33,12 @@ import javax.mail.MessagingException;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 
-public class SmtpModule extends AbstractSmtpModule {
+public class SmtpModule extends Module {
 	// CLASS SCOPE =============================================================
+	
 	// SETTINGS ----------------------------------------------------------------
+	public static final String SETTINGS_GROUP_NAME = SmtpModule.class.getName();
+	
 	public static final String KEY_SENDER = "agapsys.webtoolkit.smtp.sender";
 	
 	public static final String KEY_SERVER        = SmtpSettings.KEY_SERVER;
@@ -57,6 +61,7 @@ public class SmtpModule extends AbstractSmtpModule {
 	
 	/** 
 	 * Returns appropriate instance of sender address.
+	 * 
 	 * @param senderAddrStr string representing sender address
 	 * @return instance of {@linkplain InternetAddress} representing sender address
 	 */
@@ -75,9 +80,24 @@ public class SmtpModule extends AbstractSmtpModule {
 	// INSTANCE SCOPE ==========================================================
 	private SmtpSender      smtpSender = null;
 	private InternetAddress sender     = null;
+
+	public SmtpModule() {
+		reset();
+	}
+	
+	private void reset() {
+		smtpSender = null;
+		sender = null;
+	}
+
+	@Override
+	protected final String getSettingsGroupName() {
+		return SETTINGS_GROUP_NAME;
+	}
 	
 	/**
-	 * Returns the name of the log file used to store errors in SMTP module
+	 * Returns the name of the log file used to store errors in SMTP module.
+	 * 
 	 * @return log error filename. Default implementation returns {@linkplain SmtpModule#SMTP_ERR_LOG_FILENAME}.
 	 */
 	protected String getSmtpErrorLogFilename() {
@@ -86,7 +106,7 @@ public class SmtpModule extends AbstractSmtpModule {
 	
 	@Override
 	public Properties getDefaultProperties() {
-		Properties properties = new Properties();
+		Properties properties = super.getDefaultProperties();
 		
 		properties.setProperty(KEY_SENDER,       DEFAULT_SENDER);
 		properties.setProperty(KEY_SERVER,       DEFAULT_SERVER);
@@ -99,6 +119,21 @@ public class SmtpModule extends AbstractSmtpModule {
 		return properties;
 	}
 	
+	
+	@Override
+	protected void onModuleInit(AbstractWebApplication webApp) {
+		super.onInit(webApp);
+		
+		reset();
+		
+		Properties moduleProperties = getProperties();
+		
+		SmtpSettings settings = new SmtpSettings(moduleProperties);
+		
+		smtpSender = new SmtpSender(settings);
+		sender = getSenderFromString(moduleProperties.getProperty(KEY_SENDER));
+	}
+	
 	/**
 	 * Returns the sender address defined in application settings.
 	 * 
@@ -108,22 +143,11 @@ public class SmtpModule extends AbstractSmtpModule {
 		return sender;
 	}
 	
-	@Override
-	protected void onInit(AbstractWebApplication webApp) {
-		Properties properties = webApp.getProperties();
-		
-		SmtpSettings settings = new SmtpSettings(properties);
-		smtpSender = new SmtpSender(settings);
-		sender = getSenderFromString(properties.getProperty(KEY_SENDER));
-	}
-
-	@Override
-	protected void onStop() {
-		smtpSender = null;
-		sender = null;
-	}
-	
-	@Override
+	/**
+	 * Called during message sending.
+	 * 
+	 * @param message Message to be sent.
+	 */
 	protected void onSendMessage(Message message) {
 		try {
 			// Forces sender address if message's address not equals to application default sender.
@@ -143,9 +167,9 @@ public class SmtpModule extends AbstractSmtpModule {
 	/**
 	 * Called when there is an error while sending a message.
 	 * 
-	 * Default implementation writes the error in a log file (see {@linkplain SmtpModule#getSmtpErrorLogFilename()})
-	 * @param ex error
-	 * @param message message
+	 * Default implementation writes the error in a log file (see {@linkplain SmtpModule#getSmtpErrorLogFilename()}).
+	 * @param ex error.
+	 * @param message message.
 	 */
 	protected void onError(MessagingException ex, Message message) {
 		try (PrintStream ps = new PrintStream(new FileOutputStream(new File(getWebApplication().getDirectory(), getSmtpErrorLogFilename()), true))) {
@@ -171,8 +195,25 @@ public class SmtpModule extends AbstractSmtpModule {
 			message.toString() +
 			"-------------------------\n";
 		
-		errMsg = String.format(errMsg, DateUtils.getLocalTimestamp(), this.getClass().getName());
+		errMsg = String.format(errMsg, DateUtils.getInstance().getIso8601Date(), this.getClass().getName());
 		
 		return errMsg;
+	}
+	
+	/** 
+	 * Sends an email message.
+	 * 
+	 * @param message message to be sent.
+	 */
+	public final void sendMessage(Message message) {
+		synchronized(this) {
+			if (message == null)
+				throw new IllegalArgumentException("null message");
+
+			if (!isActive())
+				throw new IllegalStateException("Module is not active");
+
+			onSendMessage(message);
+		}
 	}
 }

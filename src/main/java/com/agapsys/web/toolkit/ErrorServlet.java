@@ -36,7 +36,7 @@ public class ErrorServlet extends HttpServlet {
 	}
 	// =========================================================================
 
-	// INSTANCE SCOPE ==========================================================	
+	// INSTANCE SCOPE ==========================================================
 	private <T extends Module> T getModule(Class<T> moduleClass) {
 		AbstractWebApplication webApp = AbstractWebApplication.getRunningInstance();
 		
@@ -56,6 +56,7 @@ public class ErrorServlet extends HttpServlet {
 			exceptionReporterModule.reportException(t, req);
 		} else {
 			AbstractWebApplication webApp = AbstractWebApplication.getRunningInstance();
+			
 			if (webApp != null)
 				webApp.log(LogType.WARNING, "There is no exception reporter module registered with the application");
 		}

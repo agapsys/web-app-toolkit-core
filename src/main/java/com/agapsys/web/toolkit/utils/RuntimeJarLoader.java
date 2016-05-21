@@ -25,7 +25,8 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
- * Loads a JAR file at runtime
+ * Loads a JAR file at runtime.
+ * 
  * @author Leandro Oliveira (leandro@agapsys.com)
  */
 public class RuntimeJarLoader {

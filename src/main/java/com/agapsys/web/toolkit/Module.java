@@ -16,9 +16,12 @@
 
 package com.agapsys.web.toolkit;
 
+import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 
-/** 
+/**
  * Represents a module in a {@linkplain AbstractWebApplication web application}.
  * A module must be registered with an application and will be initialized upon
  * application initialization. A module share settings with the application and
@@ -26,64 +29,146 @@ import java.util.Properties;
  */
 
 public abstract class Module extends Service {
-	
+
+	// -------------------------------------------------------------------------
+	private final Properties defaultProperties = new Properties();
+	private final Set<Class<? extends Module>> defaultDependencies = new LinkedHashSet<>();
+
+	private Properties properties = null;
+	// -------------------------------------------------------------------------
+
+	// -------------------------------------------------------------------------
+	/**
+	 * Called upon module initialization.
+	 *
+	 * Default implementation does nothing.
+	 * @param webApp associated web application.
+	 */
+	protected void onModuleInit(AbstractWebApplication webApp) {}
+
+	@Override
+	protected final void onInit(AbstractWebApplication webApp) {
+		super.onInit(webApp);
+		properties = null;
+		onModuleInit(webApp);
+	}
+	// -------------------------------------------------------------------------
+
+	// -------------------------------------------------------------------------
+	/**
+	 * Called upon module stop.
+	 *
+	 * Default implementation does nothing.
+	 */
+	protected void onModuleStop() {}
+
+	@Override
+	protected final void onStop() {
+		super.onStop();
+		onModuleStop();
+	}
+	// -------------------------------------------------------------------------
+
+	// -------------------------------------------------------------------------
+	/**
+	 * Returns the name of settings group associated with this module.
+	 *
+	 * @return the name of settings group associated with this module.
+	 */
+	protected abstract String getSettingsGroupName();
+
 	/**
 	 * Returns an application property.
-	 * 
+	 *
 	 * @param key property key.
 	 * @return property value or null if there is not such property.
 	 */
-	protected final String getAppProperty(String key) {
+	protected final String getProperty(String key) {
 		synchronized(this) {
-			if (!isActive())
-				throw new IllegalStateException("Instance is not active");
-			
-			Properties defaultProperties = getDefaultProperties();
+			throwIfNotActive();
 
-			String defaultValue = defaultProperties != null ? defaultProperties.getProperty(key, null) : null;
-			String value = getWebApplication().getProperties().getProperty(key, defaultValue);
+			String property = getProperties().getProperty(key, null);
 
-			if (value != null)
-				value = value.trim();
-			
-			return value;
+			if (property != null)
+				property = property.trim();
+
+			return property;
 		}
 	}
-	
+
 	/**
-	 * Returns a mandatory property
-	 * @param key property key
-	 * @return application property
+	 * Returns a mandatory property.
+	 *
+	 * @param key property key.
+	 * @return application property.
 	 * @throws RuntimeException if such property isn't defined.
 	 */
 	protected final String getMandatoryProperty(String key) throws RuntimeException {
-		String prop = getAppProperty(key);
-		
+		String prop = getProperty(key);
+
 		if (prop == null || prop.isEmpty())
 			throw new RuntimeException(String.format("Missing property: %s", key));
-		
+
 		return prop;
 	}
-	
+
 	/**
 	 * Return default properties associated with this module.
-	 * 
-	 * @return default properties associated with this module. Returning null or
-	 * an empty Properties instance have the same meaning (There is no default 
-	 * properties associated with the module).
+	 *
+	 * @return default properties associated with this module.
 	 */
-	public Properties getDefaultProperties() {
-		return null;
+	protected Properties getDefaultProperties() {
+		return defaultProperties;
 	}
-	
+
+	/**
+	 * @see Module#getDefaultProperties()
+	 */
+	Properties _getDefaultProperties() {
+		return getDefaultProperties();
+	}
+
+	/**
+	 * Returns the properties associated with this module.
+	 *
+	 * @return properties instance associated with this module.
+	 */
+	protected final Properties getProperties() {
+		synchronized(this) {
+			throwIfNotActive();
+
+			if (properties == null) {
+				properties = getWebApplication().getSettings().getProperties(getSettingsGroupName());
+				Properties defaultProperties = getDefaultProperties();
+
+				if (defaultProperties == null)
+					defaultProperties = new Properties();
+
+				for (Map.Entry entry : defaultProperties.entrySet()) {
+					properties.putIfAbsent(entry.getKey(), entry.getValue());
+				}
+			}
+
+			return properties;
+		}
+	}
+	// -------------------------------------------------------------------------
+
+	// -------------------------------------------------------------------------
 	/**
 	 * Return required modules used by this module.
-	 * 
-	 * @return required modules used by this module. Returning either null or
-	 * an empty array has the same effect (module has no dependency).
+	 *
+	 * @return required modules used by this module.
 	 */
-	public Class<? extends Module>[] getDependencies() {
-		return null;
+	protected Set<Class<? extends Module>> getDependencies() {
+		return defaultDependencies;
 	}
-	
+
+	/**
+	 * @see Module#getDependencies()
+	 */
+	Set<Class<? extends Module>> _getDependencies() {
+		return getDependencies();
+	}
+	// -------------------------------------------------------------------------
 }

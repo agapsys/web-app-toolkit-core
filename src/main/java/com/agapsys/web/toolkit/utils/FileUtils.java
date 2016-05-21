@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.agapsys.web.toolkit.utils;
 
 import java.io.File;
@@ -22,13 +21,16 @@ import java.io.IOException;
 
 /**
  * File Handling utilities
+ *
  * @author Leandro Oliveira (leandro@agapsys.com)
  */
 public class FileUtils {
+
 	// CLASS SCOPE =============================================================
 	public static class AccessError extends RuntimeException {
 
-		public AccessError() {}
+		public AccessError() {
+		}
 
 		public AccessError(String message) {
 			super(message);
@@ -46,18 +48,33 @@ public class FileUtils {
 			super(message, cause, enableSuppression, writableStackTrace);
 		}
 	}
-	
-	/** Default folder delimiter. */
+
+	/**
+	 * Default folder delimiter.
+	 */
 	public static final String FOLDER_DELIMITER;
-	
-	/** Current user folder. */
+
+	/**
+	 * Current user folder.
+	 */
 	public static final File USER_HOME;
-	
-	/** Default temporary folder. */
+
+	/**
+	 * Default temporary folder.
+	 */
 	public static final File DEFAULT_TEMPORARY_FOLDER;
-	
-	/** Current Operating System. */
+
+	/**
+	 * Current Operating System.
+	 */
 	public static final String OS_NAME;
+
+	
+	private static final FileUtils  SINGLETON = new FileUtils();
+	
+	public static FileUtils getInstance() {
+		return SINGLETON;
+	}
 	
 	static {
 		FOLDER_DELIMITER = System.getProperty("file.separator");
@@ -65,95 +82,97 @@ public class FileUtils {
 		DEFAULT_TEMPORARY_FOLDER = new File(System.getProperty("java.io.tmpdir"));
 		OS_NAME = System.getProperty("os.name");
 	}
-	
+	// =========================================================================
+
+	// INSTANCE SCOPE ==========================================================
+	protected FileUtils() {}
+
 	/**
 	 * @return a file representing a given path. If directory hierarchy does not exist, they will be created.
+	 * 
 	 * @param path directory path
 	 * @throws AccessError if directory hierarchy does not exist and it was not possible to create it.
-	 * @throws  IllegalArgumentException if given path points to a file instead of a directory.
+	 * @throws IllegalArgumentException if given path points to a file instead of a directory.
 	 */
-	public static File getOrCreateDirectory(String path) throws AccessError, IllegalArgumentException {
+	public File getOrCreateDirectory(String path) throws AccessError, IllegalArgumentException {
 		File folder = new File(path);
 		if (!folder.exists()) {
 			if (!folder.mkdirs())
 				throw new AccessError(String.format("cannot create/access '%s'", path));
-		} else {
-			if (!folder.isDirectory())
-				throw new IllegalArgumentException(String.format("Path '%s' is a file", path));
+			
+		} else if (!folder.isDirectory()) {
+			throw new IllegalArgumentException(String.format("Path '%s' is a file", path));
 		}
-		
-		if(OS_NAME.toLowerCase().contains("win") && folder.getName().startsWith(".")) {
+
+		if (OS_NAME.toLowerCase().contains("win") && folder.getName().startsWith(".")) {
 			try {
-				Runtime.getRuntime().exec("attrib +H "+folder.getAbsolutePath());
+				Runtime.getRuntime().exec("attrib +H " + folder.getAbsolutePath());
 			} catch (IOException ignore) {}
 		}
 		return folder;
 	}
-	
-	/** 
-	 * Deletes a file.
-	 * If given file is a folder, delete its contents also.
-	 * @param file file to delete
-	 * @throws FileNotFoundException if given file does not exist
+
+	/**
+	 * Deletes a file. If given file is a folder, delete its contents also.
+	 *
+	 * @param file file to delete.
+	 * @throws FileNotFoundException if given file does not exist.
 	 */
-	public static void deleteFile(File file) throws FileNotFoundException {
+	public void deleteFile(File file) throws FileNotFoundException {
 		if (file == null)
 			throw new IllegalArgumentException("Null file");
-		
+
 		if (!file.exists())
 			throw new FileNotFoundException(String.format("File not found: %s", file.getAbsolutePath()));
-		
+
 		if (file.isDirectory()) {
 			File[] files = file.listFiles();
-			
+
 			for (File tmpFile : files) {
 				deleteFile(tmpFile); // recursive
 			}
-			
+
 			file.delete();
 		} else {
 			file.delete();
 		}
 	}
-	
+
 	/**
-	 * Returns a generated non-existent file
-	 * @param parentDirectory parent directory
-	 * @param nameLength filename length
-	 * @param maxAttempts maximum number of attempts trying to get a random non-existent file before an exception is thrown
-	 * @return non-existent file with random name
+	 * Returns a generated non-existent file.
+	 *
+	 * @param parentDirectory parent directory.
+	 * @param nameLength filename length.
+	 * @param maxAttempts maximum number of attempts trying to get a random non-existent file before an exception is thrown.
+	 * @return non-existent file with random name.
 	 * @throws FileNotFoundException if a non-existent file could not be found.
 	 */
-	public static File getRandomNonExistentFile(File parentDirectory, int nameLength, int maxAttempts) throws FileNotFoundException {
+	public File getRandomNonExistentFile(File parentDirectory, int nameLength, int maxAttempts) throws FileNotFoundException {
 		char[] chars = "abcdefghijklmnopqrstuvwxyz0123456789".toCharArray();
 
 		if (parentDirectory == null)
 			throw new IllegalArgumentException("Parent directory cannot be null");
-		
+
 		if (nameLength < 1)
 			throw new IllegalArgumentException("Name length must be greater than 1");
-		
+
 		if (maxAttempts < 1)
 			throw new IllegalArgumentException("Maximum attempts must be greater than 1");
-		
+
 		File file;
 		int attempts = 0;
-		
-		while(true) {
+
+		while (true) {
 			if (attempts >= maxAttempts)
 				throw new FileNotFoundException(String.format("It was not possible to generate a randon non-existent file after %d attempts", maxAttempts));
-			
+
 			file = new File(parentDirectory, StringUtils.getRandomString(nameLength, chars));
-			
+
 			if (!file.exists())
 				return file;
-			
+
 			attempts++;
 		}
 	}
-	// =========================================================================
-	
-	// INSTANCE SCOPE ==========================================================
-	private FileUtils() {} 
 	// =========================================================================
 }

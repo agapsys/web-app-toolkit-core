@@ -23,8 +23,6 @@ import com.agapsys.sevlet.container.ServletContainerBuilder;
 import com.agapsys.web.toolkit.MockedWebApplication;
 import com.agapsys.web.toolkit.WebApplicationFilter;
 import java.io.IOException;
-import javax.servlet.ServletContextEvent;
-import javax.servlet.ServletContextListener;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebListener;
 import javax.servlet.annotation.WebServlet;
@@ -38,36 +36,15 @@ import org.junit.Test;
 public class RestrictOriginTest {
 	// CLASS SCOPE =============================================================
 	@WebListener
-	public static class ForbiddenLocalHostApp extends MockedWebApplication implements ServletContextListener{
+	public static class ForbiddenLocalHostApp extends MockedWebApplication {
 
 		@Override
-		public boolean isOriginAllowed(HttpServletRequest req) {
+		protected boolean isOriginAllowed(HttpServletRequest req) {
 			return false;
-		}
-
-		@Override
-		public void contextInitialized(ServletContextEvent sce) {
-			start();
-		}
-
-		@Override
-		public void contextDestroyed(ServletContextEvent sce) {
-			stop();
 		}
 	}
 	
-	public static class AnyOriginApp extends MockedWebApplication implements ServletContextListener {
-
-		@Override
-		public void contextInitialized(ServletContextEvent sce) {
-			start();
-		}
-
-		@Override
-		public void contextDestroyed(ServletContextEvent sce) {
-			stop();
-		}
-	}
+	public static class AnyOriginApp extends MockedWebApplication {}
 	
 	@WebServlet("/*")
 	public static class TestServlet extends HttpServlet {
@@ -78,7 +55,8 @@ public class RestrictOriginTest {
 		}
 	}
 	// =========================================================================
-// INSTANCE SCOPE ==========================================================
+	
+	// INSTANCE SCOPE ==========================================================
 	private ServletContainer sc;
 	
 	@After

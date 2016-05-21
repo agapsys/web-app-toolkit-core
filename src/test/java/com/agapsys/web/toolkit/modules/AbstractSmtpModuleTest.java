@@ -36,7 +36,7 @@ public class AbstractSmtpModuleTest {
 		}
 
 		@Override
-		protected void onStart(AbstractWebApplication webApp) {}
+		protected void onInit(AbstractWebApplication webApp) {}
 
 		@Override
 		protected void onStop() {}
@@ -65,13 +65,13 @@ public class AbstractSmtpModuleTest {
 	
 	@Test(expected = IllegalStateException.class)
 	public void sendMessageWhileNotRunning() {
-		Assert.assertFalse(module.isRunning());
+		Assert.assertFalse(module.isActive());
 		module.sendMessage(testMessage);
 	}
 	
 	@Test
 	public void sendMessageWhileRunning() {
-		module.start(app);
+		module.init(app);
 		module.sendMessage(testMessage);
 		Assert.assertTrue(module.methodCalled);
 	}

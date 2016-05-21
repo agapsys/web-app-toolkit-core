@@ -36,15 +36,19 @@ public class WebApplicationFilter implements Filter {
 	// =========================================================================
 
 	// INSTANCE SCOPE ==========================================================
+	AbstractWebApplication webApp;
+	AttributeService attributeService;
+	
 	@Override
-	public void init(FilterConfig filterConfig) throws ServletException {}
+	public void init(FilterConfig filterConfig) throws ServletException {
+		webApp = AbstractWebApplication.getRunningInstance();
+		attributeService = webApp.getService(AttributeService.class);
+	}
 
 	@Override
 	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
 		HttpServletRequest req = (HttpServletRequest) request;
 		HttpServletResponse resp = (HttpServletResponse) response;
-		
-		AbstractWebApplication webApp = AbstractWebApplication.getRunningInstance();
 		
 		if (webApp != null) {
 			
@@ -60,16 +64,16 @@ public class WebApplicationFilter implements Filter {
 				return;
 			}
 			
-			webApp.getService(AttributeService.class).setAttribute(ATTR_HTTP_REQUEST, req);
-			webApp.getService(AttributeService.class).setAttribute(ATTR_HTTP_RESPONSE, resp);
-			webApp.getService(AttributeService.class).setAttribute(ATTR_ORIGINAL_REQUEST_URI, HttpUtils.getRequestUri(req));
+			attributeService.setAttribute(ATTR_HTTP_REQUEST, req);
+			attributeService.setAttribute(ATTR_HTTP_RESPONSE, resp);
+			attributeService.setAttribute(ATTR_ORIGINAL_REQUEST_URI, HttpUtils.getInstance().getRequestUri(req));
 		}
 		
 		try {
 			chain.doFilter(request, response);
 		} finally {
 			if (webApp != null) {
-				webApp.getService(AttributeService.class).destroyAttributes();
+				attributeService.destroyAttributes();
 			}
 		}
 	}

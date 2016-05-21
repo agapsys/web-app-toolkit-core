@@ -18,45 +18,84 @@ package com.agapsys.web.toolkit.modules;
 
 import com.agapsys.web.toolkit.AbstractWebApplication;
 import com.agapsys.web.toolkit.LogType;
+import com.agapsys.web.toolkit.Module;
 import com.agapsys.web.toolkit.WebApplicationFilter;
 import com.agapsys.web.toolkit.services.AttributeService;
 import com.agapsys.web.toolkit.utils.DateUtils;
 import com.agapsys.web.toolkit.utils.HttpUtils;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
 import javax.servlet.http.HttpServletRequest;
 
 /**
- * Default implementation of an exception reporter module.
+ * Represents an exception reporter.
+ * 
  * @author Leandro Oliveira (leandro@agapsys.com)
  */
-public class ExceptionReporterModule extends AbstractExceptionReporterModule {
+public class ExceptionReporterModule extends Module {
 	// CLASS SCOPE =============================================================
-	// SETTINGS ----------------------------------------------------------------
-	public static final String KEY_MODULE_ENABLED           = "agapsys.webtoolkit.exceptionReporter.enabled";
-	public static final String KEY_NODE_NAME                = "agapsys.webtoolkit.exceptionReporter.nodeName";
-	public static final String KEY_STACK_TRACE_HISTORY_SIZE = "agapsys.webtoolkit.exceptionReporter.stackTraceHistorySize";
+	
+	public static final String SETTINGS_GROUP_NAME = ExceptionReporterModule.class.getName();
+	
+	// -------------------------------------------------------------------------
+	public static final String KEY_MODULE_ENABLED           = SETTINGS_GROUP_NAME + ".enabled";
+	public static final String KEY_NODE_NAME                = SETTINGS_GROUP_NAME + ".nodeName";
+	public static final String KEY_STACK_TRACE_HISTORY_SIZE = SETTINGS_GROUP_NAME + ".stackTraceHistorySize";
 	// -------------------------------------------------------------------------
 	
+	// -------------------------------------------------------------------------
 	public static final int     DEFAULT_STACK_TRACE_HISTORY_SIZE = 5;
 	public static final String  DEFAULT_NODE_NAME                = "node-01";
 	public static final boolean DEFAULT_MODULE_ENABLED           = true;
+	// -------------------------------------------------------------------------
+	
+	/** 
+	 * Return a string representation of a stack trace for given error.
+	 * 
+	 * @return a string representation of a stack trace for given error.
+	 * @param throwable error.
+	 */
+	public static String getStackTrace(Throwable throwable) {
+		StringWriter stringWriter = new StringWriter();
+		throwable.printStackTrace(new PrintWriter(stringWriter));
+		
+		return stringWriter.toString();
+	}
 	// =========================================================================
 
 	// INSTANCE SCOPE ==========================================================
-	// Fields --------------------------------------------------------------
-	private String  nodeName              = null;
-	private int     stackTraceHistorySize = 0;
+	// -------------------------------------------------------------------------
+	private String  nodeName              = DEFAULT_NODE_NAME;
+	private int     stackTraceHistorySize = DEFAULT_STACK_TRACE_HISTORY_SIZE;
 	private boolean enabled               = DEFAULT_MODULE_ENABLED;
 	
 	private AttributeService attributeService;
 	
 	private final List<String> stackTraceHistory = new LinkedList<>();
 	// -------------------------------------------------------------------------
+
+	public ExceptionReporterModule() {
+		reset();
+	}
+
+	private void reset() {
+		nodeName = DEFAULT_NODE_NAME;
+		stackTraceHistorySize = DEFAULT_STACK_TRACE_HISTORY_SIZE;
+		stackTraceHistory.clear();
+		enabled = DEFAULT_MODULE_ENABLED;
+	}
+	
 	@Override
-	public Properties getDefaultProperties() {
-		Properties properties = new Properties();
+	protected final String getSettingsGroupName() {
+		return SETTINGS_GROUP_NAME;
+	}
+
+	@Override
+	protected Properties getDefaultProperties() {
+		Properties properties = super.getDefaultProperties();
 		
 		properties.setProperty(KEY_NODE_NAME,                DEFAULT_NODE_NAME);
 		properties.setProperty(KEY_STACK_TRACE_HISTORY_SIZE, "" + DEFAULT_STACK_TRACE_HISTORY_SIZE);
@@ -66,7 +105,11 @@ public class ExceptionReporterModule extends AbstractExceptionReporterModule {
 	}
 
 	@Override
-	protected void onInit(AbstractWebApplication webApp) {
+	protected void onModuleInit(AbstractWebApplication webApp) {
+		super.onModuleInit(webApp);
+		
+		reset();
+		
 		attributeService = getService(AttributeService.class);
 				
 		String val;
@@ -84,14 +127,6 @@ public class ExceptionReporterModule extends AbstractExceptionReporterModule {
 		stackTraceHistorySize = Integer.parseInt(val);
 	}
 
-	@Override
-	protected void onStop() {
-		nodeName = null;
-		stackTraceHistorySize = 0;
-		stackTraceHistory.clear();
-		enabled = DEFAULT_MODULE_ENABLED;
-	}	
-	
 	/**
 	 * Returns the stack trace history size defined in application settings.
 	 * 
@@ -130,18 +165,21 @@ public class ExceptionReporterModule extends AbstractExceptionReporterModule {
 	protected String getErrorMessage(Throwable throwable, HttpServletRequest req, String originalRequestUri) {
 		String stackTrace = getStackTrace(throwable);
 		
+		AbstractWebApplication webApp = getWebApplication();
+		HttpUtils httpUtils = HttpUtils.getInstance();
+		
 		String msg =
 			"An error was detected"
 			+ "\n\n"
-			+ "Application: "          + getWebApplication().getName() + "\n"
-			+ "Application version: "  + getWebApplication().getVersion() + "\n"
+			+ "Application: "          + webApp.getName() + "\n"
+			+ "Application version: "  + webApp.getVersion() + "\n"
 			+ "Node name: "            + getNodeName() + "\n\n"
-			+ "Server timestamp: "     + DateUtils.getLocalTimestamp() + "\n"
+			+ "Server timestamp: "     + DateUtils.getInstance().getIso8601Date() + "\n"
 			+ "Error message: "        + throwable.getMessage() + "\n"
 			+ "Original request URI: " + originalRequestUri + "\n"
-			+ "Request URI: "          + HttpUtils.getRequestUri(req) + "\n"
-			+ "User-agent: "           + HttpUtils.getOriginUserAgent(req) + "\n"
-			+ "Client id: "            + HttpUtils.getOriginIp(req) + "\n"
+			+ "Request URI: "          + httpUtils.getRequestUri(req) + "\n"
+			+ "User-agent: "           + httpUtils.getOriginUserAgent(req) + "\n"
+			+ "Client id: "            + httpUtils.getOriginIp(req) + "\n"
 			+ "Stacktrace:\n"          + stackTrace;
 		
 		return msg;
@@ -166,7 +204,13 @@ public class ExceptionReporterModule extends AbstractExceptionReporterModule {
 		}
 	}
 	
-	@Override
+	/**
+	 * Actual exception report code.
+	 * 
+	 * This method will be called only when module is running.
+	 * @param t exception to be reported.
+	 * @param req HTTP request which thrown the exception.
+	 */
 	protected void onExceptionReport(Throwable t, HttpServletRequest req) {
 		if (isModuleEnabled()) {
 			if (!skipErrorReport(t)) {
@@ -185,6 +229,27 @@ public class ExceptionReporterModule extends AbstractExceptionReporterModule {
 	 */
 	protected void reportErrorMessage(String message) {
 		getWebApplication().log(LogType.ERROR, "Application error:\n----\n%s\n----", message);
+	}
+		
+	/**
+	 * Reports an error in the application.
+	 * 
+	 * @param t exception to be reported.
+	 * @param req HTTP request which thrown the exception.
+	 */
+	public final void reportException(Throwable t, HttpServletRequest req) {
+		synchronized(this) {
+			if (t == null)
+				throw new IllegalArgumentException("null throwable");
+
+			if (req == null)
+				throw new IllegalArgumentException("Null request");
+
+			if (!isActive())
+				throw new IllegalStateException("Module is not running");
+
+			onExceptionReport(t, req);
+		}
 	}
 	// =========================================================================
 }

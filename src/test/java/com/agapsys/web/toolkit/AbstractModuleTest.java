@@ -22,12 +22,12 @@ import org.junit.Test;
 
 public class AbstractModuleTest {
 	// CLASS SCOPE =============================================================
-	private static class TestModule extends AbstractModule {
+	private static class TestModule extends Module {
 		private boolean isStartCalled = false;
 		private boolean isStopCalled = false;
 
 		@Override
-		protected void onStart(AbstractWebApplication webApp) {
+		protected void onInit(AbstractWebApplication webApp) {
 			isStartCalled = true;
 		}
 
@@ -56,16 +56,16 @@ public class AbstractModuleTest {
 	
 	@Test
 	public void testRunning() {
-		Assert.assertFalse(module.isRunning());
+		Assert.assertFalse(module.isActive());
 		
-		module.start(app);
+		module.init(app);
 		Assert.assertTrue(module.isStartCalled);
 		Assert.assertFalse(module.isStopCalled);
 		Assert.assertTrue(module.isStartCalled);
 		
 		module.stop();
 		Assert.assertTrue(module.isStopCalled);
-		Assert.assertFalse(module.isRunning());
+		Assert.assertFalse(module.isActive());
 	}
 	// =========================================================================
 }

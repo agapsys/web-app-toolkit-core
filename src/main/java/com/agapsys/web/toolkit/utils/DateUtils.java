@@ -28,67 +28,61 @@ import java.util.TimeZone;
  */
 public class DateUtils {
 	// CLASS SCOPE =============================================================
-	private static final DateFormat SIMPLE_DATE_FORMATTER = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+	private static final DateFormat ISO8601_FORMATTER = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS'Z'");
+	private static final DateUtils  SINGLETON = new DateUtils();
 	
-	/** @return system time stamp formated as yyyy-MM-dd HH:mm:ss:SSS */
-	public static String getLocalTimestamp() {
-		return SIMPLE_DATE_FORMATTER.format(new Date());
+	public static DateUtils getInstance() {
+		return SINGLETON;
 	}
 	
-	/** 
-	 * @return given date formated as a local timestamp.
-	 * @param date date to be formated
-	 */
-	public static String getLocalTimestamp(Date date) {
-		if (date == null)
-			throw new IllegalArgumentException("Null date");
-		
-		return SIMPLE_DATE_FORMATTER.format(date);
-	}
-	
-	private static final DateFormat ISO_8601_FORMATTER = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 	static {
-		ISO_8601_FORMATTER.setTimeZone(TimeZone.getTimeZone("UTC"));
-	}
-	
-	/**
-	 * @param date date to be formatted
-	 * @return ISO representation of given date
-	 */
-	public static String getIso8601Date(Date date) {
-		return ISO_8601_FORMATTER.format(date);
-	}
-	
-	/**
-	 * @param isoDate date to be parsed
-	 * @return Date
-	 * @throws ParseException if given string is an invalid date
-	 */
-	public static Date getDateFromIso(String isoDate) throws ParseException {
-		return ISO_8601_FORMATTER.parse(isoDate);
-	}
-	
-	/** 
-	 * Returns a future date
-	 * @param millisFromNow milliseconds from now
-	 * @return future date
-	 */
-	public static Date getDate(long millisFromNow) {
-		return new Date(new Date().getTime() + millisFromNow);
-	}
-	
-	/**
-	 * Returns a boolean indicating if given date is in the past
-	 * @param date date to be evaluated
-	 * @return a boolean indicating if given date is in the past
-	 */
-	public static boolean isBeforeNow(Date date) {
-		long now = new Date().getTime();
-		return date.getTime() < now;
+		ISO8601_FORMATTER.setTimeZone(TimeZone.getTimeZone("UTC"));
 	}
 	// =========================================================================
 
 	// INSTANCE SCOPE ==========================================================
-	private DateUtils() {}
+	public final String getIso8601Date() {
+		return getIso8601Date(new Date());
+	}
+	
+	/**
+	 * @param date date to be formatted.
+	 * 
+	 * @return ISO representation of given date.
+	 */
+	public String getIso8601Date(Date date) {
+		return ISO8601_FORMATTER.format(date);
+	}
+	
+	/**
+	 * @param isoDate date in ISO-8601 format.
+	 * 
+	 * @return Date equivalent Date instance.
+	 * @throws ParseException if given string is an invalid date.
+	 */
+	public Date getDateFromIso(String isoDate) throws ParseException {
+		return ISO8601_FORMATTER.parse(isoDate);
+	}
+	
+	/** 
+	 * Returns a future date.
+	 * 
+	 * @param millisFromNow milliseconds from now.
+	 * @return future date.
+	 */
+	public Date getDate(long millisFromNow) {
+		return new Date(new Date().getTime() + millisFromNow);
+	}
+	
+	/**
+	 * Returns a boolean indicating if given date is in the past.
+	 * 
+	 * @param date date to be evaluated.
+	 * @return a boolean indicating if given date is in the past.
+	 */
+	public boolean isBeforeNow(Date date) {
+		long now = new Date().getTime();
+		return date.getTime() < now;
+	}
 	// =========================================================================
 }

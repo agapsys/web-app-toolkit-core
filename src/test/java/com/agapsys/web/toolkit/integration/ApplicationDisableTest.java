@@ -47,7 +47,7 @@ public class ApplicationDisableTest {
 
 		@Override
 		public void contextInitialized(ServletContextEvent sce) {
-			start();
+			init();
 		}
 
 		@Override
@@ -60,7 +60,7 @@ public class ApplicationDisableTest {
 
 		@Override
 		public void contextInitialized(ServletContextEvent sce) {
-			start();
+			init();
 		}
 
 		@Override

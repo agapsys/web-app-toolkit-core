@@ -20,6 +20,11 @@ package com.agapsys.web.toolkit;
 public class Service {
 	private AbstractWebApplication webApp;
 	
+	void throwIfNotActive() {
+		if (!isActive())
+			throw new RuntimeException("Instance is not active");
+	}
+	
 	/**
 	 * Returns a boolean indicating if this instance was initialized.
 	 * 
@@ -52,7 +57,7 @@ public class Service {
 	/**
 	 * Called upon instance initialization. Default implementation does nothing.
 	 * 
-	 * @param webApp associated web application
+	 * @param webApp associated web application.
 	 */
 	protected void onInit(AbstractWebApplication webApp) {}
 	
@@ -61,8 +66,7 @@ public class Service {
 	 */
 	public final void stop() {
 		synchronized(this) {
-			if (!isActive())
-				throw new IllegalStateException("Instance is not active");
+			throwIfNotActive();
 
 			onStop();
 
@@ -91,14 +95,13 @@ public class Service {
 	/**
 	 * Returns a module registered in the same application as this instance is registered with.
 	 * 
-	 * @param <M> Module type
-	 * @param moduleClass module class
-	 * @return module instance or null if given module class was not registered with associated application.
+	 * @param <M> Module type.
+	 * @param moduleClass module class.
+	 * @return module instance or null if given module class was not registered with associated application..
 	 */
 	public final <M extends Module> M getModule(Class<M> moduleClass) {
 		synchronized(this) {
-			if (!isActive())
-				throw new IllegalStateException("Instance is not active");
+			throwIfNotActive();
 			
 			return webApp.getModule(moduleClass);
 		}
@@ -107,14 +110,13 @@ public class Service {
 	/**
 	 * Returns a service instance.
 	 * 
-	 * @param <S> Service type
-	 * @param serviceClass service class
+	 * @param <S> Service type.
+	 * @param serviceClass service class.
 	 * @return service instance.
 	 */
 	public final <S extends Service> S getService(Class<S> serviceClass) {
 		synchronized(this) {
-			if (!isActive())
-				throw new IllegalStateException("Instance is not active");
+			throwIfNotActive();
 			
 			return webApp.getService(serviceClass);
 		}

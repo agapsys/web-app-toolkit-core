@@ -41,7 +41,7 @@ public class MockedWebApplication extends AbstractWebApplication {
 	protected String getDirectoryAbsolutePath() {
 		if (appFolder == null) {
 			try {
-				appFolder = FileUtils.getRandomNonExistentFile(FileUtils.DEFAULT_TEMPORARY_FOLDER, 8, 1000);
+				appFolder = FileUtils.getInstance().getRandomNonExistentFile(FileUtils.DEFAULT_TEMPORARY_FOLDER, 8, 1000);
 			} catch (FileNotFoundException ex) {
 				throw new RuntimeException(ex);
 			}

@@ -27,15 +27,15 @@ import javax.persistence.Persistence;
 
 public class RuntimePersistenceModule extends PersistenceModule {
 	// CLASS SCOPE =============================================================
-	// SETTINGS -------------------------------------------------------
-	public static final String KEY_JDBC_DRIVER_FILENAME = "agapsys.webtoolkit.persistence.driverFile";
-	
+	// -------------------------------------------------------------------------
+	public static final String KEY_JDBC_DRIVER_FILENAME = PersistenceModule.SETTINGS_GROUP_NAME + "." + RuntimePersistenceModule.class.getSimpleName() + ".driverFile";
+
 	public static final String KEY_JDBC_DRIVER_CLASS    = "javax.persistence.jdbc.driver";
 	public static final String KEY_JDBC_URL             = "javax.persistence.jdbc.url";
 	public static final String KEY_JDBC_USER            = "javax.persistence.jdbc.user";
 	public static final String KEY_JDBC_PASSWORD        = "javax.persistence.jdbc.password";
 	// -------------------------------------------------------------------------
-	
+
 	public static final String DEFAULT_JDBC_DRIVER_FILENAME = "h2.jar";
 	public static final String DEFAULT_JDBC_DRIVER_CLASS    = "org.h2.Driver";
 	public static final String DEFAULT_JDBC_URL             = "jdbc:h2:mem:";
@@ -44,51 +44,89 @@ public class RuntimePersistenceModule extends PersistenceModule {
 
 	// INSTANCE SCOPE ==========================================================
 	private EntityManagerFactory emf = null;
+	private File jdbcDriverFile;
+	private String jdbcDriverClass;
+	private String jdbcUrl;
+	private String jdbcUser;
+	private String jdbcPassword;
 
-	public RuntimePersistenceModule() {}
+	private void reset() {
+		jdbcDriverFile = null;
+		jdbcDriverClass = null;
+		jdbcUrl = null;
+		jdbcUser = null;
+		jdbcPassword = null;
+	}
+
+	public RuntimePersistenceModule() {
+		this(DEFAULT_PERSISTENCE_UNIT_NAME);
+	}
 
 	public RuntimePersistenceModule(String persistenceUnitName) {
 		super(persistenceUnitName);
+		reset();
 	}
-	
+
+	protected File getJdbcDriverFile() {
+		return jdbcDriverFile;
+	}
+
+	protected String getJdbcDriverClass() {
+		return jdbcDriverClass;
+	}
+
+	protected String getJdbcUrl() {
+		return jdbcUrl;
+	}
+
+	protected String getJdbcUser() {
+		return jdbcUser;
+	}
+
+	protected String getJdbcPassword() {
+		return jdbcPassword;
+	}
+
 	@Override
 	public Properties getDefaultProperties() {
-		Properties properties = new Properties();
-		
-		properties.setProperty(KEY_JDBC_DRIVER_FILENAME, DEFAULT_JDBC_DRIVER_FILENAME);
-		properties.setProperty(KEY_JDBC_DRIVER_CLASS,    DEFAULT_JDBC_DRIVER_CLASS);
-		properties.setProperty(KEY_JDBC_URL,             DEFAULT_JDBC_URL);
-		properties.setProperty(KEY_JDBC_USER,            DEFAULT_JDBC_USER);
-		properties.setProperty(KEY_JDBC_PASSWORD,        DEFAULT_JDBC_PASSWORD);
-		
-		return properties;
-	}	
-	
+		Properties defaultProperties = super.getDefaultProperties();
+
+		defaultProperties.setProperty(KEY_JDBC_DRIVER_FILENAME, DEFAULT_JDBC_DRIVER_FILENAME);
+		defaultProperties.setProperty(KEY_JDBC_DRIVER_CLASS,    DEFAULT_JDBC_DRIVER_CLASS);
+		defaultProperties.setProperty(KEY_JDBC_URL,             DEFAULT_JDBC_URL);
+		defaultProperties.setProperty(KEY_JDBC_USER,            DEFAULT_JDBC_USER);
+		defaultProperties.setProperty(KEY_JDBC_PASSWORD,        DEFAULT_JDBC_PASSWORD);
+
+		return defaultProperties;
+	}
+
 	@Override
-	protected void onInit(AbstractWebApplication webApp) {
-		Properties appProperties = webApp.getProperties();
-		
-		getMandatoryProperty(KEY_JDBC_DRIVER_CLASS);
-		getMandatoryProperty(KEY_JDBC_URL);
-		getMandatoryProperty(KEY_JDBC_USER);
-		getMandatoryProperty(KEY_JDBC_PASSWORD);
-		
-		String jdbcFilename = appProperties.getProperty(KEY_JDBC_DRIVER_FILENAME);
-		
-		if (jdbcFilename != null && !jdbcFilename.trim().isEmpty()) {
-			File jdbcDriverFile = new File(webApp.getDirectory(), jdbcFilename);
+	protected void onModuleInit(AbstractWebApplication webApp) {
+		// super.onModuleInit should be skipped!
+
+		reset();
+
+		jdbcDriverClass = getMandatoryProperty(KEY_JDBC_DRIVER_CLASS);
+		jdbcUrl         = getMandatoryProperty(KEY_JDBC_URL);
+		jdbcUser        = getMandatoryProperty(KEY_JDBC_USER);
+		jdbcPassword    = getMandatoryProperty(KEY_JDBC_PASSWORD);
+
+		String jdbcFilename = getProperty(KEY_JDBC_DRIVER_FILENAME);
+
+		if (jdbcFilename != null && !jdbcFilename.isEmpty()) {
+			jdbcDriverFile = new File(webApp.getDirectory(), jdbcFilename);
 			RuntimeJarLoader.loadJar(jdbcDriverFile);
 		}
-		
-		emf = Persistence.createEntityManagerFactory(getPersistenceUnitName(), appProperties);
+
+		emf = Persistence.createEntityManagerFactory(getPersistenceUnitName(), getProperties());
 	}
-	
+
 	@Override
-	protected void onStop() {
+	protected void onModuleStop() {
 		emf.close();
 		emf = null;
 	}
-	
+
 	@Override
 	protected EntityManager getCustomEntityManager() {
 		EntityManager em = emf.createEntityManager();

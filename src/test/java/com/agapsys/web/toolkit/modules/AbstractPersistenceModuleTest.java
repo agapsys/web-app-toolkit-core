@@ -35,7 +35,7 @@ public class AbstractPersistenceModuleTest {
 		}
 
 		@Override
-		protected void onStart(AbstractWebApplication webApp) {}
+		protected void onInit(AbstractWebApplication webApp) {}
 
 		@Override
 		protected void onStop() {}
@@ -54,7 +54,7 @@ public class AbstractPersistenceModuleTest {
 	@Test
 	public void sanityCheck() {
 		Assert.assertFalse(module.methodCalled);
-		Assert.assertFalse(module.isRunning());
+		Assert.assertFalse(module.isActive());
 	}
 	
 	@Test(expected = IllegalStateException.class)
@@ -64,7 +64,7 @@ public class AbstractPersistenceModuleTest {
 	
 	@Test
 	public void testGetEntityManagerWhileRunning() {
-		module.start(app);
+		module.init(app);
 		Assert.assertNull(module.getEntityManager());
 		Assert.assertTrue(module.methodCalled);
 	}

@@ -20,7 +20,9 @@ import com.agapsys.mail.Message;
 import com.agapsys.mail.MessageBuilder;
 import com.agapsys.web.toolkit.AbstractWebApplication;
 import com.agapsys.web.toolkit.Module;
+import java.util.Arrays;
 import java.util.Properties;
+import java.util.Set;
 import java.util.regex.Pattern;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
@@ -33,8 +35,8 @@ import javax.mail.internet.InternetAddress;
 public class SmtpExceptionReporterModule extends ExceptionReporterModule {
 	// CLASS SCOPE =============================================================
 	// SETTINGS ----------------------------------------------------------------
-	public static final String KEY_RECIPIENTS   = "agapsys.webtoolkit.smtpExceptionReporter.recipients";
-	public static final String KEY_SUBJECT      = "agapsys.webtoolkit.smtpExceptionReporter.subject";
+	public static final String KEY_RECIPIENTS   = ExceptionReporterModule.SETTINGS_GROUP_NAME + "." + SmtpExceptionReporterModule.class.getSimpleName() + ".recipients";
+	public static final String KEY_SUBJECT      = ExceptionReporterModule.SETTINGS_GROUP_NAME + "." + SmtpExceptionReporterModule.class.getSimpleName() + ".subject";
 	// -------------------------------------------------------------------------
 	
 	public static final String APP_NAME_TOKEN = "${appName}";
@@ -47,7 +49,8 @@ public class SmtpExceptionReporterModule extends ExceptionReporterModule {
 	private static final Class<? extends Module>[] DEPENDENCIES = new Class[] {SmtpModule.class};
 	
 	/**
-	 * Returns an array of recipient addresses from a delimited string
+	 * Returns an array of recipient addresses from a delimited string.
+	 * 
 	 * @param recipients delimited string
 	 * @param delimiter delimiter
 	 * @return array of {@linkplain InternetAddress} instances
@@ -77,18 +80,29 @@ public class SmtpExceptionReporterModule extends ExceptionReporterModule {
 	// INSTANCE SCOPE ==========================================================
 	private InternetAddress[] recipients = null;
 	private String            subject    = null;
+	private SmtpModule        smtpModule;
 
+	public SmtpExceptionReporterModule() {
+		reset();
+	}
+	
+	private void reset() {
+		recipients = null;
+		subject = null;
+	}
+	
 	@Override
-	public Class<? extends Module>[] getDependencies() {
-		return DEPENDENCIES;
+	public Set<Class<? extends Module>> getDependencies() {
+		Set<Class<? extends Module>> dependencies = super.getDependencies();
+		
+		dependencies.addAll(Arrays.asList(DEPENDENCIES));
+		
+		return dependencies;
 	}
 	
 	@Override
 	public Properties getDefaultProperties() {
 		Properties properties = super.getDefaultProperties();
-		
-		if (properties == null)
-			properties = new Properties();
 		
 		properties.setProperty(KEY_SUBJECT,    DEFAULT_SUBJECT);
 		properties.setProperty(KEY_RECIPIENTS, DEFAULT_RECIPIENTS);
@@ -97,39 +111,40 @@ public class SmtpExceptionReporterModule extends ExceptionReporterModule {
 	}
 		
 	@Override
-	protected void onInit(AbstractWebApplication webApp) {
+	protected void onModuleInit(AbstractWebApplication webApp) {
 		super.onInit(webApp);
 		
-		Properties properties = webApp.getProperties();
+		smtpModule = getModule(SmtpModule.class);
 		
+		reset();
+				
 		String val;
 		
 		// Recipients
-		val = getMandatoryProperty(properties, KEY_RECIPIENTS);
+		val = getMandatoryProperty(KEY_RECIPIENTS);
 		recipients = getRecipientsFromString(val, RECIPIENT_DELIMITER);
 		
 		// Subject
-		val = getMandatoryProperty(properties, KEY_SUBJECT);
+		val = getMandatoryProperty(KEY_SUBJECT);
 		subject = val;
 	}
 
 	@Override
-	protected void onStop() {
-		recipients = null;
-		subject = null;
-	}
+	protected void onModuleStop() {}
 
 	/**
-	 * Returns message recipients defined in application settings
-	 * @return message recipients defined in application settings
+	 * Returns message recipients defined in application settings.
+	 * 
+	 * @return message recipients defined in application settings.
 	 */
 	public InternetAddress[] getRecipients() {
 		return recipients;
 	}
 	
 	/**
-	 * Returns message subject defined in application settings
-	 * @return message subject defined in application settings
+	 * Returns message subject defined in application settings.
+	 * 
+	 * @return message subject defined in application settings.
 	 */
 	public String getSubject() {
 		return subject;
@@ -139,12 +154,12 @@ public class SmtpExceptionReporterModule extends ExceptionReporterModule {
 	protected void reportErrorMessage(String message) {
 		super.reportErrorMessage(message);
 		
-		SmtpModule smtpModule =  getModule(SmtpModule.class);
-		
 		String finalSubject = getSubject().replaceAll(Pattern.quote(APP_NAME_TOKEN), getWebApplication().getName());
 
 		Message msg = new MessageBuilder(smtpModule.getSender(), getRecipients())
-			.setSubject(finalSubject).setText(message).build();
+			.setSubject(finalSubject)
+			.setText(message)
+			.build();
 
 		smtpModule.sendMessage(msg);
 	}

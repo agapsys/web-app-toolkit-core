@@ -20,6 +20,16 @@ import java.util.Random;
 
 public class StringUtils {
 	// CLASS SCOPE =============================================================
+	private static final StringUtils SINGLETON = new StringUtils();
+	
+	public static StringUtils getInstance() {
+		return SINGLETON;
+	}
+	// =========================================================================
+
+	// INSTANCE SCOPE ==========================================================
+	protected StringUtils() {}
+	
 	public static String getRandomString(int length) {
 		char[] chars = "abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ".toCharArray();
 		return getRandomString(length, chars);
@@ -39,9 +49,5 @@ public class StringUtils {
 		
 		return sb.toString();
 	}
-	// =========================================================================
-
-	// INSTANCE SCOPE ==========================================================
-	private StringUtils() {}
 	// =========================================================================
 }
