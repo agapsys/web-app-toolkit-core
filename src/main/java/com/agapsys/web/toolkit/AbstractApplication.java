@@ -187,6 +187,12 @@ public abstract class AbstractApplication {
 	 * @return service instance.
 	 */
 	public final <S extends Service> S getService(Class<S> serviceClass) {
+		if (serviceClass == null)
+				throw new IllegalArgumentException("Service class cannot be null");
+
+		if (serviceClass == Service.class)
+			throw new IllegalArgumentException(String.format("Service class must be a subclass of '%s'", Service.class.getName()));
+
 		return serviceManager.getInstance(serviceClass, true);
 	}
 
@@ -200,6 +206,12 @@ public abstract class AbstractApplication {
 	 */
 	public final <M extends Module> M registerModule(Class<M> moduleClass) {
 		if (isActive()) throw new RuntimeException("Cannot register a module with a running application");
+
+		if (moduleClass == null)
+			throw new IllegalArgumentException("Module class cannot be null");
+
+		if (moduleClass == Module.class)
+			throw new IllegalArgumentException(String.format("Module class must be a subclass of '%s'", Module.class.getName()));
 
 		return moduleManager.registerClass(moduleClass);
 	}
@@ -223,6 +235,12 @@ public abstract class AbstractApplication {
 	 * @return module instance or null if a module is not registered.
 	 */
 	public final <M extends Module> M getModule(Class<M> moduleClass) {
+		if (moduleClass == null)
+			throw new IllegalArgumentException("Module class cannot be null");
+
+		if (moduleClass == Module.class)
+			throw new IllegalArgumentException(String.format("Module class must be a subclass of '%s'", Module.class.getName()));
+		
 		return moduleManager.getInstance(moduleClass);
 	}
 

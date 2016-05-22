@@ -166,6 +166,9 @@ public class SingletonManager<T> {
 	 */
 	public <I extends T> I getInstance(Class<I> instanceClass, boolean autoRegistration) {
 		synchronized(instanceMap) {
+			if (instanceClass == null)
+				throw new IllegalArgumentException("Instance class cannot be null");
+
 			I instance = (I) instanceMap.get(instanceClass);
 			if (instance == null && autoRegistration) {
 				instance = registerClass(instanceClass);
