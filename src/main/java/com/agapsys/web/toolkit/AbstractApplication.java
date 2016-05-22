@@ -199,6 +199,8 @@ public abstract class AbstractApplication {
 	 * @return registered instance
 	 */
 	public final <M extends Module> M registerModule(Class<M> moduleClass) {
+		if (isActive()) throw new RuntimeException("Cannot register a module with a running application");
+
 		return moduleManager.registerClass(moduleClass);
 	}
 
@@ -208,12 +210,9 @@ public abstract class AbstractApplication {
 	 * @param moduleInstance associated module instance.
 	 */
 	public final void registerModule(Module moduleInstance) {
-		synchronized (moduleManager) {
-			if (isActive())
-				throw new RuntimeException("Cannot register a module with a running application");
+		if (isActive()) throw new RuntimeException("Cannot register a module with a running application");
 
-			moduleManager.registerInstance(moduleInstance);
-		}
+		moduleManager.registerInstance(moduleInstance);
 	}
 
 	/**

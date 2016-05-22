@@ -105,7 +105,18 @@ public final class LogModule extends Module {
 		 * Default implementation does nothing.
 		 * @param logModule associated log module.
 		 */
-		public void init(LogModule logModule) {}
+		public final void init(LogModule logModule) {
+			synchronized(this) {
+				onInit(logModule);
+			}
+		}
+
+		/**
+		 * Called during initialization.
+		 *
+		 * @param logModule associated log module.
+		 */
+		protected void onInit(LogModule logModule) {}
 	}
 
 	/**
@@ -126,7 +137,7 @@ public final class LogModule extends Module {
 		public void onClose() {}
 
 		@Override
-		public void init(LogModule logModule) {}
+		public void onInit(LogModule logModule) {}
 
 	}
 
@@ -254,7 +265,7 @@ public final class LogModule extends Module {
 	}
 
 	@Override
-	protected String getSettingsGroupName() {
+	protected final String getSettingsGroupName() {
 		return SETTINGS_GROUP_NAME;
 	}
 

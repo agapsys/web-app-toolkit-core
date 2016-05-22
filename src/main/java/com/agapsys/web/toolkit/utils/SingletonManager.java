@@ -126,7 +126,7 @@ public class SingletonManager<T> {
 				// Register entire class hierachy up first subclass of 'thisClass'...
 				Class<?> superClass = tmpClass.getSuperclass();
 
-				if (superClass != thisClass && thisClass.isAssignableFrom(superClass)) {
+				if (thisClass.isAssignableFrom(superClass)) {
 					instanceMap.put((Class<? extends T>) superClass, instance);
 					tmpClass = superClass;
 				} else {
