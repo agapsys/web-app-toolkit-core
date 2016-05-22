@@ -16,6 +16,7 @@
 package com.agapsys.web.toolkit.utils;
 
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Modifier;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -126,7 +127,10 @@ public class SingletonManager<T> {
 				// Register entire class hierachy up first subclass of 'thisClass'...
 				Class<?> superClass = tmpClass.getSuperclass();
 
-				if (thisClass.isAssignableFrom(superClass)) {
+				int modifiers = superClass.getModifiers();
+				boolean isConcreteClass = !Modifier.isAbstract(modifiers) && !Modifier.isInterface(modifiers);
+
+				if (isConcreteClass && thisClass.isAssignableFrom(superClass)) {
 					instanceMap.put((Class<? extends T>) superClass, instance);
 					tmpClass = superClass;
 				} else {

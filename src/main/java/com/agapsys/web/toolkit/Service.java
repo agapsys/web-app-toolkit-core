@@ -17,7 +17,8 @@
 package com.agapsys.web.toolkit;
 
 /** Basic service implementation. */
-public class Service {
+public abstract class Service {
+	
 	private AbstractApplication app;
 
 	final void throwIfNotActive() {

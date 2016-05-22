@@ -24,7 +24,11 @@ import org.junit.Test;
  */
 public class SingletonManagerTest {
 
-	public static class BaseClass {
+	public static interface RootInterface {}
+
+	public static abstract class AbstractBase implements RootInterface {}
+
+	public static class BaseClass extends AbstractBase {
 		@Override
 		public String toString() {
 			return this.getClass().getSimpleName();
@@ -39,10 +43,20 @@ public class SingletonManagerTest {
 
 	@Test
 	public void registerInstanceHierarchyTest() {
-		SingletonManager sm = new SingletonManager<>(BaseClass.class);
+		SingletonManager sm = new SingletonManager<>(RootInterface.class);
 
 		SubSubClass ssc = new SubSubClass();
 		sm.registerInstance(ssc);
+
+		Assert.assertEquals(3, sm.getClasses().size()); // <-- BaseClass, SubClass, and SubSubClass (the others are ignored since they are not concrete)
+		Assert.assertEquals(1, sm.getInstances().size());
+
+		Assert.assertTrue(sm.getClasses().contains(BaseClass.class));
+		Assert.assertTrue(sm.getClasses().contains(SubClass.class));
+		Assert.assertTrue(sm.getClasses().contains(SubSubClass.class));
+
+		Assert.assertNull(sm.getInstance(RootInterface.class));
+		Assert.assertNull(sm.getInstance(AbstractBase.class));
 
 		Assert.assertSame(ssc, sm.getInstance(BaseClass.class));
 		Assert.assertSame(ssc, sm.getInstance(SubClass.class));
@@ -51,15 +65,32 @@ public class SingletonManagerTest {
 		sm = new SingletonManager<>(SubClass.class);
 		sm.registerInstance(ssc);
 
+		Assert.assertEquals(2, sm.getClasses().size()); // <-- SubSubClass and SubClass (BaseClass is above SubClass. The others are ignored since they are not concrete)
+		Assert.assertEquals(1, sm.getInstances().size());
+
+		Assert.assertTrue(sm.getClasses().contains(SubSubClass.class));
+		Assert.assertTrue(sm.getClasses().contains(SubClass.class));
+
+		Assert.assertNull(sm.getInstance(RootInterface.class));
+		Assert.assertNull(sm.getInstance(AbstractBase.class));
 		Assert.assertNull(sm.getInstance(BaseClass.class));
+
 		Assert.assertSame(ssc, sm.getInstance(SubClass.class));
 		Assert.assertSame(ssc, sm.getInstance(SubSubClass.class));
 		// ---------------------------------------------------------------------
 		sm = new SingletonManager<>(SubSubClass.class);
 		sm.registerInstance(ssc);
 
+		Assert.assertEquals(1, sm.getClasses().size()); // <-- SubSubClass (BaseClass and SubClass are above SubSubClass. The others are ignored since they are not concrete)
+		Assert.assertEquals(1, sm.getInstances().size());
+
+		Assert.assertTrue(sm.getClasses().contains(SubSubClass.class));
+
+		Assert.assertNull(sm.getInstance(RootInterface.class));
+		Assert.assertNull(sm.getInstance(AbstractBase.class));
 		Assert.assertNull(sm.getInstance(BaseClass.class));
 		Assert.assertNull(sm.getInstance(SubClass.class));
+
 		Assert.assertSame(ssc, sm.getInstance(SubSubClass.class));
 	}
 

@@ -141,7 +141,7 @@ public abstract class AbstractApplication {
 	/**
 	 * Returns a file representing application directory.
 	 *
-	 * @return the directory where application stores resources outside application context in servlet container.
+	 * @return the directory where application stores resources.
 	 */
 	public final File getDirectory() {
 		if (appDirectory == null) {
@@ -182,17 +182,11 @@ public abstract class AbstractApplication {
 	 *
 	 * @param <S> Service type.
 	 * @param serviceClass expected service class.
-	 * Service class must have an accessible default constructor or
-	 * a customized one must be previously registered via {@linkplain AbstractApplication#registerService(com.agapsys.web.toolkit.Service)}
+	 * Service class must be a concrete class. If an instance is not already
+	 * registered, service class must have an accessible default constructor.
 	 * @return service instance.
 	 */
 	public final <S extends Service> S getService(Class<S> serviceClass) {
-		if (serviceClass == null)
-				throw new IllegalArgumentException("Service class cannot be null");
-
-		if (serviceClass == Service.class)
-			throw new IllegalArgumentException(String.format("Service class must be a subclass of '%s'", Service.class.getName()));
-
 		return serviceManager.getInstance(serviceClass, true);
 	}
 
@@ -201,18 +195,12 @@ public abstract class AbstractApplication {
 	 *
 	 * @param <M> module type.
 	 * @param moduleClass module class to be registered.
-	 * Given class must have an accessible default constructor.
+	 * Given class must be a concrete class and must have an accessible default
+	 * constructor.
 	 * @return registered instance
 	 */
 	public final <M extends Module> M registerModule(Class<M> moduleClass) {
 		if (isActive()) throw new RuntimeException("Cannot register a module with a running application");
-
-		if (moduleClass == null)
-			throw new IllegalArgumentException("Module class cannot be null");
-
-		if (moduleClass == Module.class)
-			throw new IllegalArgumentException(String.format("Module class must be a subclass of '%s'", Module.class.getName()));
-
 		return moduleManager.registerClass(moduleClass);
 	}
 
@@ -223,7 +211,6 @@ public abstract class AbstractApplication {
 	 */
 	public final void registerModule(Module moduleInstance) {
 		if (isActive()) throw new RuntimeException("Cannot register a module with a running application");
-
 		moduleManager.registerInstance(moduleInstance);
 	}
 
@@ -235,12 +222,6 @@ public abstract class AbstractApplication {
 	 * @return module instance or null if a module is not registered.
 	 */
 	public final <M extends Module> M getModule(Class<M> moduleClass) {
-		if (moduleClass == null)
-			throw new IllegalArgumentException("Module class cannot be null");
-
-		if (moduleClass == Module.class)
-			throw new IllegalArgumentException(String.format("Module class must be a subclass of '%s'", Module.class.getName()));
-		
 		return moduleManager.getInstance(moduleClass);
 	}
 
