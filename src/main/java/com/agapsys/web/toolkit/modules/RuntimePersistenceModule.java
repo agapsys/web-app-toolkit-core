@@ -26,7 +26,7 @@ import java.util.Properties;
 public class RuntimePersistenceModule extends PersistenceModule {
 	// CLASS SCOPE =============================================================
 	// -------------------------------------------------------------------------
-	public static final String KEY_JDBC_DRIVER_FILENAME = PersistenceModule.SETTINGS_GROUP_NAME + "." + RuntimePersistenceModule.class.getSimpleName() + ".driverFile";
+	public static final String KEY_JDBC_DRIVER_FILENAME = RuntimePersistenceModule.class.getSimpleName() + ".driverFile";
 
 	public static final String KEY_JDBC_DRIVER_CLASS    = "javax.persistence.jdbc.driver";
 	public static final String KEY_JDBC_URL             = "javax.persistence.jdbc.url";
