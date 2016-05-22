@@ -1,7 +1,7 @@
 <!--
 
  Copyright 2015 Agapsys Tecnologia Ltda-ME.
- 
+
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
@@ -18,29 +18,29 @@ limitations under the License.
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	
+
 	<groupId>com.agapsys.libs</groupId>
 	<artifactId>web-app-toolkit</artifactId>
 	<version>1.0.0</version>
 	<packaging>jar</packaging>
-	
+
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.compiler.source>1.7</maven.compiler.source>
 		<maven.compiler.target>1.7</maven.compiler.target>
 	</properties>
-	
+
 	<name>Web Application Toolkit</name>
 	<description>Essential tools for back-end applications</description>
 	<url>https://github.com/agapsys/web-app-toolkit</url>
-	
+
 	<licenses>
 		<license>
 			<name>The Apache License, Version 2.0</name>
 			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
 		</license>
 	</licenses>
-	
+
 	<developers>
 		<developer>
 			<name>Leandro Oliveira</name>
@@ -49,17 +49,17 @@ limitations under the License.
 			<organizationUrl>http://www.agapsys.com</organizationUrl>
 		</developer>
 	</developers>
-	
+
 	<scm>
 		<connection>scm:git:git@github.com:agapsys/web-app-toolkit.git</connection>
 		<url>git@github.com:agapsys/web-app-toolkit.git</url>
 	</scm>
-	
+
 	<organization>
 		<name>Agapsys Tecnologia Ltda-ME</name>
 		<url>http://www.agapsys.com</url>
 	</organization>
-	
+
 	<dependencies>
 		<!-- Test dependencies -->
 		<dependency>
@@ -86,7 +86,7 @@ limitations under the License.
 			<version>1.4.190</version>
 			<scope>test</scope>
 		</dependency>
-		
+
 		<!-- Provided dependencies -->
 		<dependency>
 			<groupId>javax</groupId>
@@ -94,12 +94,12 @@ limitations under the License.
 			<version>7.0</version>
 			<scope>provided</scope>
 		</dependency>
-		
-		<!-- Compile dependencies-->								
+
+		<!-- Compile dependencies-->
 		<dependency>
 			<groupId>com.agapsys.libs</groupId>
 			<artifactId>smtp-sender</artifactId>
-			<version>2.0.0</version>
+			<version>[3.0.0, 4.0.0)</version>
 		</dependency>
 	</dependencies>
 </project>

@@ -31,7 +31,7 @@ import java.util.Set;
 
 /**
  *
- * @author Leandro Oliveira (leandro@agapsys)
+ * @author Leandro Oliveira (leandro@agapsys.com)
  */
 public final class LogModule extends Module {
 	// STATIC SCOPE ============================================================

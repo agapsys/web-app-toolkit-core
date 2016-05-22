@@ -23,8 +23,6 @@ import com.agapsys.sevlet.container.ServletContainerBuilder;
 import com.agapsys.web.toolkit.MockedWebApplication;
 import com.agapsys.web.toolkit.WebApplicationFilter;
 import java.io.IOException;
-import javax.servlet.ServletContextEvent;
-import javax.servlet.ServletContextListener;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebListener;
 import javax.servlet.annotation.WebServlet;
@@ -38,37 +36,16 @@ import org.junit.Test;
 public class ApplicationDisableTest {
 	// CLASS SCOPE =============================================================
 	@WebListener
-	public static class DisabledApplication extends MockedWebApplication implements ServletContextListener {
+	public static class DisabledApplication extends MockedWebApplication {
 
 		@Override
 		public boolean isDisabled() {
 			return true;
 		}
-
-		@Override
-		public void contextInitialized(ServletContextEvent sce) {
-			init();
-		}
-
-		@Override
-		public void contextDestroyed(ServletContextEvent sce) {
-			stop();
-		}
 	}
-	
-	public static class EnabledApplication extends MockedWebApplication implements ServletContextListener {
 
-		@Override
-		public void contextInitialized(ServletContextEvent sce) {
-			init();
-		}
+	public static class EnabledApplication extends MockedWebApplication {}
 
-		@Override
-		public void contextDestroyed(ServletContextEvent sce) {
-			stop();
-		}
-	}
-	
 	@WebServlet("/*")
 	public static class TestServlet extends HttpServlet {
 
@@ -80,12 +57,12 @@ public class ApplicationDisableTest {
 	// =========================================================================
 // INSTANCE SCOPE ==========================================================
 	private ServletContainer sc;
-	
+
 	@After
 	public void after() {
 		sc.stopServer();
 	}
-	
+
 	@Test
 	public void testEnabledApplication() {
 		sc = new ServletContainerBuilder()
@@ -93,12 +70,12 @@ public class ApplicationDisableTest {
 			.registerServlet(TestServlet.class)
 			.registerFilter(WebApplicationFilter.class, "/*")
 			.build();
-		
+
 		sc.startServer();
 		HttpResponse resp = sc.doRequest(new HttpGet("/test"));
 		Assert.assertEquals(HttpServletResponse.SC_OK, resp.getStatusCode());
 	}
-	
+
 	@Test
 	public void testDisabledApplication() {
 		sc = new ServletContainerBuilder()
@@ -106,9 +83,9 @@ public class ApplicationDisableTest {
 			.registerServlet(TestServlet.class)
 			.registerFilter(WebApplicationFilter.class, "/*")
 			.build();
-		
+
 		sc.startServer();
-		
+
 		HttpResponse resp = sc.doRequest(new HttpGet("/test"));
 		Assert.assertEquals(HttpServletResponse.SC_SERVICE_UNAVAILABLE, resp.getStatusCode());
 	}

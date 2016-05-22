@@ -20,14 +20,12 @@ import com.agapsys.web.toolkit.modules.LogModule;
 import com.agapsys.web.toolkit.modules.LogModule.DailyLogFileStream;
 import com.agapsys.web.toolkit.utils.FileUtils;
 import com.agapsys.web.toolkit.utils.HttpUtils;
+import com.agapsys.web.toolkit.utils.SingletonManager;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -45,7 +43,7 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	// CLASS SCOPE =============================================================
 
 	// Global settings ---------------------------------------------------------
-	private sta
+	public static final String DEFAULT_SETTINGS_GROUP_NAME = AbstractWebApplication.class.getPackage().getName() + ".WebApplication";
 
 	/** Defines if application is disabled. When an application is disabled, all requests are ignored and a {@linkplain HttpServletResponse#SC_SERVICE_UNAVAILABLE} is sent to the client. */
 	public static final String KEY_APP_DISABLE = "com.agapsys.webtoolkit.appDisable";
@@ -79,8 +77,9 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	// =========================================================================
 
 	// INSTANCE SCOPE ==========================================================
-	private final Map<Class<? extends Module>, Module>   moduleMap = new LinkedHashMap<>();
-	private final Map<Class<? extends Service>, Service> serviceMap = new LinkedHashMap<>();
+	private final SingletonManager<Module>  moduleManager  = new SingletonManager<>(Module.class);
+	private final SingletonManager<Service> serviceManager = new SingletonManager<>(Service.class);
+
 	private final List<Module> initializedModules  = new LinkedList<>();
 	private final ApplicationSettings settings = new ApplicationSettings();
 	private final Properties defaultProperties = new Properties();
@@ -96,8 +95,8 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 
 	/** Resets application state. */
 	private void reset() {
-		moduleMap.clear();
-		serviceMap.clear();
+		moduleManager.clear();
+		serviceManager.clear();
 		initializedModules.clear();
 		settings.clear();
 		defaultProperties.clear();
@@ -228,95 +227,28 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	}
 
 	/**
-	 * Returns an object instance of a given class using its default constructor.
+	 * Register a service instance.
 	 *
-	 * @param <T> Object type
-	 * @param clazz Object class.
-	 * @return an object instance of a given class using its default constructor.
+	 * Usually, services do not need to be registered, since they are
+	 * automatically registered upon demand. Use this method to replace a
+	 * service instance by a customized one.
+	 * @param service service instance to be registered.
 	 */
-	private <T> T getDefaultObjInstance(Class<T> clazz) {
-		try {
-			T obj = clazz.getConstructor().newInstance();
-			return obj;
-		} catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
-			throw new RuntimeException(String.format("Error instantiating class: '%s'", clazz), ex);
-		}
-	}
-
-	/**
-	 * Register a service instance with the application.
-	 *
-	 * @param <S> Service type.
-	 * @param serviceClass service class.
-	 * @param serviceInstance service instance to be registered.
-	 * @param warnRuntime defines if service registering during application runtime should issue a warning log.
-	 */
-	private <S extends Service> void registerService(Class<S> serviceClass, S serviceInstance, boolean warnRuntime) {
-		synchronized(serviceMap) {
-			if (serviceClass == null)
-				throw new IllegalArgumentException("Service class cannot be null");
-
-			if (serviceInstance == null)
-				throw new IllegalArgumentException("Service instance cannot be null");
-
-			if (isActive() && warnRuntime)
-				log(LogType.WARNING, "Registering a service during runtime: '%s'", serviceInstance.getClass().getName());
-
-			serviceMap.put(serviceClass, serviceInstance);
-		}
-	}
-
-	/**
-	 * Register a service instance with the application.
-	 *
-	 * @param <S> Service type.
-	 * @param serviceClass service class.
-	 * @param serviceInstance service instance to be registered.
-	 */
-	public final <S extends Service> void registerService(Class<S> serviceClass, S serviceInstance) {
-		registerService(serviceClass, serviceInstance, true);
+	public final void registerService(Service service) {
+		serviceManager.registerInstance(service);
 	}
 
 	/**
 	 * Returns a service instance.
 	 *
 	 * @param <S> Service type.
-	 * @param serviceClass expected service class. Service class must have an accessible default constructor or must be previously registered via {@linkplain AbstractWebApplication#registerService(java.lang.Class, com.agapsys.web.toolkit.Service)}
+	 * @param serviceClass expected service class.
+	 * Service class must have an accessible default constructor or
+	 * a customized one must be previously registered via {@linkplain AbstractWebApplication#registerService(com.agapsys.web.toolkit.Service)}
 	 * @return service instance.
 	 */
 	public final <S extends Service> S getService(Class<S> serviceClass) {
-		synchronized(serviceMap) {
-			if (serviceClass == null)
-				throw new IllegalArgumentException("Service class cannot be null");
-
-			S service = (S) serviceMap.get(serviceClass);
-
-			if (service == null) {
-				service = getDefaultObjInstance(serviceClass);
-				registerService(serviceClass, service, false);
-			}
-
-			if (!service.isActive())
-				service.init(this);
-
-			return service;
-		}
-	}
-
-	/**
-	 * Registers a module to be initialized with the application.
-	 *
-	 * @param <M> module type.
-	 * @param moduleClass module class to be registered. Given class must have an accessible default constructor.
-	 */
-	public final <M extends Module> void registerModule(Class<M> moduleClass) {
-		synchronized(moduleMap) {
-			if (moduleClass == null)
-				throw new IllegalArgumentException("Module class cannot be null");
-
-			M module = getDefaultObjInstance(moduleClass);
-			registerModule(moduleClass, module);
-		}
+		return serviceManager.getInstance(serviceClass, true);
 	}
 
 	/**
@@ -324,20 +256,24 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	 *
 	 * @param <M> module type.
 	 * @param moduleClass module class to be registered.
+	 * Given class must have an accessible default constructor.
+	 * @return registered instance
+	 */
+	public final <M extends Module> M registerModule(Class<M> moduleClass) {
+		return moduleManager.registerClass(moduleClass);
+	}
+
+	/**
+	 * Registers a module to be initialized with the application.
+	 *
 	 * @param moduleInstance associated module instance.
 	 */
-	public final <M extends Module> void registerModule(Class<M> moduleClass, M moduleInstance) {
-		synchronized (moduleMap) {
+	public final void registerModule(Module moduleInstance) {
+		synchronized (moduleManager) {
 			if (isActive())
 				throw new RuntimeException("Cannot register a module with a running application");
 
-			if (moduleClass == null)
-				throw new IllegalArgumentException("Module class cannot be null");
-
-			if (moduleInstance == null)
-				throw new IllegalArgumentException("Module instance cannot be null");
-
-			moduleMap.put(moduleClass, moduleInstance);
+			moduleManager.registerInstance(moduleInstance);
 		}
 	}
 
@@ -349,9 +285,7 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	 * @return module instance or null if a module is not registered.
 	 */
 	public final <M extends Module> M getModule(Class<M> moduleClass) {
-		synchronized(moduleMap) {
-			return (M) moduleMap.get(moduleClass);
-		}
+		return moduleManager.getInstance(moduleClass);
 	}
 
 	/**
@@ -368,10 +302,8 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 
 		M moduleInstance = getModule(moduleClass);
 
-		if (moduleInstance == null) {
-			moduleInstance = getDefaultObjInstance(moduleClass);
-			registerModule(moduleClass, moduleInstance);
-		}
+		if (moduleInstance == null)
+			moduleInstance = registerModule(moduleClass);
 
 		if (!moduleInstance.isActive()) {
 			if (callerModules.contains(moduleClass))
@@ -409,10 +341,10 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	 * @param init defines if modules should be initialized (pass false to register transient modules).
 	 */
 	private void resolveModules(boolean init) {
-		if (!moduleMap.isEmpty() && init)
+		if (!moduleManager.isEmpty() && init)
 			log(LogType.INFO, "Starting modules...");
 
-		for (Class<? extends Module> moduleClass : moduleMap.keySet()) {
+		for (Class<? extends Module> moduleClass : moduleManager.getClasses()) {
 			resolveModule(moduleClass, null, init);
 		}
 	}
@@ -426,16 +358,37 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 
 		for (int i = initializedModules.size() - 1; i >= 0; i--) {
 			Module module = initializedModules.get(i);
-			log(LogType.INFO, "Shutting down module: %s", module.getClass().getName());
-			module.stop();
+
+			if (!(module instanceof LogModule)) {
+				log(LogType.INFO, "Shutting down module: %s", module.getClass().getName());
+				module.stop();
+			}
 		}
 	}
 
 	/**
 	 * @return application global settings
 	 */
-	public ApplicationSettings getSettings() {
+	ApplicationSettings getSettings() {
 		return settings.getReadOnlyInstance();
+	}
+
+	/**
+	 * Returns the properties associated to this application.
+	 *
+	 * @return the properties associated to this application.
+	 */
+	protected Properties getProperties() {
+		return getSettings().getProperties(getAppSettingsGroupName());
+	}
+
+	/**
+	 * Returns the name of the settings group used by application.
+	 *
+	 * @return the name of the settings group used by application.
+	 */
+	protected String getAppSettingsGroupName() {
+		return DEFAULT_SETTINGS_GROUP_NAME;
 	}
 
 	/**
@@ -457,49 +410,26 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	 */
 	private void loadSettings() throws IOException {
 		File settingsFile = new File(getDirectory(), getSettingsFilename());
-		Map<String, Properties> propertyGroups = new LinkedHashMap<>();
 
 		// Apply application default properties...
-		Properties defaultProperties = getDefaultProperties();
-		if (defaultProperties != null) {
-			for (Map.Entry<Object, Object> entry : defaultProperties.entrySet()) {
-				properties.put(entry.getKey(), entry.getValue());
-			}
+		settings.addProperties(getAppSettingsGroupName(), getDefaultProperties());
+
+		// Apply modules default properties...
+		Set<Module> moduleInstanceSet = new LinkedHashSet<>();
+		for (Module module : moduleManager.getInstances()) {
+			moduleInstanceSet.add(module);
+		}
+		for (Module module : moduleInstanceSet) {
+			settings.addProperties(module._getSettingsGroupName(), module._getDefaultProperties());
 		}
 
-		// Apply settings file properties if file exists...
 		if (settingsFile.exists()) {
-			try (FileInputStream fis = new FileInputStream(settingsFile)) {
-				Properties tmpProperties = new Properties();
-				tmpProperties.load(fis);
-				properties.putAll(tmpProperties);
-			}
+			// Apply settings file properties if file exists...
+			settings.read(settingsFile);
 		} else {
-			propertyGroups.add(new PropertyGroup(properties, "Application settings"));
-		}
-
-		// Apply modules default properties (keeping existing)...
-		for (Module module : moduleMap.values()) {
-			Properties defaultModuleProperties = module.getDefaultProperties();
-
-			if (defaultModuleProperties != null && !defaultModuleProperties.isEmpty()) {
-				propertyGroups.add(new PropertyGroup(defaultModuleProperties, module.getClass().getName()));
-
-				for (Map.Entry<Object, Object> defaultEntry : defaultModuleProperties.entrySet()) {
-					Object appPropertyValue = properties.putIfAbsent(defaultEntry.getKey(), defaultEntry.getValue());
-
-					if (appPropertyValue != null) {
-						// Property already contains given entry
-						defaultModuleProperties.put(defaultEntry.getKey(), appPropertyValue);
-					}
-				}
-			}
-		}
-
-		// Write properties to disk...
-		if (!settingsFile.exists()) {
+			// Write properties to disk if file doesn't exist...
 			log(LogType.INFO, "Creating default settings file...");
-			PropertyGroup.writeToFile(settingsFile, propertyGroups);
+			settings.writeToFile(settingsFile);
 		}
 	}
 
@@ -532,9 +462,11 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 		if (version == null || version.isEmpty())
 			throw new IllegalStateException("Missing application version");
 
-		log(LogType.INFO, "Starting application: %s", name);
+		reset();
 
 		_beforeApplicationStart();
+
+		log(LogType.INFO, "Starting application: %s", name);
 
 		try {
 			resolveModules(false); // <-- required in order to retrieve transient modules default settings...
@@ -551,14 +483,18 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 		log(LogType.INFO, "Application is ready: %s", name);
 
 		_afterApplicationStart();
-	}
 
+		settings.clear(); // <-- Settings should not be kept in memory since it may contains sensitive-data
+	}
 
 	private void _beforeApplicationStart() {
 		String logDirPath = new File(getDirectory(), getLogDirName()).getAbsolutePath();
 		File logDir = FileUtils.getInstance().getOrCreateDirectory(logDirPath);
 
-		registerModule(LogModule.class, new LogModule(new DailyLogFileStream(logDir)));
+		LogModule logModule = new LogModule(new DailyLogFileStream(logDir));
+		registerModule(logModule);
+		initializedModules.add(logModule); // <-- forces the log module to be the last stopped module.
+
 		beforeApplicationStart();
 	}
 
@@ -603,11 +539,9 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 		beforeApplicationStop();
 
 		stopModules();
-		reset();
 		singleton = null;
 
 		afterApplicationStop();
-		log(LogType.INFO, "Application was stopped: %s", getName());
 	}
 
 	/**
@@ -626,14 +560,30 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 	 */
 	protected void afterApplicationStop() {}
 
-	@Override
-	public void contextInitialized(ServletContextEvent sce) {
-		init();
-	}
+	/**
+	 * Called during context initialization
+	 *
+	 * @param sce Servlet context event
+	 */
+	protected void onContextInitialized(ServletContextEvent sce) {}
 
 	@Override
-	public void contextDestroyed(ServletContextEvent sce) {
+	public final void contextInitialized(ServletContextEvent sce) {
+		init();
+		onContextInitialized(sce);
+	}
+
+	/**
+	 * Called during context initialization
+	 *
+	 * @param sce Servlet context event
+	 */
+	protected void onContextDestroyed(ServletContextEvent sec) {}
+
+	@Override
+	public final void contextDestroyed(ServletContextEvent sce) {
 		stop();
+		onContextDestroyed(sce);
 	}
 	// =========================================================================
 }

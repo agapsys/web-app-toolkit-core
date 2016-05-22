@@ -183,11 +183,13 @@ public class LdapModule extends Module {
 
 		reset();
 
-		ldapUrl            = getProperty(KEY_LDAP_URL);
-		searchBaseDn       = getProperty(KEY_SEARCH_BASE_DN);
-		searchPattern      = getProperty(KEY_SEARCH_PATTERN);
-		searchUserDn       = getProperty(KEY_SEARCH_USER_DN);
-		searchUserPassword = getProperty(KEY_SEARCH_USER_PASSWORD).toCharArray();
+		Properties props = getProperties();
+
+		ldapUrl            = getProperty(props, KEY_LDAP_URL);
+		searchBaseDn       = getProperty(props, KEY_SEARCH_BASE_DN);
+		searchPattern      = getProperty(props, KEY_SEARCH_PATTERN);
+		searchUserDn       = getProperty(props, KEY_SEARCH_USER_DN);
+		searchUserPassword = getProperty(props, KEY_SEARCH_USER_PASSWORD).toCharArray();
 	}
 
 
@@ -210,7 +212,6 @@ public class LdapModule extends Module {
 	protected char[] getSearchUserPassword() {
 		return searchUserPassword;
 	}
-
 
 	private DirContext getContext(String url, String userDn, char[] password) throws LdapException {
 		Hashtable<String, Object> properties = new Hashtable<>();

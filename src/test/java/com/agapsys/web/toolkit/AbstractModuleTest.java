@@ -27,42 +27,46 @@ public class AbstractModuleTest {
 		private boolean isStopCalled = false;
 
 		@Override
-		protected void onInit(AbstractWebApplication webApp) {
+		protected void onModuleInit(AbstractWebApplication webApp) {
 			isStartCalled = true;
 		}
 
 		@Override
-		protected void onStop() {
+		protected void onModuleStop() {
 			isStopCalled = true;
+		}
+
+		@Override
+		protected String getSettingsGroupName() {
+			return "";
 		}
 	}
 	// =========================================================================
-	
+
 	// INSTANCE SCOPE ==========================================================
 	private final AbstractWebApplication app = new MockedWebApplication();
 	private TestModule module = null;
-	
+
 	@Before
 	public void before() {
 		module = new TestModule();
 	}
-	
+
 	@Test
 	public void testDefaults() {
-		Assert.assertNull(module.getDefaultProperties());
 		Assert.assertFalse(module.isStartCalled);
 		Assert.assertFalse(module.isStopCalled);
 	}
-	
+
 	@Test
 	public void testRunning() {
 		Assert.assertFalse(module.isActive());
-		
+
 		module.init(app);
 		Assert.assertTrue(module.isStartCalled);
 		Assert.assertFalse(module.isStopCalled);
 		Assert.assertTrue(module.isStartCalled);
-		
+
 		module.stop();
 		Assert.assertTrue(module.isStopCalled);
 		Assert.assertFalse(module.isActive());

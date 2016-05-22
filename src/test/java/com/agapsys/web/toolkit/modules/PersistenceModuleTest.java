@@ -23,9 +23,9 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-public class AbstractPersistenceModuleTest {
+public class PersistenceModuleTest {
 	// CLASS SCOPE =============================================================
-	private static class TestPersistenceModule extends AbstractPersistenceModule {
+	private static class TestPersistenceModule extends PersistenceModule {
 		private boolean methodCalled = false;
 
 		@Override
@@ -35,33 +35,33 @@ public class AbstractPersistenceModuleTest {
 		}
 
 		@Override
-		protected void onInit(AbstractWebApplication webApp) {}
+		protected void onModuleInit(AbstractWebApplication webApp) {} // <-- does not init entity manager factory
 
 		@Override
-		protected void onStop() {}
+		protected void onModuleStop() {}
 	}
 	// =========================================================================
 
 	// INSTANCE SCOPE ==========================================================
 	private final AbstractWebApplication app = new MockedWebApplication();
 	private TestPersistenceModule module;
-	
+
 	@Before
 	public void before() {
 		module = new TestPersistenceModule();
 	}
-	
+
 	@Test
 	public void sanityCheck() {
 		Assert.assertFalse(module.methodCalled);
 		Assert.assertFalse(module.isActive());
 	}
-	
+
 	@Test(expected = IllegalStateException.class)
 	public void testGetEntityManagerWhileNotRunning() {
 		module.getEntityManager();
 	}
-	
+
 	@Test
 	public void testGetEntityManagerWhileRunning() {
 		module.init(app);

@@ -38,19 +38,19 @@ public class SmtpExceptionReporterModule extends ExceptionReporterModule {
 	public static final String KEY_RECIPIENTS   = ExceptionReporterModule.SETTINGS_GROUP_NAME + "." + SmtpExceptionReporterModule.class.getSimpleName() + ".recipients";
 	public static final String KEY_SUBJECT      = ExceptionReporterModule.SETTINGS_GROUP_NAME + "." + SmtpExceptionReporterModule.class.getSimpleName() + ".subject";
 	// -------------------------------------------------------------------------
-	
+
 	public static final String APP_NAME_TOKEN = "${appName}";
-	
+
 	public static final String DEFAULT_SUBJECT    = String.format("[%s][System report] Error report", APP_NAME_TOKEN);
 	public static final String DEFAULT_RECIPIENTS = "user@email.com";
-	
+
 	public static final String RECIPIENT_DELIMITER = ",";
-	
+
 	private static final Class<? extends Module>[] DEPENDENCIES = new Class[] {SmtpModule.class};
-	
+
 	/**
 	 * Returns an array of recipient addresses from a delimited string.
-	 * 
+	 *
 	 * @param recipients delimited string
 	 * @param delimiter delimiter
 	 * @return array of {@linkplain InternetAddress} instances
@@ -58,13 +58,13 @@ public class SmtpExceptionReporterModule extends ExceptionReporterModule {
 	private static InternetAddress[] getRecipientsFromString(String recipients, String delimiter) {
 		if (recipients == null || recipients.trim().isEmpty())
 			throw new RuntimeException("Null/empty recipients");
-		
+
 		if (delimiter == null || delimiter.trim().isEmpty())
 			throw new RuntimeException("Null/empty delimiter");
-		
+
 		String[] recipientArray = recipients.split(Pattern.quote(RECIPIENT_DELIMITER));
 		InternetAddress[] result = new InternetAddress[recipientArray.length];
-		
+
 		for (int i = 0; i < recipientArray.length; i++) {
 			try {
 				result[i] = new InternetAddress(recipientArray[i].trim());
@@ -72,7 +72,7 @@ public class SmtpExceptionReporterModule extends ExceptionReporterModule {
 				throw new RuntimeException("Invalid address: " + recipientArray[i].trim(), ex);
 			}
 		}
-		
+
 		return result;
 	}
 	// =========================================================================
@@ -85,65 +85,64 @@ public class SmtpExceptionReporterModule extends ExceptionReporterModule {
 	public SmtpExceptionReporterModule() {
 		reset();
 	}
-	
+
 	private void reset() {
 		recipients = null;
 		subject = null;
 	}
-	
+
 	@Override
 	public Set<Class<? extends Module>> getDependencies() {
 		Set<Class<? extends Module>> dependencies = super.getDependencies();
-		
+
 		dependencies.addAll(Arrays.asList(DEPENDENCIES));
-		
+
 		return dependencies;
 	}
-	
+
 	@Override
 	public Properties getDefaultProperties() {
 		Properties properties = super.getDefaultProperties();
-		
+
 		properties.setProperty(KEY_SUBJECT,    DEFAULT_SUBJECT);
 		properties.setProperty(KEY_RECIPIENTS, DEFAULT_RECIPIENTS);
-		
+
 		return properties;
 	}
-		
+
 	@Override
 	protected void onModuleInit(AbstractWebApplication webApp) {
-		super.onInit(webApp);
-		
+		super.onModuleInit(webApp);
+
 		smtpModule = getModule(SmtpModule.class);
-		
+
 		reset();
-				
+
 		String val;
-		
+
+		Properties props = getProperties();
+
 		// Recipients
-		val = getMandatoryProperty(KEY_RECIPIENTS);
+		val = getMandatoryProperty(props, KEY_RECIPIENTS);
 		recipients = getRecipientsFromString(val, RECIPIENT_DELIMITER);
-		
+
 		// Subject
-		val = getMandatoryProperty(KEY_SUBJECT);
+		val = getMandatoryProperty(props, KEY_SUBJECT);
 		subject = val;
 	}
 
-	@Override
-	protected void onModuleStop() {}
-
 	/**
 	 * Returns message recipients defined in application settings.
-	 * 
+	 *
 	 * @return message recipients defined in application settings.
 	 */
 	public InternetAddress[] getRecipients() {
 		return recipients;
 	}
-	
+
 	/**
 	 * Returns message subject defined in application settings.
-	 * 
+	 *
 	 * @return message subject defined in application settings.
 	 */
 	public String getSubject() {
@@ -153,7 +152,7 @@ public class SmtpExceptionReporterModule extends ExceptionReporterModule {
 	@Override
 	protected void reportErrorMessage(String message) {
 		super.reportErrorMessage(message);
-		
+
 		String finalSubject = getSubject().replaceAll(Pattern.quote(APP_NAME_TOKEN), getWebApplication().getName());
 
 		Message msg = new MessageBuilder(smtpModule.getSender(), getRecipients())

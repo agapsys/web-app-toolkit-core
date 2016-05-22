@@ -25,21 +25,21 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-public class AbstractSmtpModuleTest {
+public class SmtpModuleTest {
 	// CLASS SCOPE =============================================================
-	private static class TestSmtpModule extends AbstractSmtpModule {
+	private static class TestSmtpModule extends SmtpModule {
 		private boolean methodCalled = false;
-		
+
 		@Override
 		protected void onSendMessage(Message message) {
 			methodCalled = true;
 		}
 
 		@Override
-		protected void onInit(AbstractWebApplication webApp) {}
+		protected void onModuleInit(AbstractWebApplication webApp) {} // <-- does not load implementation logic
 
 		@Override
-		protected void onStop() {}
+		protected void onModuleStop() {}
 	}
 	// =========================================================================
 
@@ -48,27 +48,26 @@ public class AbstractSmtpModuleTest {
 	private final Message testMessage;
 	private final AbstractWebApplication app = new MockedWebApplication();
 
-
-	public AbstractSmtpModuleTest() throws AddressException {
+	public SmtpModuleTest() throws AddressException {
 		this.testMessage = new MessageBuilder("sender@host.com", "recipient@host.com").build();
-	}	
-	
+	}
+
 	@Before
 	public void before() {
 		module = new TestSmtpModule();
 	}
-	
+
 	@Test(expected = IllegalArgumentException.class)
 	public void sendNullMessage() {
 		module.sendMessage(null);
 	}
-	
+
 	@Test(expected = IllegalStateException.class)
 	public void sendMessageWhileNotRunning() {
 		Assert.assertFalse(module.isActive());
 		module.sendMessage(testMessage);
 	}
-	
+
 	@Test
 	public void sendMessageWhileRunning() {
 		module.init(app);

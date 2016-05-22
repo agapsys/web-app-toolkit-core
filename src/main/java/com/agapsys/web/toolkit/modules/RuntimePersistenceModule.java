@@ -19,6 +19,8 @@ package com.agapsys.web.toolkit.modules;
 import com.agapsys.web.toolkit.AbstractWebApplication;
 import com.agapsys.web.toolkit.utils.RuntimeJarLoader;
 import java.io.File;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Properties;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -48,7 +50,7 @@ public class RuntimePersistenceModule extends PersistenceModule {
 	private String jdbcDriverClass;
 	private String jdbcUrl;
 	private String jdbcUser;
-	private String jdbcPassword;
+	private char[] jdbcPassword;
 
 	private void reset() {
 		jdbcDriverFile = null;
@@ -83,7 +85,7 @@ public class RuntimePersistenceModule extends PersistenceModule {
 		return jdbcUser;
 	}
 
-	protected String getJdbcPassword() {
+	protected char[] getJdbcPassword() {
 		return jdbcPassword;
 	}
 
@@ -106,23 +108,30 @@ public class RuntimePersistenceModule extends PersistenceModule {
 
 		reset();
 
-		jdbcDriverClass = getMandatoryProperty(KEY_JDBC_DRIVER_CLASS);
-		jdbcUrl         = getMandatoryProperty(KEY_JDBC_URL);
-		jdbcUser        = getMandatoryProperty(KEY_JDBC_USER);
-		jdbcPassword    = getMandatoryProperty(KEY_JDBC_PASSWORD);
+		Properties props = getProperties();
 
-		String jdbcFilename = getProperty(KEY_JDBC_DRIVER_FILENAME);
+		jdbcDriverClass = getMandatoryProperty(props, KEY_JDBC_DRIVER_CLASS);
+		jdbcUrl         = getMandatoryProperty(props, KEY_JDBC_URL);
+		jdbcUser        = getMandatoryProperty(props, KEY_JDBC_USER);
+		jdbcPassword    = getMandatoryProperty(props, KEY_JDBC_PASSWORD).toCharArray();
+
+		String jdbcFilename = getProperty(props, KEY_JDBC_DRIVER_FILENAME);
 
 		if (jdbcFilename != null && !jdbcFilename.isEmpty()) {
 			jdbcDriverFile = new File(webApp.getDirectory(), jdbcFilename);
 			RuntimeJarLoader.loadJar(jdbcDriverFile);
 		}
 
-		emf = Persistence.createEntityManagerFactory(getPersistenceUnitName(), getProperties());
+		Map<Object, Object> propertyMap = new LinkedHashMap<>(getProperties());
+		propertyMap.put(KEY_JDBC_PASSWORD, jdbcPassword);
+
+		emf = Persistence.createEntityManagerFactory(getPersistenceUnitName(), propertyMap);
 	}
 
 	@Override
 	protected void onModuleStop() {
+		// super.onModuleStop() sould be skipped!
+		
 		emf.close();
 		emf = null;
 	}

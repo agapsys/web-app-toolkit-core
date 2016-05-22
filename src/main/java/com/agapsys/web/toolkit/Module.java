@@ -33,8 +33,6 @@ public abstract class Module extends Service {
 	// -------------------------------------------------------------------------
 	private final Properties defaultProperties = new Properties();
 	private final Set<Class<? extends Module>> defaultDependencies = new LinkedHashSet<>();
-
-	private Properties properties = null;
 	// -------------------------------------------------------------------------
 
 	// -------------------------------------------------------------------------
@@ -49,7 +47,7 @@ public abstract class Module extends Service {
 	@Override
 	protected final void onInit(AbstractWebApplication webApp) {
 		super.onInit(webApp);
-		properties = null;
+		
 		onModuleInit(webApp);
 	}
 	// -------------------------------------------------------------------------
@@ -78,12 +76,22 @@ public abstract class Module extends Service {
 	protected abstract String getSettingsGroupName();
 
 	/**
+	 * Returns the name of settings group associated with this module.
+	 *
+	 * @return the name of settings group associated with this module.
+	 */
+	String _getSettingsGroupName() {
+		return getSettingsGroupName();
+	}
+
+	/**
 	 * Returns an application property.
 	 *
+	 * @param properties properties to be processed.
 	 * @param key property key.
 	 * @return property value or null if there is not such property.
 	 */
-	protected final String getProperty(String key) {
+	protected final String getProperty(Properties properties, String key) {
 		synchronized(this) {
 			throwIfNotActive();
 
@@ -99,12 +107,13 @@ public abstract class Module extends Service {
 	/**
 	 * Returns a mandatory property.
 	 *
+	 * @param properties properties to be processed.
 	 * @param key property key.
 	 * @return application property.
 	 * @throws RuntimeException if such property isn't defined.
 	 */
-	protected final String getMandatoryProperty(String key) throws RuntimeException {
-		String prop = getProperty(key);
+	protected final String getMandatoryProperty(Properties properties, String key) throws RuntimeException {
+		String prop = getProperty(properties, key);
 
 		if (prop == null || prop.isEmpty())
 			throw new RuntimeException(String.format("Missing property: %s", key));
@@ -137,16 +146,12 @@ public abstract class Module extends Service {
 		synchronized(this) {
 			throwIfNotActive();
 
-			if (properties == null) {
-				properties = getWebApplication().getSettings().getProperties(getSettingsGroupName());
-				Properties defaultProperties = getDefaultProperties();
+			// Properties should always be processed in order to avoid leak of confidential data.
+			Properties properties = getWebApplication().getSettings().getProperties(getSettingsGroupName());
+			Properties _defaultProperties = getDefaultProperties();
 
-				if (defaultProperties == null)
-					defaultProperties = new Properties();
-
-				for (Map.Entry entry : defaultProperties.entrySet()) {
-					properties.putIfAbsent(entry.getKey(), entry.getValue());
-				}
+			for (Map.Entry defaultEntry : _defaultProperties.entrySet()) {
+				properties.putIfAbsent(defaultEntry.getKey(), defaultEntry.getValue());
 			}
 
 			return properties;

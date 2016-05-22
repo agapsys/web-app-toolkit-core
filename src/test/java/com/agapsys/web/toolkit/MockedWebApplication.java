@@ -16,17 +16,17 @@
 
 package com.agapsys.web.toolkit;
 
+import com.agapsys.web.toolkit.modules.LogModule;
 import com.agapsys.web.toolkit.utils.FileUtils;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.nio.file.Files;
 import javax.servlet.annotation.WebListener;
 
 @WebListener
 public class MockedWebApplication extends AbstractWebApplication {
 	private File appFolder = null;
-	
+
 	@Override
 	public String getName() {
 		return "test-app";
@@ -36,7 +36,7 @@ public class MockedWebApplication extends AbstractWebApplication {
 	public String getVersion() {
 		return "0.1.0";
 	}
-	
+
 	@Override
 	protected String getDirectoryAbsolutePath() {
 		if (appFolder == null) {
@@ -46,24 +46,28 @@ public class MockedWebApplication extends AbstractWebApplication {
 				throw new RuntimeException(ex);
 			}
 		}
-		
+
 		return appFolder.getAbsolutePath();
 	}
 
 	@Override
 	protected void afterApplicationStop() {
-		super.afterApplicationStop();
-		
 		try {
-			for (File file : appFolder.listFiles()) {
-				Files.delete(file.toPath());
-			}
-
-			Files.delete(appFolder.toPath());
+			super.afterApplicationStop();
+			FileUtils.getInstance().deleteFile(appFolder);
 			appFolder = null;
 		} catch (IOException ex) {
 			appFolder = null;
 			throw new RuntimeException(ex);
 		}
 	}
+
+	@Override
+	protected void beforeApplicationStart() {
+		super.beforeApplicationStart();
+
+		LogModule logModule = getModule(LogModule.class);
+		logModule.addStream(new LogModule.ConsoleLogStream());
+	}
+
 }

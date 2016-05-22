@@ -25,7 +25,7 @@ import javax.persistence.Persistence;
 
 /**
  * Represents a JPA persistence module.
- * 
+ *
  * @author Leandro Oliveira (leandro@agapsys.com)
  */
 public class PersistenceModule extends Module {
@@ -37,25 +37,25 @@ public class PersistenceModule extends Module {
 
 	// INSTANCE SCOPE ==========================================================
 	private EntityManagerFactory emf = null;
-	
+
 	private final String persistenceUnitName;
-	
+
 	/**
 	 * Default constructor. Default persistence name equals to {@linkplain PersistenceModule#DEFAULT_PERSISTENCE_UNIT_NAME}.
 	 */
 	public PersistenceModule() {
 		this(DEFAULT_PERSISTENCE_UNIT_NAME);
 	}
-	
+
 	/**
 	 * Constructor. Allows a custom persistence unit name.
-	 * 
+	 *
 	 * @param persistenceUnitName persistence unit name used by this module.
 	 */
 	public PersistenceModule(String persistenceUnitName) {
 		if (persistenceUnitName == null || persistenceUnitName.trim().isEmpty())
 			throw new IllegalArgumentException("Null/Empty name");
-		
+
 		this.persistenceUnitName = persistenceUnitName;
 	}
 
@@ -63,32 +63,34 @@ public class PersistenceModule extends Module {
 	protected final String getSettingsGroupName() {
 		return SETTINGS_GROUP_NAME;
 	}
-	
+
 	/**
 	 * Return the name of persistence unit associated with this instance.
-	 * 
+	 *
 	 * @return the name of persistence unit associated with this instance.
 	 */
 	protected String getPersistenceUnitName() {
 		return persistenceUnitName;
 	}
-	
+
 	@Override
 	protected void onModuleInit(AbstractWebApplication webapplication) {
-		super.onInit(webapplication);
-		
+		super.onModuleInit(webapplication);
+
 		emf = Persistence.createEntityManagerFactory(getPersistenceUnitName());
 	}
-	
+
 	@Override
 	protected void onModuleStop() {
+		super.onModuleStop();
+		
 		emf.close();
 		emf = null;
 	}
-	
+
 	/**
 	 * Returns an entity manager to be used by application.
-	 * 
+	 *
 	 * @return an entity manager to be used by application.
 	 */
 	protected EntityManager getCustomEntityManager() {
@@ -96,10 +98,10 @@ public class PersistenceModule extends Module {
 		em.setFlushMode(FlushModeType.COMMIT);
 		return em;
 	}
-	
+
 	/**
 	 * Returns an entity manager to be used by application.
-	 * 
+	 *
 	 * @return an entity manager to be used by application.
 	 */
 	public final EntityManager getEntityManager() {

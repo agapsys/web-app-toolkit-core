@@ -23,7 +23,6 @@ import com.agapsys.sevlet.container.ServletContainerBuilder;
 import com.agapsys.web.toolkit.ErrorServlet;
 import com.agapsys.web.toolkit.MockedWebApplication;
 import com.agapsys.web.toolkit.WebApplicationFilter;
-import com.agapsys.web.toolkit.modules.ExceptionReporterModule;
 import com.agapsys.web.toolkit.modules.SmtpExceptionReporterModule;
 import javax.servlet.annotation.WebListener;
 import javax.servlet.annotation.WebServlet;
@@ -37,7 +36,7 @@ public class SmtpExceptionReporterTest {
 	// CLASS SCOPE =============================================================
 	@WebListener
 	public static class Application extends MockedWebApplication {
-		
+
 		@Override
 		protected String getSettingsFilename() {
 			return "smtp-exception-test.properties";
@@ -46,10 +45,10 @@ public class SmtpExceptionReporterTest {
 		@Override
 		protected void beforeApplicationStart() {
 			super.beforeApplicationStart();
-			registerModule(ExceptionReporterModule.class, new SmtpExceptionReporterModule());
+			registerModule(SmtpExceptionReporterModule.class);
 		}
 	}
-	
+
 	@WebServlet(CustomErrorServlet.URL)
 	public static class CustomErrorServlet extends ErrorServlet {
 		public static final String URL = "/error";
@@ -58,7 +57,7 @@ public class SmtpExceptionReporterTest {
 
 	// INSTANCE SCOPE ==========================================================
 	private ServletContainer sc;
-	
+
 	@Before
 	public void before() {
 		sc = new ServletContainerBuilder()
@@ -68,15 +67,15 @@ public class SmtpExceptionReporterTest {
 			.registerFilter(WebApplicationFilter.class, "/*")
 			.registerErrorPage(500, CustomErrorServlet.URL)
 			.build();
-		
+
 		sc.startServer();
 	}
-	
+
 	@After
 	public void after() {
 		sc.stopServer();
 	}
-	
+
 	@Test
 	public void callErrorUrl() {
 		String url = ExceptionServlet.URL + "?a=1&b=2";

@@ -35,12 +35,12 @@ import javax.mail.internet.InternetAddress;
 
 public class SmtpModule extends Module {
 	// CLASS SCOPE =============================================================
-	
+
 	// SETTINGS ----------------------------------------------------------------
 	public static final String SETTINGS_GROUP_NAME = SmtpModule.class.getName();
-	
+
 	public static final String KEY_SENDER = "agapsys.webtoolkit.smtp.sender";
-	
+
 	public static final String KEY_SERVER        = SmtpSettings.KEY_SERVER;
 	public static final String KEY_AUTH_ENABLED  = SmtpSettings.KEY_AUTH;
 	public static final String KEY_USERNAME      = SmtpSettings.KEY_USERNAME;
@@ -48,9 +48,9 @@ public class SmtpModule extends Module {
 	public static final String KEY_SECURITY_TYPE = SmtpSettings.KEY_SECURITY;
 	public static final String KEY_PORT          = SmtpSettings.KEY_PORT;
 	// -------------------------------------------------------------------------
-	
+
 	public static final String SMTP_ERR_LOG_FILENAME = "smtp-errors.log";
-	
+
 	public static final String       DEFAULT_SENDER        = "no-reply@email.com";
 	public static final String       DEFAULT_SERVER        = "smtp.server.com";
 	public static final boolean      DEFAULT_AUTH_ENABLED  = true;
@@ -58,17 +58,17 @@ public class SmtpModule extends Module {
 	public static final String       DEFAULT_PASSWORD      = "password";
 	public static final SecurityType DEFAULT_SECURITY_TYPE = SecurityType.NONE;
 	public static final int          DEFAULT_PORT          = 25;
-	
-	/** 
+
+	/**
 	 * Returns appropriate instance of sender address.
-	 * 
+	 *
 	 * @param senderAddrStr string representing sender address
 	 * @return instance of {@linkplain InternetAddress} representing sender address
 	 */
 	private static InternetAddress getSenderFromString(String senderAddrStr) {
 		if (senderAddrStr == null || senderAddrStr.trim().isEmpty())
 			throw new RuntimeException("Null/Empty sender address");
-		
+
 		try {
 			return new InternetAddress(senderAddrStr);
 		} catch (AddressException ex) {
@@ -84,7 +84,7 @@ public class SmtpModule extends Module {
 	public SmtpModule() {
 		reset();
 	}
-	
+
 	private void reset() {
 		smtpSender = null;
 		sender = null;
@@ -94,20 +94,20 @@ public class SmtpModule extends Module {
 	protected final String getSettingsGroupName() {
 		return SETTINGS_GROUP_NAME;
 	}
-	
+
 	/**
 	 * Returns the name of the log file used to store errors in SMTP module.
-	 * 
+	 *
 	 * @return log error filename. Default implementation returns {@linkplain SmtpModule#SMTP_ERR_LOG_FILENAME}.
 	 */
 	protected String getSmtpErrorLogFilename() {
 		return SMTP_ERR_LOG_FILENAME;
 	}
-	
+
 	@Override
 	public Properties getDefaultProperties() {
 		Properties properties = super.getDefaultProperties();
-		
+
 		properties.setProperty(KEY_SENDER,       DEFAULT_SENDER);
 		properties.setProperty(KEY_SERVER,       DEFAULT_SERVER);
 		properties.setProperty(KEY_AUTH_ENABLED,  "" + DEFAULT_AUTH_ENABLED);
@@ -115,37 +115,37 @@ public class SmtpModule extends Module {
 		properties.setProperty(KEY_PASSWORD,      DEFAULT_PASSWORD);
 		properties.setProperty(KEY_SECURITY_TYPE, DEFAULT_SECURITY_TYPE.name());
 		properties.setProperty(KEY_PORT,          "" + DEFAULT_PORT);
-		
+
 		return properties;
 	}
-	
-	
+
+
 	@Override
 	protected void onModuleInit(AbstractWebApplication webApp) {
-		super.onInit(webApp);
-		
+		super.onModuleInit(webApp);
+
 		reset();
-		
+
 		Properties moduleProperties = getProperties();
-		
+
 		SmtpSettings settings = new SmtpSettings(moduleProperties);
-		
+
 		smtpSender = new SmtpSender(settings);
 		sender = getSenderFromString(moduleProperties.getProperty(KEY_SENDER));
 	}
-	
+
 	/**
 	 * Returns the sender address defined in application settings.
-	 * 
+	 *
 	 * @return sender address.
 	 */
 	public InternetAddress getSender() {
 		return sender;
 	}
-	
+
 	/**
 	 * Called during message sending.
-	 * 
+	 *
 	 * @param message Message to be sent.
 	 */
 	protected void onSendMessage(Message message) {
@@ -163,10 +163,10 @@ public class SmtpModule extends Module {
 			onError(ex, message);
 		}
 	}
-	
+
 	/**
 	 * Called when there is an error while sending a message.
-	 * 
+	 *
 	 * Default implementation writes the error in a log file (see {@linkplain SmtpModule#getSmtpErrorLogFilename()}).
 	 * @param ex error.
 	 * @param message message.
@@ -178,7 +178,7 @@ public class SmtpModule extends Module {
 			throw new RuntimeException(e);
 		}
 	}
-	
+
 	/**
 	 * Returns the error message which will be used by {@linkplain SmtpModule#onError(MessagingException, Message)}
 	 * @param ex error
@@ -194,15 +194,15 @@ public class SmtpModule extends Module {
 			"-------- Message --------\n" +
 			message.toString() +
 			"-------------------------\n";
-		
+
 		errMsg = String.format(errMsg, DateUtils.getInstance().getIso8601Date(), this.getClass().getName());
-		
+
 		return errMsg;
 	}
-	
-	/** 
+
+	/**
 	 * Sends an email message.
-	 * 
+	 *
 	 * @param message message to be sent.
 	 */
 	public final void sendMessage(Message message) {
