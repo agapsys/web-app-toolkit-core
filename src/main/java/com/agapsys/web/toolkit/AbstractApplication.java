@@ -322,7 +322,11 @@ public abstract class AbstractApplication {
 	 * @return the properties associated to this application.
 	 */
 	protected Properties getProperties() {
-		return getSettings().getProperties(getAppSettingsGroupName());
+		synchronized(this) {
+			Properties mainProperties = getSettings().getProperties(getAppSettingsGroupName());
+			Properties defaults = getDefaultProperties();
+			return ApplicationSettings.mergeProperties(mainProperties, defaults);
+		}
 	}
 
 	/**

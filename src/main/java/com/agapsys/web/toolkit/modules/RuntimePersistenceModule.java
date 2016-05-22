@@ -17,6 +17,7 @@
 package com.agapsys.web.toolkit.modules;
 
 import com.agapsys.web.toolkit.AbstractApplication;
+import com.agapsys.web.toolkit.ApplicationSettings;
 import com.agapsys.web.toolkit.utils.RuntimeJarLoader;
 import java.io.File;
 import java.util.Map;
@@ -96,11 +97,13 @@ public class RuntimePersistenceModule extends PersistenceModule {
 
 		Map props = super.getAdittionalProperties(app);
 
-		jdbcDriverClass = (String) getMandatoryProperty(props, KEY_JDBC_DRIVER_CLASS);
-		jdbcUrl         = (String) getMandatoryProperty(props, KEY_JDBC_URL);
-		jdbcUser        = (String) getMandatoryProperty(props, KEY_JDBC_USER);
+		jdbcDriverClass = (String) ApplicationSettings.getMandatoryProperty(props, KEY_JDBC_DRIVER_CLASS);
+		jdbcUrl         = (String) ApplicationSettings.getMandatoryProperty(props, KEY_JDBC_URL);
+		jdbcUser        = (String) ApplicationSettings.getMandatoryProperty(props, KEY_JDBC_USER);
 
-		String jdbcFilename = (String) getProperty(props, KEY_JDBC_DRIVER_FILENAME);
+		ApplicationSettings.getMandatoryProperty(props, KEY_JDBC_PASSWORD); // <-- in PersistenceModule this attribute is optional.
+
+		String jdbcFilename = (String) ApplicationSettings.getProperty(props, KEY_JDBC_DRIVER_FILENAME);
 
 		if (jdbcFilename != null && !jdbcFilename.isEmpty()) {
 			jdbcDriverFile = new File(app.getDirectory(), jdbcFilename);

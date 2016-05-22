@@ -65,6 +65,79 @@ public class ApplicationSettings {
 	}
 
 	private static final String GROUP_NAME_PATTERN = "^[a-zA-Z]+[a-zA-Z0-9\\-_\\.]+$";
+
+	// Utility methods ---------------------------------------------------------
+	/**
+	 * Returns a property.
+	 *
+	 * @param map properties to be processed.
+	 * @param key property key.
+	 * @return property value or null if there is not such property.
+	 */
+	public static Object getProperty(Map map, Object key) {
+		if (key == null)
+			throw new IllegalArgumentException("Key cannot be null");
+
+		Object val = map.get(key);
+
+		if (val != null && val instanceof String) {
+			String strVal = (String) val;
+			strVal = strVal.trim();
+			if (strVal.isEmpty())
+				strVal = null;
+
+			val = strVal;
+		}
+
+		return val;
+	}
+
+	/**
+	 * Returns a mandatory property.
+	 *
+	 * @param map properties to be processed.
+	 * @param key property key.
+	 * @return application property.
+	 * @throws RuntimeException if such property isn't defined.
+	 */
+	public static Object getMandatoryProperty(Map map, Object key) {
+		Object val = getProperty(map, key);
+
+		if (val == null)
+			throw new RuntimeException(String.format("Missing property: %s", key.toString()));
+
+		return val;
+	}
+
+	/**
+	 * @see ApplicationSettings#getProperty(java.util.Map, java.lang.Object)
+	 */
+	public static String getProperty(Properties properties, String key) {
+		return (String) getProperty((Map)properties, (Object)key);
+	}
+
+	/**
+	 * @see ApplicationSettings#getMandatoryProperty(java.util.Map, java.lang.Object)
+	 */
+	public static String getMandatoryProperty(Properties properties, String key) {
+		return (String) getMandatoryProperty((Map)properties, (Object)key);
+	}
+
+	/**
+	 * Returns a new properties merging two instances
+	 * @param properties main property instance
+	 * @param defaults contains default properties to be merged if containing entries are not defined in main instance.
+	 * @return merged instance.
+	 */
+	public static Properties mergeProperties(Properties properties, Properties defaults) {
+		properties = new Properties(properties);
+
+		for (Map.Entry defaultEntry : defaults.entrySet()) {
+			properties.putIfAbsent(defaultEntry.getKey(), defaultEntry.getValue());
+		}
+
+		return properties;
+	}
 	// =========================================================================
 
 	// INSTANCE SCOPE ==========================================================

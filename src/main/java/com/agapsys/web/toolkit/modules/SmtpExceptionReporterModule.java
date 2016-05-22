@@ -19,6 +19,7 @@ package com.agapsys.web.toolkit.modules;
 import com.agapsys.mail.Message;
 import com.agapsys.mail.MessageBuilder;
 import com.agapsys.web.toolkit.AbstractApplication;
+import com.agapsys.web.toolkit.ApplicationSettings;
 import com.agapsys.web.toolkit.Module;
 import java.util.Arrays;
 import java.util.Properties;
@@ -123,11 +124,11 @@ public class SmtpExceptionReporterModule extends ExceptionReporterModule {
 		Properties props = getProperties();
 
 		// Recipients
-		val = getMandatoryProperty(props, KEY_RECIPIENTS);
+		val = ApplicationSettings.getMandatoryProperty(props, KEY_RECIPIENTS);
 		recipients = getRecipientsFromString(val, RECIPIENT_DELIMITER);
 
 		// Subject
-		val = getMandatoryProperty(props, KEY_SUBJECT);
+		val = ApplicationSettings.getMandatoryProperty(props, KEY_SUBJECT);
 		subject = val;
 	}
 

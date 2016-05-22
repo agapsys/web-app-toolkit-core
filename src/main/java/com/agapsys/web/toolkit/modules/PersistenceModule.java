@@ -17,6 +17,7 @@
 package com.agapsys.web.toolkit.modules;
 
 import com.agapsys.web.toolkit.AbstractApplication;
+import com.agapsys.web.toolkit.ApplicationSettings;
 import com.agapsys.web.toolkit.Module;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -100,7 +101,7 @@ public class PersistenceModule extends Module {
 
 		Map propertyMap = new LinkedHashMap(props);
 
-		String strJdbcPassword = getProperty(props, KEY_JDBC_PASSWORD);
+		String strJdbcPassword = ApplicationSettings.getProperty(props, KEY_JDBC_PASSWORD);
 
 		if (strJdbcPassword == null) {
 			jdbcPassword = null;

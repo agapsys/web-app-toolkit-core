@@ -17,7 +17,6 @@
 package com.agapsys.web.toolkit;
 
 import java.util.LinkedHashSet;
-import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
@@ -29,69 +28,7 @@ import java.util.Set;
  */
 
 public abstract class Module extends Service {
-	// STATIC SCOPE ============================================================
-	/**
-	 * Returns a property.
-	 *
-	 * @param map properties to be processed.
-	 * @param key property key.
-	 * @return property value or null if there is not such property.
-	 */
-	protected static Object getProperty(Map map, Object key) {
-		synchronized(Module.class) {
-			if (key == null)
-				throw new IllegalArgumentException("Key cannot be null");
 
-			Object val = map.get(key);
-
-			if (val != null && val instanceof String) {
-				String strVal = (String) val;
-				strVal = strVal.trim();
-				if (strVal.isEmpty())
-					strVal = null;
-
-				val = strVal;
-			}
-
-			return val;
-		}
-	}
-
-	/**
-	 * Returns a mandatory property.
-	 *
-	 * @param map properties to be processed.
-	 * @param key property key.
-	 * @return application property.
-	 * @throws RuntimeException if such property isn't defined.
-	 */
-	protected static Object getMandatoryProperty(Map map, Object key) {
-		synchronized(Module.class) {
-			Object val = getProperty(map, key);
-
-			if (val == null)
-				throw new RuntimeException(String.format("Missing property: %s", key.toString()));
-
-			return val;
-		}
-	}
-
-	/**
-	 * @see Module#getProperty(java.util.Map, java.lang.Object)
-	 */
-	protected static String getProperty(Properties properties, String key) {
-		return (String) getProperty((Map)properties, (Object)key);
-	}
-
-	/**
-	 * @see Module#getMandatoryProperty(java.util.Map, java.lang.Object)
-	 */
-	protected static String getMandatoryProperty(Properties properties, String key) {
-		return (String) getMandatoryProperty((Map)properties, (Object)key);
-	}
-	// =========================================================================
-
-	// INSTANCE SCOPE ==========================================================
 	// -------------------------------------------------------------------------
 	private final Properties defaultProperties = new Properties();
 	private final Set<Class<? extends Module>> defaultDependencies = new LinkedHashSet<>();
@@ -139,19 +76,10 @@ public abstract class Module extends Service {
 		synchronized(this) {
 			throwIfNotActive();
 
-			// Properties should always be processed in order to avoid leak of confidential data.
-			Properties properties = getApplication().getSettings().getProperties(getSettingsGroupName());
+			Properties mainProperties = getApplication().getSettings().getProperties(getSettingsGroupName());
+			Properties defaults = getDefaultProperties();
 
-			if (properties == null)
-				properties = new Properties();
-
-			Properties _defaultProperties = getDefaultProperties();
-
-			for (Map.Entry defaultEntry : _defaultProperties.entrySet()) {
-				properties.putIfAbsent(defaultEntry.getKey(), defaultEntry.getValue());
-			}
-
-			return properties;
+			return ApplicationSettings.mergeProperties(mainProperties, defaults);
 		}
 	}
 	// -------------------------------------------------------------------------
@@ -173,5 +101,4 @@ public abstract class Module extends Service {
 		return getDependencies();
 	}
 	// -------------------------------------------------------------------------
-	// =========================================================================
 }

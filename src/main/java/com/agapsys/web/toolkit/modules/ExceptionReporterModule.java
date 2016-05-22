@@ -17,6 +17,7 @@
 package com.agapsys.web.toolkit.modules;
 
 import com.agapsys.web.toolkit.AbstractApplication;
+import com.agapsys.web.toolkit.ApplicationSettings;
 import com.agapsys.web.toolkit.LogType;
 import com.agapsys.web.toolkit.WebApplicationFilter;
 import com.agapsys.web.toolkit.services.AttributeService;
@@ -116,15 +117,15 @@ public class ExceptionReporterModule extends WebModule {
 		String val;
 
 		// isEnabled
-		val = getMandatoryProperty(props, KEY_MODULE_ENABLED);
+		val = ApplicationSettings.getMandatoryProperty(props, KEY_MODULE_ENABLED);
 		enabled = Boolean.parseBoolean(val);
 
 		// nodeName
-		val = getMandatoryProperty(props, KEY_NODE_NAME);
+		val = ApplicationSettings.getMandatoryProperty(props, KEY_NODE_NAME);
 		nodeName = val;
 
 		// stackTraceHistorySize
-		val = getMandatoryProperty(props, KEY_STACK_TRACE_HISTORY_SIZE);
+		val = ApplicationSettings.getMandatoryProperty(props, KEY_STACK_TRACE_HISTORY_SIZE);
 		stackTraceHistorySize = Integer.parseInt(val);
 	}
 

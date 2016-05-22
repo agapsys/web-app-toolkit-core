@@ -17,6 +17,7 @@
 package com.agapsys.web.toolkit.modules;
 
 import com.agapsys.web.toolkit.AbstractApplication;
+import com.agapsys.web.toolkit.ApplicationSettings;
 import com.agapsys.web.toolkit.modules.LdapModule.LdapException.LdapExceptionType;
 import java.util.Collections;
 import java.util.Hashtable;
@@ -184,11 +185,11 @@ public class LdapModule extends WebModule {
 
 		Properties props = getProperties();
 
-		ldapUrl            = getProperty(props, KEY_LDAP_URL);
-		searchBaseDn       = getProperty(props, KEY_SEARCH_BASE_DN);
-		searchPattern      = getProperty(props, KEY_SEARCH_PATTERN);
-		searchUserDn       = getProperty(props, KEY_SEARCH_USER_DN);
-		searchUserPassword = getProperty(props, KEY_SEARCH_USER_PASSWORD).toCharArray();
+		ldapUrl            = ApplicationSettings.getMandatoryProperty(props, KEY_LDAP_URL);
+		searchBaseDn       = ApplicationSettings.getMandatoryProperty(props, KEY_SEARCH_BASE_DN);
+		searchPattern      = ApplicationSettings.getMandatoryProperty(props, KEY_SEARCH_PATTERN);
+		searchUserDn       = ApplicationSettings.getMandatoryProperty(props, KEY_SEARCH_USER_DN);
+		searchUserPassword = ApplicationSettings.getMandatoryProperty(props, KEY_SEARCH_USER_PASSWORD).toCharArray();
 	}
 
 
