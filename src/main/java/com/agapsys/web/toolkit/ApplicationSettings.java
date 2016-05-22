@@ -271,7 +271,7 @@ public class ApplicationSettings {
 
 					if (line.isEmpty() || line.startsWith("#"))
 						continue;
-					
+
 					if (line.startsWith("[") && line.endsWith("]")) { // <-- group begin
 						String group = line.substring(1, line.length() - 1);
 
@@ -289,8 +289,6 @@ public class ApplicationSettings {
 					} else {
 						if (currentGroup == null)
 							throw new IOException("Root entries are not allowed: " + line);
-
-						if (line.isEmpty())
 
 						propString.append(line);
 					}
