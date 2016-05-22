@@ -269,6 +269,9 @@ public class ApplicationSettings {
 				while ((line = br.readLine()) != null) {
 					line = line.trim();
 
+					if (line.isEmpty() || line.startsWith("#"))
+						continue;
+					
 					if (line.startsWith("[") && line.endsWith("]")) { // <-- group begin
 						String group = line.substring(1, line.length() - 1);
 
@@ -284,11 +287,10 @@ public class ApplicationSettings {
 						currentGroup = group;
 
 					} else {
-						if (line.startsWith("#"))
-							continue;
-
 						if (currentGroup == null)
 							throw new IOException("Root entries are not allowed: " + line);
+
+						if (line.isEmpty())
 
 						propString.append(line);
 					}
