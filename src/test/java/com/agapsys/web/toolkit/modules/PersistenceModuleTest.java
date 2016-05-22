@@ -16,9 +16,11 @@
 
 package com.agapsys.web.toolkit.modules;
 
+import com.agapsys.web.toolkit.AbstractApplication;
 import com.agapsys.web.toolkit.AbstractWebApplication;
 import com.agapsys.web.toolkit.MockedWebApplication;
 import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -29,13 +31,13 @@ public class PersistenceModuleTest {
 		private boolean methodCalled = false;
 
 		@Override
-		protected EntityManager getCustomEntityManager() {
+		protected EntityManager getCustomEntityManager(EntityManagerFactory emf) {
 			methodCalled = true;
 			return null;
 		}
 
 		@Override
-		protected void onInit(AbstractWebApplication webApp) {} // <-- does not init entity manager factory
+		protected void onInit(AbstractApplication app) {} // <-- does not init entity manager factory
 
 		@Override
 		protected void onStop() {}

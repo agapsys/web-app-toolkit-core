@@ -16,8 +16,7 @@
 
 package com.agapsys.web.toolkit.modules;
 
-import com.agapsys.web.toolkit.AbstractWebApplication;
-import com.agapsys.web.toolkit.Module;
+import com.agapsys.web.toolkit.AbstractApplication;
 import com.agapsys.web.toolkit.modules.LdapModule.LdapException.LdapExceptionType;
 import java.util.Collections;
 import java.util.Hashtable;
@@ -37,7 +36,7 @@ import javax.naming.directory.InitialDirContext;
 import javax.naming.directory.SearchControls;
 import javax.naming.directory.SearchResult;
 
-public class LdapModule extends Module {
+public class LdapModule extends WebModule {
 	// CLASS SCOPE =============================================================
 	public static class LdapException extends Exception {
 		// CLASS SCOPE =========================================================
@@ -178,7 +177,7 @@ public class LdapModule extends Module {
 	}
 
 	@Override
-	protected void onInit(AbstractWebApplication webApp) {
+	protected void onInit(AbstractApplication webApp) {
 		super.onInit(webApp);
 
 		reset();

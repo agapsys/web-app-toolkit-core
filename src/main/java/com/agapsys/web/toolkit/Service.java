@@ -18,49 +18,49 @@ package com.agapsys.web.toolkit;
 
 /** Basic service implementation. */
 public class Service {
-	private AbstractWebApplication webApp;
-	
-	void throwIfNotActive() {
+	private AbstractApplication app;
+
+	final void throwIfNotActive() {
 		if (!isActive())
 			throw new RuntimeException("Instance is not active");
 	}
-	
+
 	/**
 	 * Returns a boolean indicating if this instance was initialized.
-	 * 
+	 *
 	 * @return a boolean indicating if this instance was initialized.
 	 */
 	public final boolean isActive() {
 		synchronized(this) {
-			return webApp != null;
+			return app != null;
 		}
 	}
-	
+
 	/**
 	 * Initializes this instance.
-	 * 
-	 * @param webApp associated web application.
+	 *
+	 * @param app associated application.
 	 */
-	public final void init(AbstractWebApplication webApp) {
+	public final void init(AbstractApplication app) {
 		synchronized(this) {
 			if (isActive())
 				throw new IllegalStateException("Instance was already initialized");
 
-			if (webApp == null)
-				throw new IllegalArgumentException("webApp cannot be null");
+			if (app == null)
+				throw new IllegalArgumentException("Application cannot be null");
 
-			this.webApp = webApp;
-			onInit(webApp);
+			this.app = app;
+			onInit(app);
 		}
 	}
-	
+
 	/**
 	 * Called upon instance initialization. Default implementation does nothing.
-	 * 
-	 * @param webApp associated web application.
+	 *
+	 * @param app associated application.
 	 */
-	protected void onInit(AbstractWebApplication webApp) {}
-	
+	protected void onInit(AbstractApplication app) {}
+
 	/**
 	 * Stops the instance.
 	 */
@@ -70,31 +70,31 @@ public class Service {
 
 			onStop();
 
-			this.webApp = null;
+			this.app = null;
 		}
 	}
-	
+
 	/**
 	 * Actual instance shutdown code.
-	 * 
+	 *
 	 * Default implementation does nothing.
 	 */
 	protected void onStop() {}
 
 	/**
 	 * Return the application managing this instance.
-	 * 
+	 *
 	 * @return the application managing this instance.
 	 */
-	public final AbstractWebApplication getWebApplication() {
+	public final AbstractApplication getApplication() {
 		synchronized(this) {
-			return webApp;
+			return app;
 		}
 	}
 
 	/**
 	 * Returns a module registered in the same application as this instance is registered with.
-	 * 
+	 *
 	 * @param <M> Module type.
 	 * @param moduleClass module class.
 	 * @return module instance or null if given module class was not registered with associated application..
@@ -102,14 +102,14 @@ public class Service {
 	public final <M extends Module> M getModule(Class<M> moduleClass) {
 		synchronized(this) {
 			throwIfNotActive();
-			
-			return webApp.getModule(moduleClass);
+
+			return app.getModule(moduleClass);
 		}
 	}
-	
+
 	/**
 	 * Returns a service instance.
-	 * 
+	 *
 	 * @param <S> Service type.
 	 * @param serviceClass service class.
 	 * @return service instance.
@@ -117,8 +117,8 @@ public class Service {
 	public final <S extends Service> S getService(Class<S> serviceClass) {
 		synchronized(this) {
 			throwIfNotActive();
-			
-			return webApp.getService(serviceClass);
+
+			return app.getService(serviceClass);
 		}
 	}
 

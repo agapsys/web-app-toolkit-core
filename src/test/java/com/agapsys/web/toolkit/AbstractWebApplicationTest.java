@@ -32,7 +32,7 @@ public class AbstractWebApplicationTest  {
 	public static class CustomPersistenceModule extends PersistenceModule {
 
 		@Override
-		protected void onInit(AbstractWebApplication webApp) {
+		protected void onInit(AbstractApplication webApp) {
 			super.onInit(webApp);
 			((WebApplicationBase)webApp).onPersistenceModuleStartCalled = true;
 		}
@@ -40,7 +40,7 @@ public class AbstractWebApplicationTest  {
 		@Override
 		protected void onStop() {
 			super.onStop();
-			((WebApplicationBase)getWebApplication()).onPersistenceModuleStopCalled = true;
+			((WebApplicationBase)getApplication()).onPersistenceModuleStopCalled = true;
 		}
 
 	}
@@ -48,7 +48,7 @@ public class AbstractWebApplicationTest  {
 	public static class CustomExceptionReporterModule extends ExceptionReporterModule {
 
 		@Override
-		protected void onInit(AbstractWebApplication webApp) {
+		protected void onInit(AbstractApplication webApp) {
 			super.onInit(webApp);
 			((WebApplicationBase)webApp).onExceptionReporterModuleStartCalled = true;
 		}
@@ -56,7 +56,7 @@ public class AbstractWebApplicationTest  {
 		@Override
 		protected void onStop() {
 			super.onStop();
-			((WebApplicationBase)getWebApplication()).onExceptionReporterModuleStopCalled = true;
+			((WebApplicationBase)getApplication()).onExceptionReporterModuleStopCalled = true;
 		}
 
 	}
@@ -65,7 +65,7 @@ public class AbstractWebApplicationTest  {
 		public static final String MODULE_ID = "smtp";
 
 		@Override
-		protected void onInit(AbstractWebApplication webApp) {
+		protected void onInit(AbstractApplication webApp) {
 			super.onInit(webApp);
 			((WebApplicationBase)webApp).onSmtpModuleStartCalled = true;
 		}
@@ -73,7 +73,7 @@ public class AbstractWebApplicationTest  {
 		@Override
 		protected void onStop() {
 			super.onStop();
-			((WebApplicationBase)getWebApplication()).onSmtpModuleStopCalled = true;
+			((WebApplicationBase)getApplication()).onSmtpModuleStopCalled = true;
 		}
 	}
 	// -------------------------------------------------------------------------

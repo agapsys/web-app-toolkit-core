@@ -22,14 +22,76 @@ import java.util.Properties;
 import java.util.Set;
 
 /**
- * Represents a module in a {@linkplain AbstractWebApplication web application}.
+ * Represents a module in a {@linkplain AbstractApplication application}.
  * A module must be registered with an application and will be initialized upon
  * application initialization. A module share settings with the application and
  * will have a singleton scope controlled by associated application.
  */
 
 public abstract class Module extends Service {
+	// STATIC SCOPE ============================================================
+	/**
+	 * Returns a property.
+	 *
+	 * @param map properties to be processed.
+	 * @param key property key.
+	 * @return property value or null if there is not such property.
+	 */
+	protected static Object getProperty(Map map, Object key) {
+		synchronized(Module.class) {
+			if (key == null)
+				throw new IllegalArgumentException("Key cannot be null");
 
+			Object val = map.get(key);
+
+			if (val != null && val instanceof String) {
+				String strVal = (String) val;
+				strVal = strVal.trim();
+				if (strVal.isEmpty())
+					strVal = null;
+
+				val = strVal;
+			}
+
+			return val;
+		}
+	}
+
+	/**
+	 * Returns a mandatory property.
+	 *
+	 * @param map properties to be processed.
+	 * @param key property key.
+	 * @return application property.
+	 * @throws RuntimeException if such property isn't defined.
+	 */
+	protected static Object getMandatoryProperty(Map map, Object key) {
+		synchronized(Module.class) {
+			Object val = getProperty(map, key);
+
+			if (val == null)
+				throw new RuntimeException(String.format("Missing property: %s", key.toString()));
+
+			return val;
+		}
+	}
+
+	/**
+	 * @see Module#getProperty(java.util.Map, java.lang.Object)
+	 */
+	protected static String getProperty(Properties properties, String key) {
+		return (String) getProperty((Map)properties, (Object)key);
+	}
+
+	/**
+	 * @see Module#getMandatoryProperty(java.util.Map, java.lang.Object)
+	 */
+	protected static String getMandatoryProperty(Properties properties, String key) {
+		return (String) getMandatoryProperty((Map)properties, (Object)key);
+	}
+	// =========================================================================
+
+	// INSTANCE SCOPE ==========================================================
 	// -------------------------------------------------------------------------
 	private final Properties defaultProperties = new Properties();
 	private final Set<Class<? extends Module>> defaultDependencies = new LinkedHashSet<>();
@@ -44,51 +106,14 @@ public abstract class Module extends Service {
 	protected abstract String getSettingsGroupName();
 
 	/**
-	 * Returns the name of settings group associated with this module.
-	 *
-	 * @return the name of settings group associated with this module.
+	 * @see Module#getSettingsGroupName()
 	 */
-	String _getSettingsGroupName() {
+	final String _getSettingsGroupName() {
 		return getSettingsGroupName();
 	}
+	// -------------------------------------------------------------------------
 
-	/**
-	 * Returns an application property.
-	 *
-	 * @param properties properties to be processed.
-	 * @param key property key.
-	 * @return property value or null if there is not such property.
-	 */
-	protected final String getProperty(Properties properties, String key) {
-		synchronized(this) {
-			throwIfNotActive();
-
-			String property = getProperties().getProperty(key, null);
-
-			if (property != null)
-				property = property.trim();
-
-			return property;
-		}
-	}
-
-	/**
-	 * Returns a mandatory property.
-	 *
-	 * @param properties properties to be processed.
-	 * @param key property key.
-	 * @return application property.
-	 * @throws RuntimeException if such property isn't defined.
-	 */
-	protected final String getMandatoryProperty(Properties properties, String key) throws RuntimeException {
-		String prop = getProperty(properties, key);
-
-		if (prop == null || prop.isEmpty())
-			throw new RuntimeException(String.format("Missing property: %s", key));
-
-		return prop;
-	}
-
+	// -------------------------------------------------------------------------
 	/**
 	 * Return default properties associated with this module.
 	 *
@@ -101,7 +126,7 @@ public abstract class Module extends Service {
 	/**
 	 * @see Module#getDefaultProperties()
 	 */
-	Properties _getDefaultProperties() {
+	final Properties _getDefaultProperties() {
 		return getDefaultProperties();
 	}
 
@@ -115,7 +140,7 @@ public abstract class Module extends Service {
 			throwIfNotActive();
 
 			// Properties should always be processed in order to avoid leak of confidential data.
-			Properties properties = getWebApplication().getSettings().getProperties(getSettingsGroupName());
+			Properties properties = getApplication().getSettings().getProperties(getSettingsGroupName());
 
 			if (properties == null)
 				properties = new Properties();
@@ -144,8 +169,9 @@ public abstract class Module extends Service {
 	/**
 	 * @see Module#getDependencies()
 	 */
-	Set<Class<? extends Module>> _getDependencies() {
+	final Set<Class<? extends Module>> _getDependencies() {
 		return getDependencies();
 	}
 	// -------------------------------------------------------------------------
+	// =========================================================================
 }

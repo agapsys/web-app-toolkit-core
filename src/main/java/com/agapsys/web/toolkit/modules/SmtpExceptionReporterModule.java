@@ -18,7 +18,7 @@ package com.agapsys.web.toolkit.modules;
 
 import com.agapsys.mail.Message;
 import com.agapsys.mail.MessageBuilder;
-import com.agapsys.web.toolkit.AbstractWebApplication;
+import com.agapsys.web.toolkit.AbstractApplication;
 import com.agapsys.web.toolkit.Module;
 import java.util.Arrays;
 import java.util.Properties;
@@ -111,7 +111,7 @@ public class SmtpExceptionReporterModule extends ExceptionReporterModule {
 	}
 
 	@Override
-	protected void onInit(AbstractWebApplication webApp) {
+	protected void onInit(AbstractApplication webApp) {
 		super.onInit(webApp);
 
 		smtpModule = getModule(SmtpModule.class);
@@ -153,7 +153,7 @@ public class SmtpExceptionReporterModule extends ExceptionReporterModule {
 	protected void reportErrorMessage(String message) {
 		super.reportErrorMessage(message);
 
-		String finalSubject = getSubject().replaceAll(Pattern.quote(APP_NAME_TOKEN), getWebApplication().getName());
+		String finalSubject = getSubject().replaceAll(Pattern.quote(APP_NAME_TOKEN), getApplication().getName());
 
 		Message msg = new MessageBuilder(smtpModule.getSender(), getRecipients())
 			.setSubject(finalSubject)

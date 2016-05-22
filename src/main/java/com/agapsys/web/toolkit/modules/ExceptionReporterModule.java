@@ -16,9 +16,8 @@
 
 package com.agapsys.web.toolkit.modules;
 
-import com.agapsys.web.toolkit.AbstractWebApplication;
+import com.agapsys.web.toolkit.AbstractApplication;
 import com.agapsys.web.toolkit.LogType;
-import com.agapsys.web.toolkit.Module;
 import com.agapsys.web.toolkit.WebApplicationFilter;
 import com.agapsys.web.toolkit.services.AttributeService;
 import com.agapsys.web.toolkit.utils.DateUtils;
@@ -35,7 +34,7 @@ import javax.servlet.http.HttpServletRequest;
  *
  * @author Leandro Oliveira (leandro@agapsys.com)
  */
-public class ExceptionReporterModule extends Module {
+public class ExceptionReporterModule extends WebModule {
 	// CLASS SCOPE =============================================================
 
 	public static final String SETTINGS_GROUP_NAME = ExceptionReporterModule.class.getName();
@@ -68,13 +67,13 @@ public class ExceptionReporterModule extends Module {
 
 	// INSTANCE SCOPE ==========================================================
 	// -------------------------------------------------------------------------
+	private final List<String> stackTraceHistory = new LinkedList<>();
+
 	private String  nodeName              = DEFAULT_NODE_NAME;
 	private int     stackTraceHistorySize = DEFAULT_STACK_TRACE_HISTORY_SIZE;
 	private boolean enabled               = DEFAULT_MODULE_ENABLED;
 
 	private AttributeService attributeService;
-
-	private final List<String> stackTraceHistory = new LinkedList<>();
 	// -------------------------------------------------------------------------
 
 	public ExceptionReporterModule() {
@@ -105,8 +104,8 @@ public class ExceptionReporterModule extends Module {
 	}
 
 	@Override
-	protected void onInit(AbstractWebApplication webApp) {
-		super.onInit(webApp);
+	protected void onInit(AbstractApplication app) {
+		super.onInit(app);
 
 		reset();
 
@@ -167,14 +166,14 @@ public class ExceptionReporterModule extends Module {
 	protected String getErrorMessage(Throwable throwable, HttpServletRequest req, String originalRequestUri) {
 		String stackTrace = getStackTrace(throwable);
 
-		AbstractWebApplication webApp = getWebApplication();
+		AbstractApplication app = getApplication();
 		HttpUtils httpUtils = HttpUtils.getInstance();
 
 		String msg =
 			"An error was detected"
 			+ "\n\n"
-			+ "Application: "          + webApp.getName() + "\n"
-			+ "Application version: "  + webApp.getVersion() + "\n"
+			+ "Application: "          + app.getName() + "\n"
+			+ "Application version: "  + app.getVersion() + "\n"
 			+ "Node name: "            + getNodeName() + "\n\n"
 			+ "Server timestamp: "     + DateUtils.getInstance().getIso8601Date() + "\n"
 			+ "Error message: "        + throwable.getMessage() + "\n"
@@ -219,7 +218,7 @@ public class ExceptionReporterModule extends Module {
 				String originalRequestStr = (String) attributeService.getAttribute(WebApplicationFilter.ATTR_ORIGINAL_REQUEST_URI);
 				reportErrorMessage(getErrorMessage(t, req, originalRequestStr));
 			} else {
-				getWebApplication().log(LogType.ERROR, "Application error (already reported): %s", t.getMessage());
+				getApplication().log(LogType.ERROR, "Application error (already reported): %s", t.getMessage());
 			}
 		}
 	}
@@ -230,7 +229,7 @@ public class ExceptionReporterModule extends Module {
 	 * @param message complete error message.
 	 */
 	protected void reportErrorMessage(String message) {
-		getWebApplication().log(LogType.ERROR, "Application error:\n----\n%s\n----", message);
+		getApplication().log(LogType.ERROR, "Application error:\n----\n%s\n----", message);
 	}
 
 	/**

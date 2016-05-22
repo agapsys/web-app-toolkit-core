@@ -15,7 +15,7 @@
  */
 package com.agapsys.web.toolkit.modules;
 
-import com.agapsys.web.toolkit.AbstractWebApplication;
+import com.agapsys.web.toolkit.AbstractApplication;
 import com.agapsys.web.toolkit.LogType;
 import com.agapsys.web.toolkit.Module;
 import com.agapsys.web.toolkit.utils.DateUtils;
@@ -259,8 +259,8 @@ public final class LogModule extends Module {
 	}
 
 	@Override
-	protected void onInit(AbstractWebApplication webApp) {
-		super.onInit(webApp);
+	protected void onInit(AbstractApplication app) {
+		super.onInit(app);
 
 		for (LogStream logStream : getStreams()) {
 			logStream.init(this);

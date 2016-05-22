@@ -16,16 +16,11 @@
 
 package com.agapsys.web.toolkit.modules;
 
-import com.agapsys.web.toolkit.AbstractWebApplication;
+import com.agapsys.web.toolkit.AbstractApplication;
 import com.agapsys.web.toolkit.utils.RuntimeJarLoader;
 import java.io.File;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Properties;
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.FlushModeType;
-import javax.persistence.Persistence;
 
 public class RuntimePersistenceModule extends PersistenceModule {
 	// CLASS SCOPE =============================================================
@@ -35,7 +30,6 @@ public class RuntimePersistenceModule extends PersistenceModule {
 	public static final String KEY_JDBC_DRIVER_CLASS    = "javax.persistence.jdbc.driver";
 	public static final String KEY_JDBC_URL             = "javax.persistence.jdbc.url";
 	public static final String KEY_JDBC_USER            = "javax.persistence.jdbc.user";
-	public static final String KEY_JDBC_PASSWORD        = "javax.persistence.jdbc.password";
 	// -------------------------------------------------------------------------
 
 	public static final String DEFAULT_JDBC_DRIVER_FILENAME = "h2.jar";
@@ -43,21 +37,19 @@ public class RuntimePersistenceModule extends PersistenceModule {
 	public static final String DEFAULT_JDBC_URL             = "jdbc:h2:mem:";
 	public static final String DEFAULT_JDBC_USER            = "sa";
 	public static final String DEFAULT_JDBC_PASSWORD        = "sa";
+	// =========================================================================
 
 	// INSTANCE SCOPE ==========================================================
-	private EntityManagerFactory emf = null;
 	private File jdbcDriverFile;
 	private String jdbcDriverClass;
 	private String jdbcUrl;
 	private String jdbcUser;
-	private char[] jdbcPassword;
 
 	private void reset() {
 		jdbcDriverFile = null;
 		jdbcDriverClass = null;
 		jdbcUrl = null;
 		jdbcUser = null;
-		jdbcPassword = null;
 	}
 
 	public RuntimePersistenceModule() {
@@ -85,10 +77,6 @@ public class RuntimePersistenceModule extends PersistenceModule {
 		return jdbcUser;
 	}
 
-	protected char[] getJdbcPassword() {
-		return jdbcPassword;
-	}
-
 	@Override
 	public Properties getDefaultProperties() {
 		Properties defaultProperties = super.getDefaultProperties();
@@ -103,44 +91,23 @@ public class RuntimePersistenceModule extends PersistenceModule {
 	}
 
 	@Override
-	protected void onInit(AbstractWebApplication webApp) {
-		// super.onInit should be skipped!
-
+	protected Map getAdittionalProperties(AbstractApplication app) {
 		reset();
 
-		Properties props = getProperties();
+		Map props = super.getAdittionalProperties(app);
 
-		jdbcDriverClass = getMandatoryProperty(props, KEY_JDBC_DRIVER_CLASS);
-		jdbcUrl         = getMandatoryProperty(props, KEY_JDBC_URL);
-		jdbcUser        = getMandatoryProperty(props, KEY_JDBC_USER);
-		jdbcPassword    = getMandatoryProperty(props, KEY_JDBC_PASSWORD).toCharArray();
+		jdbcDriverClass = (String) getMandatoryProperty(props, KEY_JDBC_DRIVER_CLASS);
+		jdbcUrl         = (String) getMandatoryProperty(props, KEY_JDBC_URL);
+		jdbcUser        = (String) getMandatoryProperty(props, KEY_JDBC_USER);
 
-		String jdbcFilename = getProperty(props, KEY_JDBC_DRIVER_FILENAME);
+		String jdbcFilename = (String) getProperty(props, KEY_JDBC_DRIVER_FILENAME);
 
 		if (jdbcFilename != null && !jdbcFilename.isEmpty()) {
-			jdbcDriverFile = new File(webApp.getDirectory(), jdbcFilename);
+			jdbcDriverFile = new File(app.getDirectory(), jdbcFilename);
 			RuntimeJarLoader.loadJar(jdbcDriverFile);
 		}
 
-		Map<Object, Object> propertyMap = new LinkedHashMap<>(getProperties());
-		propertyMap.put(KEY_JDBC_PASSWORD, jdbcPassword);
-
-		emf = Persistence.createEntityManagerFactory(getPersistenceUnitName(), propertyMap);
-	}
-
-	@Override
-	protected void onStop() {
-		// super.onStop() sould be skipped!
-
-		emf.close();
-		emf = null;
-	}
-
-	@Override
-	protected EntityManager getCustomEntityManager() {
-		EntityManager em = emf.createEntityManager();
-		em.setFlushMode(FlushModeType.COMMIT);
-		return em;
+		return props;
 	}
 	// =========================================================================
 }

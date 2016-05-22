@@ -137,17 +137,19 @@ public class ApplicationSettings {
 	 * @return properties associated with given group
 	 */
 	public Properties getProperties(String groupName) {
-		if (groupName == null)
-			throw new IllegalArgumentException("Group cannot be null");
+		synchronized(propertyMap) {
+			if (groupName == null)
+				throw new IllegalArgumentException("Group cannot be null");
 
-		return propertyMap.get(groupName);
+			return propertyMap.get(groupName);
+		}
 	}
 
 	/**
 	 * Clear settings
 	 */
 	public void clear() {
-		synchronized(this) {
+		synchronized(propertyMap) {
 			throwIfLocked();
 
 			propertyMap.clear();
@@ -189,7 +191,7 @@ public class ApplicationSettings {
 				String line;
 
 				String currentGroup = null;
-				StringBuilder propString = null;
+				StringBuilder propString = new StringBuilder();
 
 				while ((line = br.readLine()) != null) {
 					line = line.trim();

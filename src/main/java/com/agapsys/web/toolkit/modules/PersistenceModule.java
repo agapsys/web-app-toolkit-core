@@ -16,8 +16,11 @@
 
 package com.agapsys.web.toolkit.modules;
 
-import com.agapsys.web.toolkit.AbstractWebApplication;
+import com.agapsys.web.toolkit.AbstractApplication;
 import com.agapsys.web.toolkit.Module;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Properties;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.FlushModeType;
@@ -32,13 +35,16 @@ public class PersistenceModule extends Module {
 	// CLASS SCOPE =============================================================
 	public static final String SETTINGS_GROUP_NAME = PersistenceModule.class.getName();
 
+	public static final String KEY_JDBC_PASSWORD = "javax.persistence.jdbc.password";
+
 	public static final String DEFAULT_PERSISTENCE_UNIT_NAME = "default";
 	// =========================================================================
 
 	// INSTANCE SCOPE ==========================================================
-	private EntityManagerFactory emf = null;
-
 	private final String persistenceUnitName;
+
+	private EntityManagerFactory emf = null;
+	private char[] jdbcPassword = null;
 
 	/**
 	 * Default constructor. Default persistence name equals to {@linkplain PersistenceModule#DEFAULT_PERSISTENCE_UNIT_NAME}.
@@ -65,6 +71,15 @@ public class PersistenceModule extends Module {
 	}
 
 	/**
+	 * Returns JDBC password.
+	 *
+	 * @return JDBC password.
+	 */
+	protected char[] getJdbcPassword() {
+		return jdbcPassword;
+	}
+
+	/**
 	 * Return the name of persistence unit associated with this instance.
 	 *
 	 * @return the name of persistence unit associated with this instance.
@@ -73,11 +88,34 @@ public class PersistenceModule extends Module {
 		return persistenceUnitName;
 	}
 
-	@Override
-	protected void onInit(AbstractWebApplication webapplication) {
-		super.onInit(webapplication);
+	/**
+	 * Returns additional properties to be used when creating the internal
+	 * entity manager factory.
+	 *
+	 * @param app associated application.
+	 * @return additional properties to be used.
+	 */
+	protected Map getAdittionalProperties(AbstractApplication app) {
+		Properties props = getProperties();
 
-		emf = Persistence.createEntityManagerFactory(getPersistenceUnitName());
+		Map propertyMap = new LinkedHashMap(props);
+
+		String strJdbcPassword = getProperty(props, KEY_JDBC_PASSWORD);
+
+		if (strJdbcPassword == null) {
+			jdbcPassword = null;
+		} else {
+			jdbcPassword = strJdbcPassword.toCharArray();
+			propertyMap.put(KEY_JDBC_PASSWORD, jdbcPassword);
+		}
+
+		return propertyMap;
+	}
+
+	@Override
+	protected void onInit(AbstractApplication app) {
+		super.onInit(app);
+		emf = Persistence.createEntityManagerFactory(getPersistenceUnitName(), getAdittionalProperties(app));
 	}
 
 	@Override
@@ -91,9 +129,10 @@ public class PersistenceModule extends Module {
 	/**
 	 * Returns an entity manager to be used by application.
 	 *
+	 * @param emf Entity manager factory.
 	 * @return an entity manager to be used by application.
 	 */
-	protected EntityManager getCustomEntityManager() {
+	protected EntityManager getCustomEntityManager(EntityManagerFactory emf) {
 		EntityManager em = emf.createEntityManager();
 		em.setFlushMode(FlushModeType.COMMIT);
 		return em;
@@ -109,7 +148,7 @@ public class PersistenceModule extends Module {
 			if (!isActive())
 				throw new IllegalStateException("Module is not active");
 
-			return getCustomEntityManager();
+			return getCustomEntityManager(emf);
 		}
 	}
 	// =========================================================================

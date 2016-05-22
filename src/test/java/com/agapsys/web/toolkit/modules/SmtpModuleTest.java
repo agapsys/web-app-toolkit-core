@@ -18,6 +18,7 @@ package com.agapsys.web.toolkit.modules;
 
 import com.agapsys.mail.Message;
 import com.agapsys.mail.MessageBuilder;
+import com.agapsys.web.toolkit.AbstractApplication;
 import com.agapsys.web.toolkit.AbstractWebApplication;
 import com.agapsys.web.toolkit.MockedWebApplication;
 import javax.mail.internet.AddressException;
@@ -36,7 +37,7 @@ public class SmtpModuleTest {
 		}
 
 		@Override
-		protected void onInit(AbstractWebApplication webApp) {} // <-- does not load implementation logic
+		protected void onInit(AbstractApplication app) {} // <-- does not load implementation logic
 
 		@Override
 		protected void onStop() {}

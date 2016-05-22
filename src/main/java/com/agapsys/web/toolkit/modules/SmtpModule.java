@@ -21,8 +21,7 @@ import com.agapsys.mail.MessageBuilder;
 import com.agapsys.mail.SecurityType;
 import com.agapsys.mail.SmtpSender;
 import com.agapsys.mail.SmtpSettings;
-import com.agapsys.web.toolkit.AbstractWebApplication;
-import com.agapsys.web.toolkit.Module;
+import com.agapsys.web.toolkit.AbstractApplication;
 import com.agapsys.web.toolkit.utils.DateUtils;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -33,7 +32,7 @@ import javax.mail.MessagingException;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 
-public class SmtpModule extends Module {
+public class SmtpModule extends WebModule {
 	// CLASS SCOPE =============================================================
 
 	// SETTINGS ----------------------------------------------------------------
@@ -121,7 +120,7 @@ public class SmtpModule extends Module {
 
 
 	@Override
-	protected void onInit(AbstractWebApplication webApp) {
+	protected void onInit(AbstractApplication webApp) {
 		super.onInit(webApp);
 
 		reset();
@@ -172,7 +171,7 @@ public class SmtpModule extends Module {
 	 * @param message message.
 	 */
 	protected void onError(MessagingException ex, Message message) {
-		try (PrintStream ps = new PrintStream(new FileOutputStream(new File(getWebApplication().getDirectory(), getSmtpErrorLogFilename()), true))) {
+		try (PrintStream ps = new PrintStream(new FileOutputStream(new File(getApplication().getDirectory(), getSmtpErrorLogFilename()), true))) {
 			ps.print(getErrorString(ex, message));
 		} catch (IOException e) {
 			throw new RuntimeException(e);

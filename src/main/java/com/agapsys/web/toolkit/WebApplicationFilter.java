@@ -38,7 +38,7 @@ public class WebApplicationFilter implements Filter {
 	// INSTANCE SCOPE ==========================================================
 	AbstractWebApplication webApp;
 	AttributeService attributeService;
-	
+
 	@Override
 	public void init(FilterConfig filterConfig) throws ServletException {
 		webApp = AbstractWebApplication.getRunningInstance();
@@ -49,26 +49,26 @@ public class WebApplicationFilter implements Filter {
 	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
 		HttpServletRequest req = (HttpServletRequest) request;
 		HttpServletResponse resp = (HttpServletResponse) response;
-		
+
 		if (webApp != null) {
-			
+
 			if (webApp.isDisabled()) {
 				resp.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
 				resp.flushBuffer();
 				return;
-			} 
+			}
 
-			if (!webApp.isOriginAllowed(req)) {
+			if (!webApp._isOriginAllowed(req)) {
 				resp.setStatus(HttpServletResponse.SC_FORBIDDEN);
 				resp.flushBuffer();
 				return;
 			}
-			
+
 			attributeService.setAttribute(ATTR_HTTP_REQUEST, req);
 			attributeService.setAttribute(ATTR_HTTP_RESPONSE, resp);
 			attributeService.setAttribute(ATTR_ORIGINAL_REQUEST_URI, HttpUtils.getInstance().getRequestUri(req));
 		}
-		
+
 		try {
 			chain.doFilter(request, response);
 		} finally {
