@@ -330,7 +330,8 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 					throw new RuntimeException(t);
 				}
 
-				initializedModules.add(moduleInstance);
+				if (!(moduleInstance instanceof LogModule)) // <-- Log module is registered automatically via _beforeApplicationStart()
+					initializedModules.add(moduleInstance);
 			}
 		}
 	}
@@ -344,7 +345,12 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 		if (!moduleManager.isEmpty() && init)
 			log(LogType.INFO, "Starting modules...");
 
+		Set<Class<? extends Module>> declaredClasses = new LinkedHashSet<>(); // <-- required to avoid concurrent modification: moduleManager may be modified on resolveModule()
 		for (Class<? extends Module> moduleClass : moduleManager.getClasses()) {
+			declaredClasses.add(moduleClass);
+		}
+
+		for (Class<? extends Module> moduleClass : declaredClasses) {
 			resolveModule(moduleClass, null, init);
 		}
 	}
@@ -359,10 +365,8 @@ public abstract class AbstractWebApplication implements ServletContextListener {
 		for (int i = initializedModules.size() - 1; i >= 0; i--) {
 			Module module = initializedModules.get(i);
 
-			if (!(module instanceof LogModule)) {
-				log(LogType.INFO, "Shutting down module: %s", module.getClass().getName());
-				module.stop();
-			}
+			log(LogType.INFO, "Shutting down module: %s", module.getClass().getName());
+			module.stop();
 		}
 	}
 

@@ -27,12 +27,12 @@ public class AbstractModuleTest {
 		private boolean isStopCalled = false;
 
 		@Override
-		protected void onModuleInit(AbstractWebApplication webApp) {
+		protected void onInit(AbstractWebApplication webApp) {
 			isStartCalled = true;
 		}
 
 		@Override
-		protected void onModuleStop() {
+		protected void onStop() {
 			isStopCalled = true;
 		}
 

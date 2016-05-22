@@ -259,8 +259,8 @@ public final class LogModule extends Module {
 	}
 
 	@Override
-	protected void onModuleInit(AbstractWebApplication webApp) {
-		super.onModuleInit(webApp);
+	protected void onInit(AbstractWebApplication webApp) {
+		super.onInit(webApp);
 
 		for (LogStream logStream : getStreams()) {
 			logStream.init(this);
@@ -268,8 +268,8 @@ public final class LogModule extends Module {
 	}
 
 	@Override
-	protected void onModuleStop() {
-		super.onModuleStop();
+	protected void onStop() {
+		super.onStop();
 
 		for (LogStream logStream : getStreams()) {
 			logStream.close();

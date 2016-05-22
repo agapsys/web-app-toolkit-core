@@ -74,16 +74,16 @@ public class PersistenceModule extends Module {
 	}
 
 	@Override
-	protected void onModuleInit(AbstractWebApplication webapplication) {
-		super.onModuleInit(webapplication);
+	protected void onInit(AbstractWebApplication webapplication) {
+		super.onInit(webapplication);
 
 		emf = Persistence.createEntityManagerFactory(getPersistenceUnitName());
 	}
 
 	@Override
-	protected void onModuleStop() {
-		super.onModuleStop();
-		
+	protected void onStop() {
+		super.onStop();
+
 		emf.close();
 		emf = null;
 	}

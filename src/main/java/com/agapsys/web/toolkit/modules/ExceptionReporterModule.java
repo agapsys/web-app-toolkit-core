@@ -105,8 +105,8 @@ public class ExceptionReporterModule extends Module {
 	}
 
 	@Override
-	protected void onModuleInit(AbstractWebApplication webApp) {
-		super.onModuleInit(webApp);
+	protected void onInit(AbstractWebApplication webApp) {
+		super.onInit(webApp);
 
 		reset();
 

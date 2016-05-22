@@ -35,10 +35,10 @@ public class PersistenceModuleTest {
 		}
 
 		@Override
-		protected void onModuleInit(AbstractWebApplication webApp) {} // <-- does not init entity manager factory
+		protected void onInit(AbstractWebApplication webApp) {} // <-- does not init entity manager factory
 
 		@Override
-		protected void onModuleStop() {}
+		protected void onStop() {}
 	}
 	// =========================================================================
 

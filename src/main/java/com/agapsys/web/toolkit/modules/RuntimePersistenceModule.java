@@ -103,8 +103,8 @@ public class RuntimePersistenceModule extends PersistenceModule {
 	}
 
 	@Override
-	protected void onModuleInit(AbstractWebApplication webApp) {
-		// super.onModuleInit should be skipped!
+	protected void onInit(AbstractWebApplication webApp) {
+		// super.onInit should be skipped!
 
 		reset();
 
@@ -129,9 +129,9 @@ public class RuntimePersistenceModule extends PersistenceModule {
 	}
 
 	@Override
-	protected void onModuleStop() {
-		// super.onModuleStop() sould be skipped!
-		
+	protected void onStop() {
+		// super.onStop() sould be skipped!
+
 		emf.close();
 		emf = null;
 	}

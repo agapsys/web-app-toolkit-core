@@ -32,14 +32,14 @@ public class AbstractWebApplicationTest  {
 	public static class CustomPersistenceModule extends PersistenceModule {
 
 		@Override
-		protected void onModuleInit(AbstractWebApplication webApp) {
-			super.onModuleInit(webApp);
+		protected void onInit(AbstractWebApplication webApp) {
+			super.onInit(webApp);
 			((WebApplicationBase)webApp).onPersistenceModuleStartCalled = true;
 		}
 
 		@Override
-		protected void onModuleStop() {
-			super.onModuleStop();
+		protected void onStop() {
+			super.onStop();
 			((WebApplicationBase)getWebApplication()).onPersistenceModuleStopCalled = true;
 		}
 
@@ -48,14 +48,14 @@ public class AbstractWebApplicationTest  {
 	public static class CustomExceptionReporterModule extends ExceptionReporterModule {
 
 		@Override
-		protected void onModuleInit(AbstractWebApplication webApp) {
-			super.onModuleInit(webApp);
+		protected void onInit(AbstractWebApplication webApp) {
+			super.onInit(webApp);
 			((WebApplicationBase)webApp).onExceptionReporterModuleStartCalled = true;
 		}
 
 		@Override
-		protected void onModuleStop() {
-			super.onModuleStop();
+		protected void onStop() {
+			super.onStop();
 			((WebApplicationBase)getWebApplication()).onExceptionReporterModuleStopCalled = true;
 		}
 
@@ -65,14 +65,14 @@ public class AbstractWebApplicationTest  {
 		public static final String MODULE_ID = "smtp";
 
 		@Override
-		protected void onModuleInit(AbstractWebApplication webApp) {
-			super.onModuleInit(webApp);
+		protected void onInit(AbstractWebApplication webApp) {
+			super.onInit(webApp);
 			((WebApplicationBase)webApp).onSmtpModuleStartCalled = true;
 		}
 
 		@Override
-		protected void onModuleStop() {
-			super.onModuleStop();
+		protected void onStop() {
+			super.onStop();
 			((WebApplicationBase)getWebApplication()).onSmtpModuleStopCalled = true;
 		}
 	}

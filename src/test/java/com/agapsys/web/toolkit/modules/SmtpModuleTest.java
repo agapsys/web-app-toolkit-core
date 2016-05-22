@@ -36,10 +36,10 @@ public class SmtpModuleTest {
 		}
 
 		@Override
-		protected void onModuleInit(AbstractWebApplication webApp) {} // <-- does not load implementation logic
+		protected void onInit(AbstractWebApplication webApp) {} // <-- does not load implementation logic
 
 		@Override
-		protected void onModuleStop() {}
+		protected void onStop() {}
 	}
 	// =========================================================================
 

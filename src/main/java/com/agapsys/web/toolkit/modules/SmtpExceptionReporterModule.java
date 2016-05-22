@@ -111,8 +111,8 @@ public class SmtpExceptionReporterModule extends ExceptionReporterModule {
 	}
 
 	@Override
-	protected void onModuleInit(AbstractWebApplication webApp) {
-		super.onModuleInit(webApp);
+	protected void onInit(AbstractWebApplication webApp) {
+		super.onInit(webApp);
 
 		smtpModule = getModule(SmtpModule.class);
 

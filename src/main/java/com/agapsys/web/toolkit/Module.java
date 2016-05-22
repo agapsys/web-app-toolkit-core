@@ -37,38 +37,6 @@ public abstract class Module extends Service {
 
 	// -------------------------------------------------------------------------
 	/**
-	 * Called upon module initialization.
-	 *
-	 * Default implementation does nothing.
-	 * @param webApp associated web application.
-	 */
-	protected void onModuleInit(AbstractWebApplication webApp) {}
-
-	@Override
-	protected final void onInit(AbstractWebApplication webApp) {
-		super.onInit(webApp);
-		
-		onModuleInit(webApp);
-	}
-	// -------------------------------------------------------------------------
-
-	// -------------------------------------------------------------------------
-	/**
-	 * Called upon module stop.
-	 *
-	 * Default implementation does nothing.
-	 */
-	protected void onModuleStop() {}
-
-	@Override
-	protected final void onStop() {
-		super.onStop();
-		onModuleStop();
-	}
-	// -------------------------------------------------------------------------
-
-	// -------------------------------------------------------------------------
-	/**
 	 * Returns the name of settings group associated with this module.
 	 *
 	 * @return the name of settings group associated with this module.
@@ -148,6 +116,10 @@ public abstract class Module extends Service {
 
 			// Properties should always be processed in order to avoid leak of confidential data.
 			Properties properties = getWebApplication().getSettings().getProperties(getSettingsGroupName());
+
+			if (properties == null)
+				properties = new Properties();
+
 			Properties _defaultProperties = getDefaultProperties();
 
 			for (Map.Entry defaultEntry : _defaultProperties.entrySet()) {
