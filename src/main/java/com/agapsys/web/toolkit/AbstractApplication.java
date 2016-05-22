@@ -91,7 +91,7 @@ public abstract class AbstractApplication {
 	 * @param message message to be logged.
 	 * @param args message parameters (see {@linkplain String#format(String, Object...)}).
 	 */
-	public void log(LogType logType, String message, Object...args) {
+	public final void log(LogType logType, String message, Object...args) {
 		getModule(LogModule.class).log(logType, message, args);
 	}
 
