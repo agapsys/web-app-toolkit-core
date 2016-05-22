@@ -408,11 +408,13 @@ public abstract class AbstractApplication {
 
 		log(LogType.INFO, "Starting application: %s", name);
 
+		resolveModules(false); // <-- required in order to retrieve transient modules default settings...
+
 		try {
-			resolveModules(false); // <-- required in order to retrieve transient modules default settings...
 			log(LogType.INFO, "Loading settings...");
 			loadSettings();
 		} catch (IOException ex) {
+			log(LogType.ERROR, "Error loading settings: %s", ex.getMessage());
 			throw new RuntimeException(ex);
 		}
 
