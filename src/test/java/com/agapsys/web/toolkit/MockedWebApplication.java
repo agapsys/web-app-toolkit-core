@@ -52,6 +52,8 @@ public class MockedWebApplication extends AbstractWebApplication {
 
 	@Override
 	protected void afterApplicationStop() {
+		super.afterApplicationStop();
+
 		try {
 			super.afterApplicationStop();
 			FileUtils.getInstance().deleteFile(appFolder);
