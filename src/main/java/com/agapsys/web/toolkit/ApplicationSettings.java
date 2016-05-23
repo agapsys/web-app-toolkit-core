@@ -130,13 +130,17 @@ public class ApplicationSettings {
 	 * @return merged instance.
 	 */
 	public static Properties mergeProperties(Properties properties, Properties defaults) {
-		properties = new Properties(properties);
+		Properties tmpProperties = new Properties();
 
-		for (Map.Entry defaultEntry : defaults.entrySet()) {
-			properties.putIfAbsent(defaultEntry.getKey(), defaultEntry.getValue());
+		for (Map.Entry mainEntry : properties.entrySet()) {
+			tmpProperties.put(mainEntry.getKey(), mainEntry.getValue());
 		}
 
-		return properties;
+		for (Map.Entry defaultEntry : defaults.entrySet()) {
+			tmpProperties.putIfAbsent(defaultEntry.getKey(), defaultEntry.getValue());
+		}
+
+		return tmpProperties;
 	}
 	// =========================================================================
 
@@ -290,7 +294,7 @@ public class ApplicationSettings {
 						if (currentGroup == null)
 							throw new IOException("Root entries are not allowed: " + line);
 
-						propString.append(line);
+						propString.append(line + "\n");
 					}
 				}
 

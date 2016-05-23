@@ -77,6 +77,9 @@ public abstract class Module extends Service {
 			throwIfNotActive();
 
 			Properties mainProperties = getApplication().getSettings().getProperties(getSettingsGroupName());
+			if (mainProperties == null)
+				mainProperties = new Properties();
+			
 			Properties defaults = getDefaultProperties();
 
 			return ApplicationSettings.mergeProperties(mainProperties, defaults);

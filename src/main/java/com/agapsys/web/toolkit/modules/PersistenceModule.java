@@ -107,7 +107,7 @@ public class PersistenceModule extends Module {
 			jdbcPassword = null;
 		} else {
 			jdbcPassword = strJdbcPassword.toCharArray();
-			propertyMap.put(KEY_JDBC_PASSWORD, jdbcPassword);
+			propertyMap.put(KEY_JDBC_PASSWORD, new String(jdbcPassword));
 		}
 
 		return propertyMap;
