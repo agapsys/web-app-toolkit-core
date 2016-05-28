@@ -248,7 +248,7 @@ public abstract class AbstractApplication {
 
 			callerModules.add(moduleClass);
 
-			Set<Class<? extends Module>> dependencies = moduleInstance.getDependencies();
+			Set<Class<? extends Module>> dependencies = moduleInstance._getDependencies();
 
 			for (Class<? extends Module> dep : dependencies) {
 				resolveModule(dep, callerModules, init);
