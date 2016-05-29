@@ -44,6 +44,34 @@ public final class LogModule extends Module {
 		static final LogStream[] EMPTY_ARRAY = new LogStream[]{};
 
 		private boolean active = false;
+		private LogModule logModule;
+
+		/**
+		 * Associates this instance with a log module.
+		 *
+		 * @param logModule associated log module
+		 * @param allowNull defines if logModule parameter may be null
+		 */
+		private void setLogModule(LogModule logModule, boolean allowNull) {
+			synchronized(this) {
+				if (logModule == null && !allowNull)
+					throw new IllegalArgumentException("Log module cannot be null");
+
+				if (this.logModule != null && !allowNull)
+					throw new IllegalStateException("This instance is already associated with a module");
+
+				this.logModule = logModule;
+			}
+		}
+
+		/**
+		 * Returns associated log module.
+		 *
+		 * @return associated log module. If this instance was not registered with a module (via {@linkplain LogModule#addStream(com.agapsys.web.toolkit.modules.LogModule.LogStream) }) returns null.
+		 */
+		public LogModule getLogModule() {
+			return logModule;
+		}
 
 		/**
 		 * Prints a line into log stream.
@@ -54,15 +82,12 @@ public final class LogModule extends Module {
 		 */
 		public final void println(Date timestamp, LogType logType, String message) {
 			synchronized(this) {
-				if (!isActive())
-					throw new IllegalStateException(String.format("Stream is not active: '%s'", this.getClass().getName()));
-
 				onPrintln(timestamp, logType, message);
 			}
 		}
 
 		/**
-		 * Prints a line into log stream.
+		 * Called upon log print.
 		 *
 		 * @param timestamp log timestamp.
 		 * @param logType log type.
@@ -83,7 +108,7 @@ public final class LogModule extends Module {
 
 		/**
 		 * Stops the stream.
-		 * After the stream is stopped, it's not possible to log messages.
+		 *
 		 * If the stream is not active, nothing happens.
 		 */
 		public final void stop() {
@@ -106,10 +131,23 @@ public final class LogModule extends Module {
 		 * If the stream is already active, nothing happens.
 		 * @param logModule associated log module.
 		 */
+		@Deprecated
 		public final void init(LogModule logModule) {
 			synchronized(this) {
 				if (!isActive()) {
 					onInit(logModule);
+					active = true;
+				}
+			}
+		}
+
+		/**
+		 * Initializes this stream.
+		 */
+		private final void init() {
+			synchronized(this) {
+				if (!isActive()) {
+					onInit(getLogModule());
 					active = true;
 				}
 			}
@@ -130,7 +168,7 @@ public final class LogModule extends Module {
 	public static class ConsoleLogStream extends LogStream {
 
 		public ConsoleLogStream() {
-			init(null);
+			super.init();
 		}
 
 		protected String getMessage(Date timestamp, LogType logType, String message) {
@@ -178,7 +216,7 @@ public final class LogModule extends Module {
 			this.filenamePattern = filenamePattern;
 
 			currentFile = _getLogFile(logDir, filenamePattern);
-			init(null);
+			super.init();
 		}
 
 		private File _getLogFile(File logDir, String filenamePattern) {
@@ -268,6 +306,8 @@ public final class LogModule extends Module {
 			if (streamSet.contains(logStream))
 				throw new IllegalArgumentException("Stream already registerd: " + logStream.toString());
 
+			logStream.setLogModule(this, true);
+
 			streamSet.add(logStream);
 		}
 	}
@@ -275,6 +315,7 @@ public final class LogModule extends Module {
 	public void removeStream(LogStream logStream) {
 		synchronized(streamSet) {
 			streamSet.remove(logStream);
+			logStream.setLogModule(null, true);
 		}
 	}
 
@@ -288,7 +329,7 @@ public final class LogModule extends Module {
 		super.onInit(app);
 
 		for (LogStream logStream : getStreams()) {
-			logStream.init(this);
+			logStream.init();
 		}
 	}
 
