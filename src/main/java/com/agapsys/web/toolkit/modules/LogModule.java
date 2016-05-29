@@ -129,6 +129,10 @@ public final class LogModule extends Module {
 	 */
 	public static class ConsoleLogStream extends LogStream {
 
+		public ConsoleLogStream() {
+			init(null);
+		}
+
 		protected String getMessage(Date timestamp, LogType logType, String message) {
 			return String.format("%s [%s] %s", DateUtils.getInstance().getIso8601Date(), logType.name(), message);
 		}
@@ -138,6 +142,10 @@ public final class LogModule extends Module {
 			System.out.println(getMessage(timestamp, logType, message));
 		}
 
+		@Override
+		protected final void onInit(LogModule logModule) {
+			super.onInit(logModule);
+		}
 	}
 
 	/**
@@ -170,6 +178,7 @@ public final class LogModule extends Module {
 			this.filenamePattern = filenamePattern;
 
 			currentFile = _getLogFile(logDir, filenamePattern);
+			init(null);
 		}
 
 		private File _getLogFile(File logDir, String filenamePattern) {
@@ -209,7 +218,7 @@ public final class LogModule extends Module {
 		}
 
 		@Override
-		protected void onInit(LogModule logModule) {
+		protected final void onInit(LogModule logModule) {
 			super.onInit(logModule);
 
 			try {

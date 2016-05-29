@@ -70,11 +70,7 @@ public class MockedWebApplication extends AbstractWebApplication {
 		super.beforeApplicationStart();
 
 		LogModule logModule = getModule(LogModule.class);
-
-		ConsoleLogStream consoleLogStream = new ConsoleLogStream();
-		consoleLogStream.init(logModule);
-
-		logModule.addStream(consoleLogStream);
+		logModule.addStream(new ConsoleLogStream());
 	}
 
 }
