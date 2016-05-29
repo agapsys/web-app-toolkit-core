@@ -43,7 +43,7 @@ public final class LogModule extends Module {
 	public static abstract class LogStream {
 		static final LogStream[] EMPTY_ARRAY = new LogStream[]{};
 
-		private boolean closed = false;
+		private boolean active = false;
 
 		/**
 		 * Prints a line into log stream.
@@ -54,8 +54,8 @@ public final class LogModule extends Module {
 		 */
 		public final void println(Date timestamp, LogType logType, String message) {
 			synchronized(this) {
-				if (isClosed())
-					throw new IllegalStateException(String.format("Stream is closed: '%s'", this.getClass().getName()));
+				if (!isActive())
+					throw new IllegalStateException(String.format("Stream is not active: '%s'", this.getClass().getName()));
 
 				onPrintln(timestamp, logType, message);
 			}
@@ -71,49 +71,54 @@ public final class LogModule extends Module {
 		protected abstract void onPrintln(Date timestamp, LogType logType, String message);
 
 		/**
-		 * Returns a boolean indicating if this stream is closed.
+		 * Returns a boolean indicating if this stream is active.
 		 *
-		 * @return a boolean indicating if this stream is closed.
+		 * @return a boolean indicating if this stream is active.
 		 */
-		public final boolean isClosed() {
+		public final boolean isActive() {
 			synchronized(this) {
-				return closed;
+				return active;
 			}
 		}
 
 		/**
-		 * Closes the stream. After the stream is closed it's not possible to log messages.
+		 * Stops the stream.
+		 * After the stream is stopped, it's not possible to log messages.
+		 * If the stream is not active, nothing happens.
 		 */
-		public final void close() {
+		public final void stop() {
 			synchronized(this) {
-				if (isClosed())
-					throw new IllegalStateException(String.format("Stream is already closed: '%s'", this.getClass().getName()));
-
-				onClose();
-				closed = true;
+				if (isActive()) {
+					onStop();
+					active = false;
+				}
 			}
 		}
 
 		/**
-		 * Called during close. Default implementation does nothing.
+		 * Called during stop. Default implementation does nothing.
 		 */
-		protected void onClose() {}
+		protected void onStop() {}
 
 		/**
 		 * Initializes the module.
 		 *
-		 * Default implementation does nothing.
+		 * If the stream is already active, nothing happens.
 		 * @param logModule associated log module.
 		 */
 		public final void init(LogModule logModule) {
 			synchronized(this) {
-				onInit(logModule);
+				if (!isActive()) {
+					onInit(logModule);
+					active = true;
+				}
 			}
 		}
 
 		/**
 		 * Called during initialization.
 		 *
+		 * Default implementation does nothing.
 		 * @param logModule associated log module.
 		 */
 		protected void onInit(LogModule logModule) {}
@@ -132,12 +137,6 @@ public final class LogModule extends Module {
 		public void onPrintln(Date timestamp, LogType logType, String message) {
 			System.out.println(getMessage(timestamp, logType, message));
 		}
-
-		@Override
-		public void onClose() {}
-
-		@Override
-		public void onInit(LogModule logModule) {}
 
 	}
 
@@ -171,12 +170,6 @@ public final class LogModule extends Module {
 			this.filenamePattern = filenamePattern;
 
 			currentFile = _getLogFile(logDir, filenamePattern);
-
-			try {
-				currentPs = new PrintStream(new FileOutputStream(currentFile, true));
-			} catch (FileNotFoundException ex) {
-				throw new RuntimeException(ex);
-			}
 		}
 
 		private File _getLogFile(File logDir, String filenamePattern) {
@@ -216,7 +209,19 @@ public final class LogModule extends Module {
 		}
 
 		@Override
-		public void onClose() {
+		protected void onInit(LogModule logModule) {
+			super.onInit(logModule);
+
+			try {
+				currentPs = new PrintStream(new FileOutputStream(currentFile, true));
+			} catch (FileNotFoundException ex) {
+				throw new RuntimeException(ex);
+			}
+
+		}
+
+		@Override
+		public void onStop() {
 			currentPs.close();
 		}
 
@@ -283,7 +288,7 @@ public final class LogModule extends Module {
 		super.onStop();
 
 		for (LogStream logStream : getStreams()) {
-			logStream.close();
+			logStream.stop();
 		}
 
 	}

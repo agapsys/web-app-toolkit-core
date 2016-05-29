@@ -435,7 +435,10 @@ public abstract class AbstractApplication {
 		String logDirPath = new File(getDirectory(), getLogDirName()).getAbsolutePath();
 		File logDir = FileUtils.getInstance().getOrCreateDirectory(logDirPath);
 
-		LogModule logModule = new LogModule(new DailyLogFileStream(logDir));
+		LogModule logModule = new LogModule();
+		DailyLogFileStream dailyLogFileStream = new DailyLogFileStream(logDir);
+		dailyLogFileStream.init(logModule);
+
 		registerModule(logModule);
 		initializedModules.add(logModule); // <-- forces the log module to be the last stopped module.
 

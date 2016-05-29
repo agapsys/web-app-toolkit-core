@@ -17,6 +17,7 @@
 package com.agapsys.web.toolkit;
 
 import com.agapsys.web.toolkit.modules.LogModule;
+import com.agapsys.web.toolkit.modules.LogModule.ConsoleLogStream;
 import com.agapsys.web.toolkit.utils.FileUtils;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -69,7 +70,11 @@ public class MockedWebApplication extends AbstractWebApplication {
 		super.beforeApplicationStart();
 
 		LogModule logModule = getModule(LogModule.class);
-		logModule.addStream(new LogModule.ConsoleLogStream());
+
+		ConsoleLogStream consoleLogStream = new ConsoleLogStream();
+		consoleLogStream.init(logModule);
+
+		logModule.addStream(consoleLogStream);
 	}
 
 }
