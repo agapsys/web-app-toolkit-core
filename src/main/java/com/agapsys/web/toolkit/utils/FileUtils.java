@@ -69,13 +69,13 @@ public class FileUtils {
 	 */
 	public static final String OS_NAME;
 
-	
+
 	private static final FileUtils  SINGLETON = new FileUtils();
-	
+
 	public static FileUtils getInstance() {
 		return SINGLETON;
 	}
-	
+
 	static {
 		FOLDER_DELIMITER = System.getProperty("file.separator");
 		USER_HOME = new File(System.getProperty("user.home"));
@@ -89,7 +89,7 @@ public class FileUtils {
 
 	/**
 	 * @return a file representing a given path. If directory hierarchy does not exist, they will be created.
-	 * 
+	 *
 	 * @param path directory path
 	 * @throws AccessError if directory hierarchy does not exist and it was not possible to create it.
 	 * @throws IllegalArgumentException if given path points to a file instead of a directory.
@@ -99,7 +99,7 @@ public class FileUtils {
 		if (!folder.exists()) {
 			if (!folder.mkdirs())
 				throw new AccessError(String.format("cannot create/access '%s'", path));
-			
+
 		} else if (!folder.isDirectory()) {
 			throw new IllegalArgumentException(String.format("Path '%s' is a file", path));
 		}
@@ -166,7 +166,7 @@ public class FileUtils {
 			if (attempts >= maxAttempts)
 				throw new FileNotFoundException(String.format("It was not possible to generate a randon non-existent file after %d attempts", maxAttempts));
 
-			file = new File(parentDirectory, StringUtils.getRandomString(nameLength, chars));
+			file = new File(parentDirectory, StringUtils.getInstance().getRandom(nameLength, chars));
 
 			if (!file.exists())
 				return file;

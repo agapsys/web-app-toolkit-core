@@ -21,32 +21,54 @@ import java.util.Random;
 public class StringUtils {
 	// CLASS SCOPE =============================================================
 	private static final StringUtils SINGLETON = new StringUtils();
-	
+
 	public static StringUtils getInstance() {
 		return SINGLETON;
 	}
-	// =========================================================================
 
-	// INSTANCE SCOPE ==========================================================
-	protected StringUtils() {}
-	
+	@Deprecated
 	public static String getRandomString(int length) {
 		char[] chars = "abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ".toCharArray();
 		return getRandomString(length, chars);
 	}
-	
+
+	@Deprecated
 	public static String getRandomString(int length, char[] chars)  {
 		if (length < 1) throw new IllegalArgumentException("Invalid length: " + length);
-		
+
 		if (chars == null || chars.length == 0) throw new IllegalArgumentException("Null/Empty chars");
-		
+
 		StringBuilder sb = new StringBuilder();
 		Random random = new Random();
 		for (int i = 0; i < length; i++) {
 			char c = chars[random.nextInt(chars.length)];
 			sb.append(c);
 		}
-		
+
+		return sb.toString();
+	}
+	// =========================================================================
+
+	// INSTANCE SCOPE ==========================================================
+	protected StringUtils() {}
+
+	public final String getRandom(int length) {
+		char[] chars = "abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ".toCharArray();
+		return getRandom(length, chars);
+	}
+
+	public String getRandom(int length, char[] chars) {
+		if (length < 1) throw new IllegalArgumentException("Invalid length: " + length);
+
+		if (chars == null || chars.length == 0) throw new IllegalArgumentException("Null/Empty chars");
+
+		StringBuilder sb = new StringBuilder();
+		Random random = new Random();
+		for (int i = 0; i < length; i++) {
+			char c = chars[random.nextInt(chars.length)];
+			sb.append(c);
+		}
+
 		return sb.toString();
 	}
 	// =========================================================================
