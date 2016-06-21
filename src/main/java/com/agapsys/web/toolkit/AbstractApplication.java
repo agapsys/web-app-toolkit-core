@@ -187,7 +187,11 @@ public abstract class AbstractApplication {
 	 * @return service instance.
 	 */
 	public final <S extends Service> S getService(Class<S> serviceClass) {
-		return serviceManager.getInstance(serviceClass, true);
+		S service = serviceManager.getInstance(serviceClass, true);
+		if (!service.isActive())
+			service.init(this);
+
+		return service;
 	}
 
 	/**
