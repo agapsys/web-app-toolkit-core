@@ -16,6 +16,7 @@
 
 package com.agapsys.web.toolkit;
 
+import com.agapsys.web.toolkit.modules.ExceptionReporterModule;
 import com.agapsys.web.toolkit.modules.LogModule;
 import com.agapsys.web.toolkit.modules.LogModule.DailyLogFileStream;
 import com.agapsys.web.toolkit.utils.FileUtils;
@@ -263,7 +264,7 @@ public abstract class AbstractApplication {
 					log(LogType.INFO, "Initializing module: %s", moduleInstance.getClass().getName());
 					moduleInstance.init(this);
 				} catch (Throwable t) {
-					log(LogType.ERROR, "Error initializing module: %s (%s)", moduleInstance.getClass().getName(), t.getMessage());
+					log(LogType.ERROR, "Error initializing module: %s (%s)\n----\n%s----", moduleInstance.getClass().getName(), t.getMessage(), ExceptionReporterModule.getStackTrace(t));
 
 					if (t instanceof RuntimeException)
 						throw (RuntimeException) t;
