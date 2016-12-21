@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Agapsys Tecnologia Ltda-ME.
+ * Copyright 2015-2016 Agapsys Tecnologia Ltda-ME.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,55 +20,68 @@ import com.agapsys.web.toolkit.AbstractApplication;
 import com.agapsys.web.toolkit.AbstractWebApplication;
 import com.agapsys.web.toolkit.MockedWebApplication;
 import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 public class PersistenceModuleTest {
-	// CLASS SCOPE =============================================================
-	private static class TestPersistenceModule extends PersistenceModule {
-		private boolean methodCalled = false;
 
-		@Override
-		protected EntityManager getCustomEntityManager(EntityManagerFactory emf) {
-			methodCalled = true;
-			return null;
-		}
+    // <editor-fold desc="STATIC SCOPE">
+    // =========================================================================
+    private static class TestPersistenceModule extends PersistenceModule {
+        private boolean methodCalled = false;
 
-		@Override
-		protected void onInit(AbstractApplication app) {} // <-- does not init entity manager factory
+        @Override
+        protected void onInit(AbstractApplication app) {} // <-- does not init entity manager factory
 
-		@Override
-		protected void onStop() {}
-	}
-	// =========================================================================
+        @Override
+        protected EmFactory getEmFactory() {
+            return new EmFactory() {
+                @Override
+                public EntityManager getInstance() {
+                    methodCalled = true;
+                    return null;
+                }
+            };
+        }
 
-	// INSTANCE SCOPE ==========================================================
-	private final AbstractWebApplication app = new MockedWebApplication();
-	private TestPersistenceModule module;
+        @Override
+        protected void onStop() {}
+    }
+    // =========================================================================
+    // </editor-fold>
 
-	@Before
-	public void before() {
-		module = new TestPersistenceModule();
-	}
+    private final AbstractWebApplication app = new MockedWebApplication();
+    private TestPersistenceModule module;
 
-	@Test
-	public void sanityCheck() {
-		Assert.assertFalse(module.methodCalled);
-		Assert.assertFalse(module.isActive());
-	}
+    @Before
+    public void before() {
+        module = new TestPersistenceModule();
+    }
 
-	@Test(expected = IllegalStateException.class)
-	public void testGetEntityManagerWhileNotRunning() {
-		module.getEntityManager();
-	}
+    @Test
+    public void sanityCheck() {
+        Assert.assertFalse(module.methodCalled);
+        Assert.assertFalse(module.isActive());
+    }
 
-	@Test
-	public void testGetEntityManagerWhileRunning() {
-		module.init(app);
-		Assert.assertNull(module.getEntityManager());
-		Assert.assertTrue(module.methodCalled);
-	}
-	// =========================================================================
+    @Test(expected = IllegalStateException.class)
+    public void testGetEntityManagerWhileNotRunning() {
+        module.getEntityManager();
+    }
+
+    @Test
+    public void testGetEntityManagerWhileRunning() {
+        MockedWebApplication app = new MockedWebApplication() {
+            @Override
+            protected void beforeApplicationStart() {
+                super.beforeApplicationStart();
+
+                registerModule(module);
+            }
+        };
+        app.start();
+        Assert.assertNull(module.getEntityManager());
+        Assert.assertTrue(module.methodCalled);
+    }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Agapsys Tecnologia Ltda-ME.
+ * Copyright 2015-2016 Agapsys Tecnologia Ltda-ME.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,53 +27,63 @@ import org.junit.Before;
 import org.junit.Test;
 
 public class SmtpModuleTest {
-	// CLASS SCOPE =============================================================
-	private static class TestSmtpModule extends SmtpModule {
-		private boolean methodCalled = false;
 
-		@Override
-		protected void onSendMessage(Message message) {
-			methodCalled = true;
-		}
+    // <editor-fold desc="STATIC SCOPE" defaultstate="collapsed">
+    // =========================================================================
+    private static class TestSmtpModule extends SmtpModule {
+        private boolean methodCalled = false;
 
-		@Override
-		protected void onInit(AbstractApplication app) {} // <-- does not load implementation logic
+        @Override
+        protected void onSendMessage(Message message) {
+            methodCalled = true;
+        }
 
-		@Override
-		protected void onStop() {}
-	}
-	// =========================================================================
+        @Override
+        protected void onInit(AbstractApplication app) {} // <-- does not load implementation logic
 
-	// INSTANCE SCOPE ==========================================================
-	private TestSmtpModule module;
-	private final Message testMessage;
-	private final AbstractWebApplication app = new MockedWebApplication();
+        @Override
+        protected void onStop() {}
+    }
+    // =========================================================================
+    // </editor-fold>
 
-	public SmtpModuleTest() throws AddressException {
-		this.testMessage = new MessageBuilder("sender@host.com", "recipient@host.com").build();
-	}
+    private TestSmtpModule module;
+    private final Message testMessage;
+    private final AbstractWebApplication app = new MockedWebApplication();
 
-	@Before
-	public void before() {
-		module = new TestSmtpModule();
-	}
+    public SmtpModuleTest() throws AddressException {
+        this.testMessage = new MessageBuilder("sender@host.com", "recipient@host.com").build();
+    }
 
-	@Test(expected = IllegalArgumentException.class)
-	public void sendNullMessage() {
-		module.sendMessage(null);
-	}
+    @Before
+    public void before() {
+        module = new TestSmtpModule();
+    }
 
-	@Test(expected = IllegalStateException.class)
-	public void sendMessageWhileNotRunning() {
-		Assert.assertFalse(module.isActive());
-		module.sendMessage(testMessage);
-	}
+    @Test(expected = IllegalArgumentException.class)
+    public void sendNullMessage() {
+        module.sendMessage(null);
+    }
 
-	@Test
-	public void sendMessageWhileRunning() {
-		module.init(app);
-		module.sendMessage(testMessage);
-		Assert.assertTrue(module.methodCalled);
-	}
-	// =========================================================================
+    @Test(expected = IllegalStateException.class)
+    public void sendMessageWhileNotRunning() {
+        Assert.assertFalse(module.isActive());
+        module.sendMessage(testMessage);
+    }
+
+    @Test
+    public void sendMessageWhileRunning() {
+        MockedWebApplication app = new MockedWebApplication() {
+            @Override
+            protected void beforeApplicationStart() {
+                super.beforeApplicationStart();
+
+                registerModule(module);
+            }
+        };
+        app.start();
+        module.sendMessage(testMessage);
+        Assert.assertTrue(module.methodCalled);
+        app.stop();
+    }
 }

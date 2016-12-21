@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Agapsys Tecnologia Ltda-ME.
+ * Copyright 2015-2016 Agapsys Tecnologia Ltda-ME.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,128 +29,148 @@ import javax.persistence.Persistence;
 
 /**
  * Represents a JPA persistence module.
- *
- * @author Leandro Oliveira (leandro@agapsys.com)
  */
 public class PersistenceModule extends Module {
-	// CLASS SCOPE =============================================================
-	public static final String SETTINGS_GROUP_NAME = PersistenceModule.class.getName();
+    
+    // <editor-fold desc="STATIC SCOPE">
+    // =========================================================================
+    public static final String SETTINGS_GROUP_NAME = PersistenceModule.class.getName();
 
-	public static final String KEY_JDBC_PASSWORD = "javax.persistence.jdbc.password";
+    public static final String KEY_JDBC_PASSWORD = "javax.persistence.jdbc.password";
 
-	public static final String DEFAULT_PERSISTENCE_UNIT_NAME = "default";
-	// =========================================================================
+    public static final String DEFAULT_PERSISTENCE_UNIT_NAME = "default";
 
-	// INSTANCE SCOPE ==========================================================
-	private final String persistenceUnitName;
+    public static interface EmFactory {
+        public EntityManager getInstance();
+    }
+    // =========================================================================
+    // </editor-fold>
 
-	private EntityManagerFactory emf = null;
-	private char[] jdbcPassword = null;
+    private final String persistenceUnitName;
+    private final EmFactory defaultFactory = new EmFactory() {
+        @Override
+        public EntityManager getInstance() {
+            EntityManager em = emf.createEntityManager();
+            em.setFlushMode(FlushModeType.COMMIT);
+            return em;
+        }
+    };
 
-	/**
-	 * Default constructor. Default persistence name equals to {@linkplain PersistenceModule#DEFAULT_PERSISTENCE_UNIT_NAME}.
-	 */
-	public PersistenceModule() {
-		this(DEFAULT_PERSISTENCE_UNIT_NAME);
-	}
+    private EntityManagerFactory emf = null;
+    private char[] jdbcPassword = null;
+    private EmFactory emFactory = null;
 
-	/**
-	 * Constructor. Allows a custom persistence unit name.
-	 *
-	 * @param persistenceUnitName persistence unit name used by this module.
-	 */
-	public PersistenceModule(String persistenceUnitName) {
-		if (persistenceUnitName == null || persistenceUnitName.trim().isEmpty())
-			throw new IllegalArgumentException("Null/Empty name");
+    /**
+     * Default constructor. Default persistence name equals to {@linkplain PersistenceModule#DEFAULT_PERSISTENCE_UNIT_NAME}.
+     */
+    public PersistenceModule() {
+        this(DEFAULT_PERSISTENCE_UNIT_NAME);
+    }
 
-		this.persistenceUnitName = persistenceUnitName;
-	}
+    /**
+     * Constructor. Allows a custom persistence unit name.
+     *
+     * @param persistenceUnitName persistence unit name used by this module.
+     */
+    public PersistenceModule(String persistenceUnitName) {
+        if (persistenceUnitName == null || persistenceUnitName.trim().isEmpty())
+            throw new IllegalArgumentException("Null/Empty name");
 
-	@Override
-	protected final String getSettingsGroupName() {
-		return SETTINGS_GROUP_NAME;
-	}
+        this.persistenceUnitName = persistenceUnitName;
+    }
 
-	/**
-	 * Returns JDBC password.
-	 *
-	 * @return JDBC password.
-	 */
-	protected char[] getJdbcPassword() {
-		return jdbcPassword;
-	}
+    @Override
+    protected final String getSettingsGroupName() {
+        return SETTINGS_GROUP_NAME;
+    }
 
-	/**
-	 * Return the name of persistence unit associated with this instance.
-	 *
-	 * @return the name of persistence unit associated with this instance.
-	 */
-	protected String getPersistenceUnitName() {
-		return persistenceUnitName;
-	}
+    /**
+     * Returns JDBC password.
+     *
+     * @return JDBC password.
+     */
+    protected char[] getJdbcPassword() {
+        return jdbcPassword;
+    }
 
-	/**
-	 * Returns additional properties to be used when creating the internal
-	 * entity manager factory.
-	 *
-	 * @param app associated application.
-	 * @return additional properties to be used.
-	 */
-	protected Map getAdittionalProperties(AbstractApplication app) {
-		Properties props = getProperties();
+    /**
+     * Return the name of persistence unit associated with this instance.
+     *
+     * @return the name of persistence unit associated with this instance.
+     */
+    protected String getPersistenceUnitName() {
+        return persistenceUnitName;
+    }
 
-		Map propertyMap = new LinkedHashMap(props);
+    /**
+     * Returns additional properties to be used when creating the internal
+     * entity manager factory.
+     *
+     * @param app associated application.
+     * @return additional properties to be used.
+     */
+    protected Map getAdditionalProperties(AbstractApplication app) {
+        Properties props = getProperties();
 
-		String strJdbcPassword = ApplicationSettings.getProperty(props, KEY_JDBC_PASSWORD);
+        Map propertyMap = new LinkedHashMap(props);
 
-		if (strJdbcPassword == null) {
-			jdbcPassword = null;
-		} else {
-			jdbcPassword = strJdbcPassword.toCharArray();
-			propertyMap.put(KEY_JDBC_PASSWORD, new String(jdbcPassword));
-		}
+        String strJdbcPassword = ApplicationSettings.getProperty(props, KEY_JDBC_PASSWORD);
 
-		return propertyMap;
-	}
+        if (strJdbcPassword == null) {
+            jdbcPassword = null;
+        } else {
+            jdbcPassword = strJdbcPassword.toCharArray();
+            propertyMap.put(KEY_JDBC_PASSWORD, new String(jdbcPassword));
+        }
 
-	@Override
-	protected void onInit(AbstractApplication app) {
-		super.onInit(app);
-		emf = Persistence.createEntityManagerFactory(getPersistenceUnitName(), getAdittionalProperties(app));
-	}
+        return propertyMap;
+    }
 
-	@Override
-	protected void onStop() {
-		super.onStop();
+    @Override
+    protected void onInit(AbstractApplication app) {
+        super.onInit(app);
+        emf = Persistence.createEntityManagerFactory(getPersistenceUnitName(), getAdditionalProperties(app));
+    }
 
-		emf.close();
-		emf = null;
-	}
+    @Override
+    protected void onStop() {
+        super.onStop();
 
-	/**
-	 * Returns an entity manager to be used by application.
-	 *
-	 * @param emf Entity manager factory.
-	 * @return an entity manager to be used by application.
-	 */
-	protected EntityManager getCustomEntityManager(EntityManagerFactory emf) {
-		EntityManager em = emf.createEntityManager();
-		em.setFlushMode(FlushModeType.COMMIT);
-		return em;
-	}
+        emf.close();
+        emf = null;
+    }
 
-	/**
-	 * Returns an entity manager to be used by application.
-	 *
-	 * @return an entity manager to be used by application.
-	 */
-	public final EntityManager getEntityManager() {
-		synchronized(this) {
-			if (!isActive())
-				throw new IllegalStateException("Module is not active");
+    /**
+     * Returns the EmFactory instance to be used by this module.
+     *
+     * @return EmFactory instance associated with this module instance.
+     */
+    protected EmFactory getEmFactory() {
+        return defaultFactory;
+    }
 
-			return getCustomEntityManager(emf);
-		}
-	}
-	// =========================================================================
+    private EmFactory __getEmFactory() {
+        synchronized(this) {
+            if (emFactory == null) {
+                emFactory = getEmFactory();
+            }
+
+            return emFactory;
+        }
+    }
+
+    /**
+     * Returns an entity manager to be used by application.
+     *
+     * @return an entity manager to be used by application.
+     */
+    public final EntityManager getEntityManager() {
+        synchronized(this) {
+            if (!isActive())
+                throw new IllegalStateException("Module is not active");
+
+            return __getEmFactory().getInstance();
+        }
+    }
+
 }

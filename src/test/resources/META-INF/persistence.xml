@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
 
- Copyright 2015 Agapsys Tecnologia Ltda-ME.
+ Copyright 2015-2016 Agapsys Tecnologia Ltda-ME.
  
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -17,14 +17,14 @@ limitations under the License.
 
 -->
 <persistence version="2.1" xmlns="http://xmlns.jcp.org/xml/ns/persistence" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/persistence http://xmlns.jcp.org/xml/ns/persistence/persistence_2_1.xsd">
-	<persistence-unit name="default" transaction-type="RESOURCE_LOCAL">
-		
-		<properties>
-			<property name="javax.persistence.jdbc.driver"   value="org.h2.Driver" />
-			<property name="javax.persistence.jdbc.url"      value="jdbc:h2:mem:" />
-			<property name="javax.persistence.jdbc.user"     value="sa" />
-			<property name="javax.persistence.jdbc.password" value="sa" />
-		</properties>
-		
-	</persistence-unit>
+    <persistence-unit name="default" transaction-type="RESOURCE_LOCAL">
+        
+        <properties>
+            <property name="javax.persistence.jdbc.driver"   value="org.h2.Driver" />
+            <property name="javax.persistence.jdbc.url"      value="jdbc:h2:mem:" />
+            <property name="javax.persistence.jdbc.user"     value="sa" />
+            <property name="javax.persistence.jdbc.password" value="sa" />
+        </properties>
+        
+    </persistence-unit>
 </persistence>

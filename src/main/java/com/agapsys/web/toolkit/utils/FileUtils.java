@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Agapsys Tecnologia Ltda-ME.
+ * Copyright 2015-2016 Agapsys Tecnologia Ltda-ME.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,158 +21,142 @@ import java.io.IOException;
 
 /**
  * File Handling utilities
- *
- * @author Leandro Oliveira (leandro@agapsys.com)
  */
 public class FileUtils {
 
-	// CLASS SCOPE =============================================================
-	public static class AccessError extends RuntimeException {
+    protected FileUtils() {}
 
-		public AccessError() {
-		}
+    public static class AccessError extends Exception {
 
-		public AccessError(String message) {
-			super(message);
-		}
+        public AccessError() {
+        }
 
-		public AccessError(String message, Throwable cause) {
-			super(message, cause);
-		}
+        public AccessError(String message) {
+            super(message);
+        }
 
-		public AccessError(Throwable cause) {
-			super(cause);
-		}
+        public AccessError(String message, Throwable cause) {
+            super(message, cause);
+        }
 
-		public AccessError(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
-			super(message, cause, enableSuppression, writableStackTrace);
-		}
-	}
+        public AccessError(Throwable cause) {
+            super(cause);
+        }
+    }
 
-	/**
-	 * Default folder delimiter.
-	 */
-	public static final String FOLDER_DELIMITER;
+    /**
+     * Default folder delimiter.
+     */
+    public static final String FOLDER_DELIMITER;
 
-	/**
-	 * Current user folder.
-	 */
-	public static final File USER_HOME;
+    /**
+     * Current user folder.
+     */
+    public static final File USER_HOME;
 
-	/**
-	 * Default temporary folder.
-	 */
-	public static final File DEFAULT_TEMPORARY_FOLDER;
+    /**
+     * Default temporary folder.
+     */
+    public static final File DEFAULT_TEMPORARY_FOLDER;
 
-	/**
-	 * Current Operating System.
-	 */
-	public static final String OS_NAME;
+    /**
+     * Current Operating System.
+     */
+    public static final String OS_NAME;
 
+    static {
+        FOLDER_DELIMITER = System.getProperty("file.separator");
+        USER_HOME = new File(System.getProperty("user.home"));
+        DEFAULT_TEMPORARY_FOLDER = new File(System.getProperty("java.io.tmpdir"));
+        OS_NAME = System.getProperty("os.name");
+    }
 
-	private static final FileUtils  SINGLETON = new FileUtils();
+    /**
+     * @return a file representing a given path. If directory hierarchy does not exist, they will be created.
+     *
+     * @param path directory path
+     * @throws AccessError if directory hierarchy does not exist and it was not possible to create it.
+     * @throws IllegalArgumentException if given path points to a file instead of a directory.
+     */
+    public static File getOrCreateDirectory(String path) throws AccessError, IllegalArgumentException {
+        File folder = new File(path);
+        if (!folder.exists()) {
+            if (!folder.mkdirs())
+                throw new AccessError(String.format("cannot create/access '%s'", path));
 
-	public static FileUtils getInstance() {
-		return SINGLETON;
-	}
+        } else if (!folder.isDirectory()) {
+            throw new IllegalArgumentException(String.format("Path '%s' is a file", path));
+        }
 
-	static {
-		FOLDER_DELIMITER = System.getProperty("file.separator");
-		USER_HOME = new File(System.getProperty("user.home"));
-		DEFAULT_TEMPORARY_FOLDER = new File(System.getProperty("java.io.tmpdir"));
-		OS_NAME = System.getProperty("os.name");
-	}
-	// =========================================================================
+        if (OS_NAME.toLowerCase().contains("win") && folder.getName().startsWith(".")) {
+            try {
+                Runtime.getRuntime().exec("attrib +H " + folder.getAbsolutePath());
+            } catch (IOException ignore) {}
+        }
+        return folder;
+    }
 
-	// INSTANCE SCOPE ==========================================================
-	protected FileUtils() {}
+    /**
+     * Deletes a file. If given file is a folder, delete its contents also.
+     *
+     * @param file file to delete.
+     * @throws FileNotFoundException if given file does not exist.
+     */
+    public static void deleteFile(File file) throws FileNotFoundException {
+        if (file == null)
+            throw new IllegalArgumentException("Null file");
 
-	/**
-	 * @return a file representing a given path. If directory hierarchy does not exist, they will be created.
-	 *
-	 * @param path directory path
-	 * @throws AccessError if directory hierarchy does not exist and it was not possible to create it.
-	 * @throws IllegalArgumentException if given path points to a file instead of a directory.
-	 */
-	public File getOrCreateDirectory(String path) throws AccessError, IllegalArgumentException {
-		File folder = new File(path);
-		if (!folder.exists()) {
-			if (!folder.mkdirs())
-				throw new AccessError(String.format("cannot create/access '%s'", path));
+        if (!file.exists())
+            throw new FileNotFoundException(String.format("File not found: %s", file.getAbsolutePath()));
 
-		} else if (!folder.isDirectory()) {
-			throw new IllegalArgumentException(String.format("Path '%s' is a file", path));
-		}
+        if (file.isDirectory()) {
+            File[] files = file.listFiles();
 
-		if (OS_NAME.toLowerCase().contains("win") && folder.getName().startsWith(".")) {
-			try {
-				Runtime.getRuntime().exec("attrib +H " + folder.getAbsolutePath());
-			} catch (IOException ignore) {}
-		}
-		return folder;
-	}
+            for (File tmpFile : files) {
+                deleteFile(tmpFile); // recursive
+            }
 
-	/**
-	 * Deletes a file. If given file is a folder, delete its contents also.
-	 *
-	 * @param file file to delete.
-	 * @throws FileNotFoundException if given file does not exist.
-	 */
-	public void deleteFile(File file) throws FileNotFoundException {
-		if (file == null)
-			throw new IllegalArgumentException("Null file");
+            file.delete();
+        } else {
+            file.delete();
+        }
+    }
 
-		if (!file.exists())
-			throw new FileNotFoundException(String.format("File not found: %s", file.getAbsolutePath()));
+    /**
+     * Returns a generated non-existent file.
+     *
+     * @param parentDirectory parent directory.
+     * @param nameLength filename length.
+     * @param maxAttempts maximum number of attempts trying to get a random non-existent file before an exception is thrown.
+     * @return non-existent file with random name.
+     * @throws FileNotFoundException if a non-existent file could not be found.
+     */
+    public static File getRandomNonExistentFile(File parentDirectory, int nameLength, int maxAttempts) throws FileNotFoundException {
+        char[] chars = "abcdefghijklmnopqrstuvwxyz0123456789".toCharArray();
 
-		if (file.isDirectory()) {
-			File[] files = file.listFiles();
+        if (parentDirectory == null)
+            throw new IllegalArgumentException("Parent directory cannot be null");
 
-			for (File tmpFile : files) {
-				deleteFile(tmpFile); // recursive
-			}
+        if (nameLength < 1)
+            throw new IllegalArgumentException("Name length must be greater than 1");
 
-			file.delete();
-		} else {
-			file.delete();
-		}
-	}
+        if (maxAttempts < 1)
+            throw new IllegalArgumentException("Maximum attempts must be greater than 1");
 
-	/**
-	 * Returns a generated non-existent file.
-	 *
-	 * @param parentDirectory parent directory.
-	 * @param nameLength filename length.
-	 * @param maxAttempts maximum number of attempts trying to get a random non-existent file before an exception is thrown.
-	 * @return non-existent file with random name.
-	 * @throws FileNotFoundException if a non-existent file could not be found.
-	 */
-	public File getRandomNonExistentFile(File parentDirectory, int nameLength, int maxAttempts) throws FileNotFoundException {
-		char[] chars = "abcdefghijklmnopqrstuvwxyz0123456789".toCharArray();
+        File file;
+        int attempts = 0;
 
-		if (parentDirectory == null)
-			throw new IllegalArgumentException("Parent directory cannot be null");
+        while (true) {
+            if (attempts >= maxAttempts)
+                throw new FileNotFoundException(String.format("It was not possible to generate a randon non-existent file after %d attempts", maxAttempts));
 
-		if (nameLength < 1)
-			throw new IllegalArgumentException("Name length must be greater than 1");
+            file = new File(parentDirectory, StringUtils.getRandom(nameLength, chars));
 
-		if (maxAttempts < 1)
-			throw new IllegalArgumentException("Maximum attempts must be greater than 1");
+            if (!file.exists())
+                return file;
 
-		File file;
-		int attempts = 0;
+            attempts++;
+        }
+    }
 
-		while (true) {
-			if (attempts >= maxAttempts)
-				throw new FileNotFoundException(String.format("It was not possible to generate a randon non-existent file after %d attempts", maxAttempts));
-
-			file = new File(parentDirectory, StringUtils.getInstance().getRandom(nameLength, chars));
-
-			if (!file.exists())
-				return file;
-
-			attempts++;
-		}
-	}
-	// =========================================================================
 }

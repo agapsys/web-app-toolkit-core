@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Agapsys Tecnologia Ltda-ME.
+ * Copyright 2015-2016 Agapsys Tecnologia Ltda-ME.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,10 +25,10 @@ import javax.servlet.http.HttpServletResponse;
 
 @WebServlet(ExceptionServlet.URL)
 public class ExceptionServlet extends HttpServlet{
-	public static final String URL = "/exception";
-	
-	@Override
-	protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-		throw new RuntimeException("Test error");
-	}
+    public static final String URL = "/exception";
+    
+    @Override
+    protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        throw new RuntimeException("Test error");
+    }
 }

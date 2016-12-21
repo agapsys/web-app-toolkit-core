@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Agapsys Tecnologia Ltda-ME.
+ * Copyright 2015-2016 Agapsys Tecnologia Ltda-ME.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,54 +33,55 @@ import org.junit.Before;
 import org.junit.Test;
 
 public class SmtpExceptionReporterTest {
-	// CLASS SCOPE =============================================================
-	@WebListener
-	public static class Application extends MockedWebApplication {
+    
+    // <editor-fold desc="STATIC SCOPE">
+    // =========================================================================
+    @WebListener
+    public static class Application extends MockedWebApplication {
 
-		@Override
-		protected String getSettingsFilename() {
-			return "smtp-exception-test.properties";
-		}
+        @Override
+        protected String getSettingsFilename() {
+            return "smtp-exception-test.properties";
+        }
 
-		@Override
-		protected void beforeApplicationStart() {
-			super.beforeApplicationStart();
-			registerModule(SmtpExceptionReporterModule.class);
-		}
-	}
+        @Override
+        protected void beforeApplicationStart() {
+            super.beforeApplicationStart();
+            registerModule(SmtpExceptionReporterModule.class);
+        }
+    }
 
-	@WebServlet(CustomErrorServlet.URL)
-	public static class CustomErrorServlet extends ErrorServlet {
-		public static final String URL = "/error";
-	}
-	// =========================================================================
+    @WebServlet(CustomErrorServlet.URL)
+    public static class CustomErrorServlet extends ErrorServlet {
+        public static final String URL = "/error";
+    }
+    // =========================================================================
+    // </editor-fold>
 
-	// INSTANCE SCOPE ==========================================================
-	private ServletContainer sc;
+    private ServletContainer sc;
 
-	@Before
-	public void before() {
-		sc = new ServletContainerBuilder()
-			.registerEventListener(Application.class)
-			.registerServlet(CustomErrorServlet.class)
-			.registerServlet(ExceptionServlet.class)
-			.registerFilter(WebApplicationFilter.class, "/*")
-			.registerErrorPage(500, CustomErrorServlet.URL)
-			.build();
+    @Before
+    public void before() {
+        sc = new ServletContainerBuilder()
+            .registerEventListener(Application.class)
+            .registerServlet(CustomErrorServlet.class)
+            .registerServlet(ExceptionServlet.class)
+            .registerFilter(WebApplicationFilter.class, "/*")
+            .registerErrorPage(500, CustomErrorServlet.URL)
+            .build();
 
-		sc.startServer();
-	}
+        sc.startServer();
+    }
 
-	@After
-	public void after() {
-		sc.stopServer();
-	}
+    @After
+    public void after() {
+        sc.stopServer();
+    }
 
-	@Test
-	public void callErrorUrl() {
-		String url = ExceptionServlet.URL + "?a=1&b=2";
-		HttpResponse resp = sc.doRequest(new HttpGet(url));
-		Assert.assertEquals(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, resp.getStatusCode());
-	}
-	// =========================================================================
+    @Test
+    public void callErrorUrl() {
+        String url = ExceptionServlet.URL + "?a=1&b=2";
+        HttpResponse resp = sc.doRequest(new HttpGet(url));
+        Assert.assertEquals(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, resp.getStatusCode());
+    }
 }

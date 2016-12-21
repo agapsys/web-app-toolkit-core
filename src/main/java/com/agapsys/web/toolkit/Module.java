@@ -22,6 +22,7 @@ import java.util.Set;
 
 /**
  * Represents a module in a {@linkplain AbstractApplication application}.
+ * 
  * A module must be registered with an application and will be initialized upon
  * application initialization. A module share settings with the application and
  * will have a singleton scope controlled by associated application.
@@ -29,79 +30,79 @@ import java.util.Set;
 
 public abstract class Module extends Service {
 
-	// -------------------------------------------------------------------------
-	private final Properties defaultProperties = new Properties();
-	private final Set<Class<? extends Module>> defaultDependencies = new LinkedHashSet<>();
-	// -------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
+    private final Properties defaultProperties = new Properties();
+    private final Set<Class<? extends Module>> defaultDependencies = new LinkedHashSet<>();
+    // -------------------------------------------------------------------------
 
-	// -------------------------------------------------------------------------
-	/**
-	 * Returns the name of settings group associated with this module.
-	 *
-	 * @return the name of settings group associated with this module.
-	 */
-	protected abstract String getSettingsGroupName();
+    // -------------------------------------------------------------------------
+    /**
+     * Returns the name of settings group associated with this module.
+     *
+     * @return the name of settings group associated with this module.
+     */
+    protected abstract String getSettingsGroupName();
 
-	/**
-	 * @see Module#getSettingsGroupName()
-	 */
-	final String _getSettingsGroupName() {
-		return getSettingsGroupName();
-	}
-	// -------------------------------------------------------------------------
+    /**
+     * @see Module#getSettingsGroupName()
+     */
+    final String _getSettingsGroupName() {
+        return getSettingsGroupName();
+    }
+    // -------------------------------------------------------------------------
 
-	// -------------------------------------------------------------------------
-	/**
-	 * Return default properties associated with this module.
-	 *
-	 * @return default properties associated with this module.
-	 */
-	protected Properties getDefaultProperties() {
-		return defaultProperties;
-	}
+    // -------------------------------------------------------------------------
+    /**
+     * Return default properties associated with this module.
+     *
+     * @return default properties associated with this module.
+     */
+    protected Properties getDefaultProperties() {
+        return defaultProperties;
+    }
 
-	/**
-	 * @see Module#getDefaultProperties()
-	 */
-	final Properties _getDefaultProperties() {
-		return getDefaultProperties();
-	}
+    /**
+     * @see Module#getDefaultProperties()
+     */
+    final Properties _getDefaultProperties() {
+        return getDefaultProperties();
+    }
 
-	/**
-	 * Returns the properties associated with this module.
-	 *
-	 * @return properties instance associated with this module.
-	 */
-	protected final Properties getProperties() {
-		synchronized(this) {
-			throwIfNotActive();
+    /**
+     * Returns the properties associated with this module.
+     *
+     * @return properties instance associated with this module.
+     */
+    protected final Properties getProperties() {
+        synchronized(this) {
+            throwIfNotActive();
 
-			Properties mainProperties = getApplication().getSettings().getProperties(getSettingsGroupName());
-			if (mainProperties == null)
-				mainProperties = new Properties();
-			
-			Properties defaults = getDefaultProperties();
+            Properties mainProperties = getApplication()._getSettings().getProperties(getSettingsGroupName());
+            if (mainProperties == null)
+                mainProperties = new Properties();
 
-			return ApplicationSettings.mergeProperties(mainProperties, defaults);
-		}
-	}
-	// -------------------------------------------------------------------------
+            Properties defaults = getDefaultProperties();
 
-	// -------------------------------------------------------------------------
-	/**
-	 * Return required modules used by this module.
-	 *
-	 * @return required modules used by this module.
-	 */
-	protected Set<Class<? extends Module>> getDependencies() {
-		return defaultDependencies;
-	}
+            return ApplicationSettings.mergeProperties(mainProperties, defaults);
+        }
+    }
+    // -------------------------------------------------------------------------
 
-	/**
-	 * @see Module#getDependencies()
-	 */
-	final Set<Class<? extends Module>> _getDependencies() {
-		return getDependencies();
-	}
-	// -------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
+    /**
+     * Return required modules used by this module.
+     *
+     * @return required modules used by this module.
+     */
+    protected Set<Class<? extends Module>> getDependencies() {
+        return defaultDependencies;
+    }
+
+    /**
+     * @see Module#getDependencies()
+     */
+    final Set<Class<? extends Module>> _getDependencies() {
+        return getDependencies();
+    }
+    // -------------------------------------------------------------------------
 }

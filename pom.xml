@@ -1,6 +1,6 @@
 <!--
 
- Copyright 2015 Agapsys Tecnologia Ltda-ME.
+ Copyright 2015-2016 Agapsys Tecnologia Ltda-ME.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -17,89 +17,89 @@ limitations under the License.
 -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
+    <modelVersion>4.0.0</modelVersion>
 
-	<groupId>com.agapsys.libs</groupId>
-	<artifactId>web-app-toolkit</artifactId>
-	<version>2.3.0</version>
-	<packaging>jar</packaging>
+    <groupId>com.agapsys</groupId>
+    <artifactId>web-app-toolkit</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
 
-	<properties>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<maven.compiler.source>1.7</maven.compiler.source>
-		<maven.compiler.target>1.7</maven.compiler.target>
-	</properties>
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.source>1.7</maven.compiler.source>
+        <maven.compiler.target>1.7</maven.compiler.target>
+    </properties>
 
-	<name>Web Application Toolkit</name>
-	<description>Essential tools for back-end applications</description>
-	<url>https://github.com/agapsys/web-app-toolkit</url>
+    <name>Web Application Toolkit</name>
+    <description>Essential tools for back-end applications</description>
+    <url>https://github.com/agapsys/web-app-toolkit</url>
 
-	<licenses>
-		<license>
-			<name>The Apache License, Version 2.0</name>
-			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
-		</license>
-	</licenses>
+    <licenses>
+        <license>
+            <name>The Apache License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
+    </licenses>
 
-	<developers>
-		<developer>
-			<name>Leandro Oliveira</name>
-			<email>leandro@agapsys.com</email>
-			<organization>Agapsys Tecnologia Ltda-ME</organization>
-			<organizationUrl>http://www.agapsys.com</organizationUrl>
-		</developer>
-	</developers>
+    <developers>
+        <developer>
+            <name>Leandro Oliveira</name>
+            <email>leandro@agapsys.com</email>
+            <organization>Agapsys Tecnologia Ltda-ME</organization>
+            <organizationUrl>http://www.agapsys.com</organizationUrl>
+        </developer>
+    </developers>
 
-	<scm>
-		<connection>scm:git:git@github.com:agapsys/web-app-toolkit.git</connection>
-		<url>git@github.com:agapsys/web-app-toolkit.git</url>
-	</scm>
+    <scm>
+        <connection>scm:git:git@github.com:agapsys/web-app-toolkit.git</connection>
+        <url>git@github.com:agapsys/web-app-toolkit.git</url>
+    </scm>
 
-	<organization>
-		<name>Agapsys Tecnologia Ltda-ME</name>
-		<url>http://www.agapsys.com</url>
-	</organization>
+    <organization>
+        <name>Agapsys Tecnologia Ltda-ME</name>
+        <url>http://www.agapsys.com</url>
+    </organization>
 
-	<dependencies>
-		<!-- Test dependencies -->
-		<dependency>
-			<groupId>com.agapsys.libs</groupId>
-			<artifactId>embedded-servlet-container</artifactId>
-			<version>[0.1.0, 1.0.0)</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>4.10</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.hibernate</groupId>
-			<artifactId>hibernate-entitymanager</artifactId>
-			<version>5.0.1.Final</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.h2database</groupId>
-			<artifactId>h2</artifactId>
-			<version>1.4.190</version>
-			<scope>test</scope>
-		</dependency>
+    <dependencies>
+        <!-- Test dependencies -->
+        <dependency>
+            <groupId>com.agapsys</groupId>
+            <artifactId>embedded-servlet-container</artifactId>
+            <version>0.1.0-SNAPSHOT</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.10</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-entitymanager</artifactId>
+            <version>5.0.1.Final</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <version>1.4.190</version>
+            <scope>test</scope>
+        </dependency>
 
-		<!-- Provided dependencies -->
-		<dependency>
-			<groupId>javax</groupId>
-			<artifactId>javaee-web-api</artifactId>
-			<version>7.0</version>
-			<scope>provided</scope>
-		</dependency>
+        <!-- Provided dependencies -->
+        <dependency>
+            <groupId>javax</groupId>
+            <artifactId>javaee-web-api</artifactId>
+            <version>7.0</version>
+            <scope>provided</scope>
+        </dependency>
 
-		<!-- Compile dependencies-->
-		<dependency>
-			<groupId>com.agapsys.libs</groupId>
-			<artifactId>smtp-sender</artifactId>
-			<version>[3.0.0, 4.0.0)</version>
-		</dependency>
-	</dependencies>
+        <!-- Compile dependencies-->
+        <dependency>
+            <groupId>com.agapsys</groupId>
+            <artifactId>smtp-sender</artifactId>
+            <version>0.1.0-SNAPSHOT</version>
+        </dependency>
+    </dependencies>
 </project>

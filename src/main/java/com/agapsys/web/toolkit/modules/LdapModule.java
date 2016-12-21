@@ -18,6 +18,7 @@ package com.agapsys.web.toolkit.modules;
 
 import com.agapsys.web.toolkit.AbstractApplication;
 import com.agapsys.web.toolkit.ApplicationSettings;
+import com.agapsys.web.toolkit.WebModule;
 import com.agapsys.web.toolkit.modules.LdapModule.LdapException.LdapExceptionType;
 import java.util.Collections;
 import java.util.Hashtable;
@@ -38,270 +39,271 @@ import javax.naming.directory.SearchControls;
 import javax.naming.directory.SearchResult;
 
 public class LdapModule extends WebModule {
-	// CLASS SCOPE =============================================================
-	public static class LdapException extends Exception {
-		// CLASS SCOPE =========================================================
-		public static enum LdapExceptionType {
-			INVALID_CREDENTIALS,
-			AUTHENTICATION_NOT_SUPPORTED,
-			COMMUNICATION_FAILURE,
-			NAMING_ERROR
-		}
-		// =====================================================================
+    
+    // <editor-fold desc="STATIC SCOPE">
+    // =========================================================================
+    public static class LdapException extends Exception {
+        // CLASS SCOPE =========================================================
+        public static enum LdapExceptionType {
+            INVALID_CREDENTIALS,
+            AUTHENTICATION_NOT_SUPPORTED,
+            COMMUNICATION_FAILURE,
+            NAMING_ERROR
+        }
+        // =====================================================================
 
-		// INSTANCE SCOPE ======================================================
-		private final LdapExceptionType exceptionType;
+        private final LdapExceptionType exceptionType;
 
-		private LdapException(LdapExceptionType exceptionType, String message, Throwable cause) {
-			super(message, cause);
-			this.exceptionType = exceptionType;
-		}
+        private LdapException(LdapExceptionType exceptionType, String message, Throwable cause) {
+            super(message, cause);
+            this.exceptionType = exceptionType;
+        }
 
-		private LdapException(LdapExceptionType exceptionType, Throwable cause) {
-			super(cause);
-			this.exceptionType = exceptionType;
-		}
+        private LdapException(LdapExceptionType exceptionType, Throwable cause) {
+            super(cause);
+            this.exceptionType = exceptionType;
+        }
 
-		public LdapExceptionType getExceptionType() {
-			return exceptionType;
-		}
-		// =====================================================================
-	}
+        public LdapExceptionType getExceptionType() {
+            return exceptionType;
+        }
 
-	public static class LdapAttribute {
-		private final String name;
-		private final List<String> values = new LinkedList<>();
-		private final List<String> unmodifiableValues = Collections.unmodifiableList(values);
+    }
 
-		private LdapAttribute(Attribute attribute) throws NamingException {
-			this.name = attribute.getID();
+    public static class LdapAttribute {
+        private final String name;
+        private final List<String> values = new LinkedList<>();
+        private final List<String> unmodifiableValues = Collections.unmodifiableList(values);
 
-			NamingEnumeration nem = attribute.getAll();
+        private LdapAttribute(Attribute attribute) throws NamingException {
+            this.name = attribute.getID();
 
-			while(nem.hasMoreElements()) {
-				Object valueObj = nem.next();
+            NamingEnumeration nem = attribute.getAll();
 
-				if (valueObj instanceof String)
-					this.values.add(valueObj.toString());
-			}
-		}
+            while(nem.hasMoreElements()) {
+                Object valueObj = nem.next();
 
-		public String getName() {
-			return name;
-		}
+                if (valueObj instanceof String)
+                    this.values.add(valueObj.toString());
+            }
+        }
 
-		public List<String> getValues() {
-			return unmodifiableValues;
-		}
+        public String getName() {
+            return name;
+        }
 
-		@Override
-		public String toString() {
-			return String.format("%s: %s", getName(), getValues().toString());
-		}
-	}
+        public List<String> getValues() {
+            return unmodifiableValues;
+        }
 
-	public static class LdapUser {
-		private final String dn;
-		private final List<LdapAttribute> attributes = new LinkedList<>();
-		private final List<LdapAttribute> unmodifiableAttributes = Collections.unmodifiableList(attributes);
+        @Override
+        public String toString() {
+            return String.format("%s: %s", getName(), getValues().toString());
+        }
+    }
 
-		private LdapUser(String dn, Attributes coreAttributes) throws NamingException {
-			this.dn = dn;
+    public static class LdapUser {
+        private final String dn;
+        private final List<LdapAttribute> attributes = new LinkedList<>();
+        private final List<LdapAttribute> unmodifiableAttributes = Collections.unmodifiableList(attributes);
 
-			NamingEnumeration<? extends Attribute> attrs = coreAttributes.getAll();
+        private LdapUser(String dn, Attributes coreAttributes) throws NamingException {
+            this.dn = dn;
 
-			while(attrs.hasMoreElements()) {
-				Attribute attr = attrs.next();
-				this.attributes.add(new LdapAttribute(attr));
-			}
-		}
+            NamingEnumeration<? extends Attribute> attrs = coreAttributes.getAll();
 
-		public String getDn() {
-			return dn;
-		}
+            while(attrs.hasMoreElements()) {
+                Attribute attr = attrs.next();
+                this.attributes.add(new LdapAttribute(attr));
+            }
+        }
 
-		public List<LdapAttribute> getAttributes() {
-			return unmodifiableAttributes;
-		}
-	}
+        public String getDn() {
+            return dn;
+        }
 
-	public static final String SETTINGS_GROUP_NAME = LdapModule.class.getName();
+        public List<LdapAttribute> getAttributes() {
+            return unmodifiableAttributes;
+        }
+    }
 
-	public static final String KEY_LDAP_URL             = SETTINGS_GROUP_NAME + ".url";
-	public static final String KEY_SEARCH_BASE_DN       = SETTINGS_GROUP_NAME + ".baseDn";
-	public static final String KEY_SEARCH_PATTERN       = SETTINGS_GROUP_NAME + ".searchPattern";
-	public static final String KEY_SEARCH_USER_DN       = SETTINGS_GROUP_NAME + ".searchUserDn";
-	public static final String KEY_SEARCH_USER_PASSWORD = SETTINGS_GROUP_NAME + ".searchUserPassword";
+    public static final String SETTINGS_GROUP_NAME = LdapModule.class.getName();
 
-	private static final String DEFAULT_LDAP_URL             = "ldaps://ldap.server:9876";
-	private static final String DEFAULT_SEARCH_BASE_DN       = "ou=users,dc=ldap,dc=server";
-	private static final String DEFAULT_SEARCH_PATTERN       = "(&(objectClass=uidObject)(uid=%s))";
-	private static final String DEFAULT_SEARCH_USER_DN       = "cn=admin,dc=ldap,dc=sever";
-	private static final String DEFAULT_SEARCH_USER_PASSWORD = "password";
-	// =========================================================================
+    public static final String KEY_LDAP_URL             = SETTINGS_GROUP_NAME + ".url";
+    public static final String KEY_SEARCH_BASE_DN       = SETTINGS_GROUP_NAME + ".baseDn";
+    public static final String KEY_SEARCH_PATTERN       = SETTINGS_GROUP_NAME + ".searchPattern";
+    public static final String KEY_SEARCH_USER_DN       = SETTINGS_GROUP_NAME + ".searchUserDn";
+    public static final String KEY_SEARCH_USER_PASSWORD = SETTINGS_GROUP_NAME + ".searchUserPassword";
 
-	// INSTANCE SCOPE ==========================================================
-	private String ldapUrl;
-	private String searchBaseDn;
-	private String searchPattern;
-	private String searchUserDn;
-	private char[] searchUserPassword;
+    private static final String DEFAULT_LDAP_URL             = "ldaps://ldap.server:9876";
+    private static final String DEFAULT_SEARCH_BASE_DN       = "ou=users,dc=ldap,dc=server";
+    private static final String DEFAULT_SEARCH_PATTERN       = "(&(objectClass=uidObject)(uid=%s))";
+    private static final String DEFAULT_SEARCH_USER_DN       = "cn=admin,dc=ldap,dc=sever";
+    private static final String DEFAULT_SEARCH_USER_PASSWORD = "password";
+    // =========================================================================
+    // </editor-fold>
 
-	public LdapModule() {
-		reset();
-	}
+    private String ldapUrl;
+    private String searchBaseDn;
+    private String searchPattern;
+    private String searchUserDn;
+    private char[] searchUserPassword;
 
-	private void reset() {
-		ldapUrl            = null;
-		searchBaseDn       = null;
-		searchPattern      = null;
-		searchUserDn       = null;
-		searchUserPassword = null;
-	}
+    public LdapModule() {
+        reset();
+    }
 
-	@Override
-	protected final String getSettingsGroupName() {
-		return SETTINGS_GROUP_NAME;
-	}
+    private void reset() {
+        ldapUrl            = null;
+        searchBaseDn       = null;
+        searchPattern      = null;
+        searchUserDn       = null;
+        searchUserPassword = null;
+    }
 
-	@Override
-	public Properties getDefaultProperties() {
-		Properties defaultProperties = super.getDefaultProperties();
+    @Override
+    protected final String getSettingsGroupName() {
+        return SETTINGS_GROUP_NAME;
+    }
 
-		defaultProperties.setProperty(KEY_LDAP_URL,             DEFAULT_LDAP_URL);
-		defaultProperties.setProperty(KEY_SEARCH_BASE_DN,       DEFAULT_SEARCH_BASE_DN);
-		defaultProperties.setProperty(KEY_SEARCH_PATTERN,       DEFAULT_SEARCH_PATTERN);
-		defaultProperties.setProperty(KEY_SEARCH_USER_DN,       DEFAULT_SEARCH_USER_DN);
-		defaultProperties.setProperty(KEY_SEARCH_USER_PASSWORD, DEFAULT_SEARCH_USER_PASSWORD);
+    @Override
+    public Properties getDefaultProperties() {
+        Properties defaultProperties = super.getDefaultProperties();
 
-		return defaultProperties;
-	}
+        defaultProperties.setProperty(KEY_LDAP_URL,             DEFAULT_LDAP_URL);
+        defaultProperties.setProperty(KEY_SEARCH_BASE_DN,       DEFAULT_SEARCH_BASE_DN);
+        defaultProperties.setProperty(KEY_SEARCH_PATTERN,       DEFAULT_SEARCH_PATTERN);
+        defaultProperties.setProperty(KEY_SEARCH_USER_DN,       DEFAULT_SEARCH_USER_DN);
+        defaultProperties.setProperty(KEY_SEARCH_USER_PASSWORD, DEFAULT_SEARCH_USER_PASSWORD);
 
-	@Override
-	protected void onInit(AbstractApplication webApp) {
-		super.onInit(webApp);
+        return defaultProperties;
+    }
 
-		reset();
+    @Override
+    protected void onInit(AbstractApplication webApp) {
+        super.onInit(webApp);
 
-		Properties props = getProperties();
+        reset();
 
-		ldapUrl            = ApplicationSettings.getMandatoryProperty(props, KEY_LDAP_URL);
-		searchBaseDn       = ApplicationSettings.getMandatoryProperty(props, KEY_SEARCH_BASE_DN);
-		searchPattern      = ApplicationSettings.getMandatoryProperty(props, KEY_SEARCH_PATTERN);
-		searchUserDn       = ApplicationSettings.getMandatoryProperty(props, KEY_SEARCH_USER_DN);
-		searchUserPassword = ApplicationSettings.getMandatoryProperty(props, KEY_SEARCH_USER_PASSWORD).toCharArray();
-	}
+        Properties props = getProperties();
+
+        ldapUrl            = ApplicationSettings.getMandatoryProperty(props, KEY_LDAP_URL);
+        searchBaseDn       = ApplicationSettings.getMandatoryProperty(props, KEY_SEARCH_BASE_DN);
+        searchPattern      = ApplicationSettings.getMandatoryProperty(props, KEY_SEARCH_PATTERN);
+        searchUserDn       = ApplicationSettings.getMandatoryProperty(props, KEY_SEARCH_USER_DN);
+        searchUserPassword = ApplicationSettings.getMandatoryProperty(props, KEY_SEARCH_USER_PASSWORD).toCharArray();
+    }
 
 
-	protected String getLdapUrl() {
-		return ldapUrl;
-	}
+    protected String getLdapUrl() {
+        return ldapUrl;
+    }
 
-	protected String getSearchBaseDn() {
-		return searchBaseDn;
-	}
+    protected String getSearchBaseDn() {
+        return searchBaseDn;
+    }
 
-	protected String getSearchPattern() {
-		return searchPattern;
-	}
+    protected String getSearchPattern() {
+        return searchPattern;
+    }
 
-	protected String getSearchUserDn() {
-		return searchUserDn;
-	}
+    protected String getSearchUserDn() {
+        return searchUserDn;
+    }
 
-	protected char[] getSearchUserPassword() {
-		return searchUserPassword;
-	}
+    protected char[] getSearchUserPassword() {
+        return searchUserPassword;
+    }
 
-	private DirContext getContext(String url, String userDn, char[] password) throws LdapException {
-		Hashtable<String, Object> properties = new Hashtable<>();
+    private DirContext getContext(String url, String userDn, char[] password) throws LdapException {
+        Hashtable<String, Object> properties = new Hashtable<>();
 
-		properties.put(Context.PROVIDER_URL,            url);
-		properties.put(Context.SECURITY_PRINCIPAL,      userDn);
-		properties.put(Context.SECURITY_CREDENTIALS,    password);
-		properties.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.ldap.LdapCtxFactory");
-		properties.put(Context.URL_PKG_PREFIXES,        "com.sun.jndi.url");
-		properties.put(Context.REFERRAL,                "ignore");
-		properties.put(Context.SECURITY_AUTHENTICATION, "simple");
+        properties.put(Context.PROVIDER_URL,            url);
+        properties.put(Context.SECURITY_PRINCIPAL,      userDn);
+        properties.put(Context.SECURITY_CREDENTIALS,    password);
+        properties.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.ldap.LdapCtxFactory");
+        properties.put(Context.URL_PKG_PREFIXES,        "com.sun.jndi.url");
+        properties.put(Context.REFERRAL,                "ignore");
+        properties.put(Context.SECURITY_AUTHENTICATION, "simple");
 
-		try {
-			return new InitialDirContext(properties);
-		} catch (AuthenticationException ex) {
-			throw new LdapException(LdapExceptionType.INVALID_CREDENTIALS, String.format("Invalid credentials for %s", userDn), ex);
-		} catch (AuthenticationNotSupportedException ex) {
-			throw new LdapException(LdapExceptionType.AUTHENTICATION_NOT_SUPPORTED, "Authentication not supported", ex);
-		} catch (CommunicationException ex) {
-			throw new LdapException(LdapExceptionType.COMMUNICATION_FAILURE, "Communication failure", ex);
-		} catch (NamingException ex) {
-			throw new LdapException(LdapExceptionType.NAMING_ERROR, ex);
-		}
-	}
+        try {
+            return new InitialDirContext(properties);
+        } catch (AuthenticationException ex) {
+            throw new LdapException(LdapExceptionType.INVALID_CREDENTIALS, String.format("Invalid credentials for %s", userDn), ex);
+        } catch (AuthenticationNotSupportedException ex) {
+            throw new LdapException(LdapExceptionType.AUTHENTICATION_NOT_SUPPORTED, "Authentication not supported", ex);
+        } catch (CommunicationException ex) {
+            throw new LdapException(LdapExceptionType.COMMUNICATION_FAILURE, "Communication failure", ex);
+        } catch (NamingException ex) {
+            throw new LdapException(LdapExceptionType.NAMING_ERROR, ex);
+        }
+    }
 
-	private SearchResult searchUser(DirContext ctx, String searchBase, String searchPattern, String userId) throws LdapException {
-		try {
-			SearchControls constraints = new SearchControls();
-			constraints.setSearchScope(SearchControls.SUBTREE_SCOPE);
+    private SearchResult searchUser(DirContext ctx, String searchBase, String searchPattern, String userId) throws LdapException {
+        try {
+            SearchControls constraints = new SearchControls();
+            constraints.setSearchScope(SearchControls.SUBTREE_SCOPE);
 
-			NamingEnumeration<SearchResult> results = ctx.search(
-				searchBase,
-				String.format(searchPattern, userId),
-				constraints
-			);
+            NamingEnumeration<SearchResult> results = ctx.search(
+                searchBase,
+                String.format(searchPattern, userId),
+                constraints
+            );
 
-			if (results.hasMoreElements()) {
-				SearchResult sr = (SearchResult) results.next();
-				return sr;
-			} else {
-				return null;
-			}
-		} catch (NamingException ex) {
-			throw new LdapException(LdapExceptionType.NAMING_ERROR, ex);
-		}
-	}
+            if (results.hasMoreElements()) {
+                SearchResult sr = (SearchResult) results.next();
+                return sr;
+            } else {
+                return null;
+            }
+        } catch (NamingException ex) {
+            throw new LdapException(LdapExceptionType.NAMING_ERROR, ex);
+        }
+    }
 
-	private LdapUser _getUser(String userId, char[] password) throws LdapException, NamingException {
-		DirContext ctx;
-		SearchResult searchResult;
-		String userDn = null;
+    private LdapUser _getUser(String userId, char[] password) throws LdapException, NamingException {
+        DirContext ctx;
+        SearchResult searchResult;
+        String userDn = null;
 
-		ctx = getContext(getLdapUrl(), getSearchUserDn(), getSearchUserPassword());
-		searchResult = searchUser(ctx, getSearchBaseDn(), getSearchPattern(), userId);
+        ctx = getContext(getLdapUrl(), getSearchUserDn(), getSearchUserPassword());
+        searchResult = searchUser(ctx, getSearchBaseDn(), getSearchPattern(), userId);
 
-		boolean found;
-		if (searchResult != null) {
-			userDn = searchResult.getNameInNamespace();
-			found = true;
-		} else {
-			found = false;
-		}
+        boolean found;
+        if (searchResult != null) {
+            userDn = searchResult.getNameInNamespace();
+            found = true;
+        } else {
+            found = false;
+        }
 
-		ctx.close();
-		ctx = null;
+        ctx.close();
+        ctx = null;
 
-		if (found) {
-			// Once a user is found, try to authenticate it
-			try {
-				ctx = getContext(getLdapUrl(), userDn, password);
-				return new LdapUser(userDn, ctx.getAttributes(userDn));
-			} catch (LdapException ex) {
-				if (ex.getExceptionType() == LdapExceptionType.INVALID_CREDENTIALS) return null;
-				throw ex;
-			} finally {
-				if (ctx != null) ctx.close();
-			}
-		} else {
-			return null;
-		}
-	}
+        if (found) {
+            // Once a user is found, try to authenticate it
+            try {
+                ctx = getContext(getLdapUrl(), userDn, password);
+                return new LdapUser(userDn, ctx.getAttributes(userDn));
+            } catch (LdapException ex) {
+                if (ex.getExceptionType() == LdapExceptionType.INVALID_CREDENTIALS) return null;
+                throw ex;
+            } finally {
+                if (ctx != null) ctx.close();
+            }
+        } else {
+            return null;
+        }
+    }
 
-	public final LdapUser getUser(String userId, char[] password) throws LdapException {
-		if (!isActive()) throw new RuntimeException("Module is not active");
+    public final LdapUser getUser(String userId, char[] password) throws LdapException {
+        if (!isActive()) throw new RuntimeException("Module is not active");
 
-		try {
-			return _getUser(userId, password);
-		} catch (NamingException ex) {
-			throw new LdapException(LdapExceptionType.NAMING_ERROR, ex);
-		}
-	}
-	// =========================================================================
+        try {
+            return _getUser(userId, password);
+        } catch (NamingException ex) {
+            throw new LdapException(LdapExceptionType.NAMING_ERROR, ex);
+        }
+    }
+
 }

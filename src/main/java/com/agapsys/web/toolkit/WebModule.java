@@ -13,24 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.agapsys.web.toolkit.modules;
-
-import com.agapsys.web.toolkit.AbstractApplication;
-import com.agapsys.web.toolkit.AbstractWebApplication;
-import com.agapsys.web.toolkit.Module;
+package com.agapsys.web.toolkit;
 
 /**
  * Represents a module in a web application.
- * @author Leandro Oliveira (leandro@agapsys.com)
  */
 public abstract class WebModule extends Module {
 
-	@Override
-	protected void onInit(AbstractApplication webApp) {
-		if (!(webApp instanceof AbstractWebApplication))
-			throw new UnsupportedOperationException("Module requires a web application");
+    @Override
+    protected void onInit(AbstractApplication webApp) {
+        if (!(webApp instanceof AbstractWebApplication))
+            throw new UnsupportedOperationException("Module requires a web application");
 
-		super.onInit(webApp);
-	}
+        super.onInit(webApp);
+    }
 
 }

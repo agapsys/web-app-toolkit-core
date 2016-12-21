@@ -26,51 +26,51 @@ import javax.servlet.annotation.WebListener;
 
 @WebListener
 public class MockedWebApplication extends AbstractWebApplication {
-	private File appFolder = null;
+    private File appFolder = null;
 
-	@Override
-	public String getName() {
-		return "test-app";
-	}
+    @Override
+    public String getName() {
+        return "test-app";
+    }
 
-	@Override
-	public String getVersion() {
-		return "0.1.0";
-	}
+    @Override
+    public String getVersion() {
+        return "0.1.0";
+    }
 
-	@Override
-	protected String getDirectoryAbsolutePath() {
-		if (appFolder == null) {
-			try {
-				appFolder = FileUtils.getInstance().getRandomNonExistentFile(FileUtils.DEFAULT_TEMPORARY_FOLDER, 8, 1000);
-			} catch (FileNotFoundException ex) {
-				throw new RuntimeException(ex);
-			}
-		}
+    @Override
+    protected String getDirectoryAbsolutePath() {
+        if (appFolder == null) {
+            try {
+                appFolder = FileUtils.getRandomNonExistentFile(FileUtils.DEFAULT_TEMPORARY_FOLDER, 8, 1000);
+            } catch (FileNotFoundException ex) {
+                throw new RuntimeException(ex);
+            }
+        }
 
-		return appFolder.getAbsolutePath();
-	}
+        return appFolder.getAbsolutePath();
+    }
 
-	@Override
-	protected void afterApplicationStop() {
-		super.afterApplicationStop();
+    @Override
+    protected void afterApplicationStop() {
+        super.afterApplicationStop();
 
-		try {
-			super.afterApplicationStop();
-			FileUtils.getInstance().deleteFile(appFolder);
-			appFolder = null;
-		} catch (IOException ex) {
-			appFolder = null;
-			throw new RuntimeException(ex);
-		}
-	}
+        try {
+            super.afterApplicationStop();
+            FileUtils.deleteFile(appFolder);
+            appFolder = null;
+        } catch (IOException ex) {
+            appFolder = null;
+            throw new RuntimeException(ex);
+        }
+    }
 
-	@Override
-	protected void beforeApplicationStart() {
-		super.beforeApplicationStart();
+    @Override
+    protected void beforeApplicationStart() {
+        super.beforeApplicationStart();
 
-		LogModule logModule = getModule(LogModule.class);
-		logModule.addStream(new ConsoleLogStream());
-	}
+        LogModule logModule = getModule(LogModule.class);
+        logModule.addStream(new ConsoleLogStream());
+    }
 
 }

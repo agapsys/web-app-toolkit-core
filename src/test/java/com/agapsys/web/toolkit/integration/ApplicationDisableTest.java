@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Agapsys Tecnologia Ltda-ME.
+ * Copyright 2015-2016 Agapsys Tecnologia Ltda-ME.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,60 +34,62 @@ import org.junit.Assert;
 import org.junit.Test;
 
 public class ApplicationDisableTest {
-	// CLASS SCOPE =============================================================
-	@WebListener
-	public static class DisabledApplication extends MockedWebApplication {
+    
+    // <editor-fold desc="STATIC SCOPE">
+    // =========================================================================
+    @WebListener
+    public static class DisabledApplication extends MockedWebApplication {
 
-		@Override
-		public boolean isDisabled() {
-			return true;
-		}
-	}
+        @Override
+        public boolean isDisabled() {
+            return true;
+        }
+    }
 
-	public static class EnabledApplication extends MockedWebApplication {}
+    public static class EnabledApplication extends MockedWebApplication {}
 
-	@WebServlet("/*")
-	public static class TestServlet extends HttpServlet {
+    @WebServlet("/*")
+    public static class TestServlet extends HttpServlet {
 
-		@Override
-		protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-			resp.getWriter().print("OK");
-		}
-	}
-	// =========================================================================
-// INSTANCE SCOPE ==========================================================
-	private ServletContainer sc;
+        @Override
+        protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+            resp.getWriter().print("OK");
+        }
+    }
+    // =========================================================================
+    // </editor-fold>
 
-	@After
-	public void after() {
-		sc.stopServer();
-	}
+    private ServletContainer sc;
 
-	@Test
-	public void testEnabledApplication() {
-		sc = new ServletContainerBuilder()
-			.registerEventListener(EnabledApplication.class)
-			.registerServlet(TestServlet.class)
-			.registerFilter(WebApplicationFilter.class, "/*")
-			.build();
+    @After
+    public void after() {
+        sc.stopServer();
+    }
 
-		sc.startServer();
-		HttpResponse resp = sc.doRequest(new HttpGet("/test"));
-		Assert.assertEquals(HttpServletResponse.SC_OK, resp.getStatusCode());
-	}
+    @Test
+    public void testEnabledApplication() {
+        sc = new ServletContainerBuilder()
+            .registerEventListener(EnabledApplication.class)
+            .registerServlet(TestServlet.class)
+            .registerFilter(WebApplicationFilter.class, "/*")
+            .build();
 
-	@Test
-	public void testDisabledApplication() {
-		sc = new ServletContainerBuilder()
-			.registerEventListener(DisabledApplication.class)
-			.registerServlet(TestServlet.class)
-			.registerFilter(WebApplicationFilter.class, "/*")
-			.build();
+        sc.startServer();
+        HttpResponse resp = sc.doRequest(new HttpGet("/test"));
+        Assert.assertEquals(HttpServletResponse.SC_OK, resp.getStatusCode());
+    }
 
-		sc.startServer();
+    @Test
+    public void testDisabledApplication() {
+        sc = new ServletContainerBuilder()
+            .registerEventListener(DisabledApplication.class)
+            .registerServlet(TestServlet.class)
+            .registerFilter(WebApplicationFilter.class, "/*")
+            .build();
 
-		HttpResponse resp = sc.doRequest(new HttpGet("/test"));
-		Assert.assertEquals(HttpServletResponse.SC_SERVICE_UNAVAILABLE, resp.getStatusCode());
-	}
-	// =========================================================================
+        sc.startServer();
+
+        HttpResponse resp = sc.doRequest(new HttpGet("/test"));
+        Assert.assertEquals(HttpServletResponse.SC_SERVICE_UNAVAILABLE, resp.getStatusCode());
+    }
 }

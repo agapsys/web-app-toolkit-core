@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Agapsys Tecnologia Ltda-ME.
+ * Copyright 2015-2016 Agapsys Tecnologia Ltda-ME.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,43 +25,39 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
- * Loads a JAR file at runtime.
- * 
- * @author Leandro Oliveira (leandro@agapsys.com)
+ * Loads a JAR file at runtime using system class loader.
  */
 public class RuntimeJarLoader {
-	// CLASS SCOPE =============================================================
-	private static final List<File> LOADED_JARS = new LinkedList<>();
-	private static final Class[] PARAMS = new Class[]{URL.class};
-	
-	/** 
-	 * Loads a jar file.
-	 * If file was already loaded, nothing happens.
-	 * @param jarFile file to be loaded
-	 */
-	public static synchronized void loadJar(File jarFile) {
-		if (!LOADED_JARS.contains(jarFile)) {
-			try {
-				if (!jarFile.exists())
-					throw new FileNotFoundException(String.format("File not found: '%s'", jarFile.getAbsolutePath()));
+    
+    protected RuntimeJarLoader() {}
 
-				URL url = new URL(String.format("jar:file:%s!/", jarFile.getAbsolutePath()));
+    private static final List<File> LOADED_JARS = new LinkedList<>();
+    private static final Class[] PARAMS = new Class[]{URL.class};
 
-				URLClassLoader sysloader = (URLClassLoader) ClassLoader.getSystemClassLoader();
-				Class urlClassLoaderClass = URLClassLoader.class;
+    /**
+     * Loads a jar file.
+     * If file was already loaded, nothing happens.
+     * @param jarFile file to be loaded
+     */
+    public static synchronized void loadJar(File jarFile) {
+        if (!LOADED_JARS.contains(jarFile)) {
+            try {
+                if (!jarFile.exists())
+                    throw new FileNotFoundException(String.format("File not found: '%s'", jarFile.getAbsolutePath()));
 
-				Method addUrlMethod = urlClassLoaderClass.getDeclaredMethod("addURL", PARAMS);
-				addUrlMethod.setAccessible(true);
-				addUrlMethod.invoke(sysloader, new Object[]{url});
-				LOADED_JARS.add(jarFile);
-			} catch (Throwable t) {
-				throw new RuntimeException(t);
-			}
-		}
-	}
-	// =========================================================================
-	
-	// INSTANCE SCOPE ==========================================================
-	private RuntimeJarLoader() {}
-	// =========================================================================
+                URL url = new URL(String.format("jar:file:%s!/", jarFile.getAbsolutePath()));
+
+                URLClassLoader sysloader = (URLClassLoader) ClassLoader.getSystemClassLoader();
+                Class urlClassLoaderClass = URLClassLoader.class;
+
+                Method addUrlMethod = urlClassLoaderClass.getDeclaredMethod("addURL", PARAMS);
+                addUrlMethod.setAccessible(true);
+                addUrlMethod.invoke(sysloader, new Object[]{url});
+                LOADED_JARS.add(jarFile);
+            } catch (Throwable t) {
+                throw new RuntimeException(t);
+            }
+        }
+    }
+
 }

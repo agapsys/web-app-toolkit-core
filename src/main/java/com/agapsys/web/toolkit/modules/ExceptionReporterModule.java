@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Agapsys Tecnologia Ltda-ME.
+ * Copyright 2015-2016 Agapsys Tecnologia Ltda-ME.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import com.agapsys.web.toolkit.AbstractApplication;
 import com.agapsys.web.toolkit.ApplicationSettings;
 import com.agapsys.web.toolkit.LogType;
 import com.agapsys.web.toolkit.WebApplicationFilter;
+import com.agapsys.web.toolkit.WebModule;
 import com.agapsys.web.toolkit.services.AttributeService;
 import com.agapsys.web.toolkit.utils.DateUtils;
 import com.agapsys.web.toolkit.utils.HttpUtils;
@@ -32,226 +33,224 @@ import javax.servlet.http.HttpServletRequest;
 
 /**
  * Represents an exception reporter.
- *
- * @author Leandro Oliveira (leandro@agapsys.com)
  */
 public class ExceptionReporterModule extends WebModule {
-	// CLASS SCOPE =============================================================
 
-	public static final String SETTINGS_GROUP_NAME = ExceptionReporterModule.class.getName();
+    // <editor-fold desc="STATIC SCOPE">
+    // =========================================================================
+    public static final String SETTINGS_GROUP_NAME = ExceptionReporterModule.class.getName();
 
-	// -------------------------------------------------------------------------
-	public static final String KEY_MODULE_ENABLED           = SETTINGS_GROUP_NAME + ".enabled";
-	public static final String KEY_NODE_NAME                = SETTINGS_GROUP_NAME + ".nodeName";
-	public static final String KEY_STACK_TRACE_HISTORY_SIZE = SETTINGS_GROUP_NAME + ".stackTraceHistorySize";
-	// -------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
+    public static final String KEY_MODULE_ENABLED           = SETTINGS_GROUP_NAME + ".enabled";
+    public static final String KEY_NODE_NAME                = SETTINGS_GROUP_NAME + ".nodeName";
+    public static final String KEY_STACK_TRACE_HISTORY_SIZE = SETTINGS_GROUP_NAME + ".stackTraceHistorySize";
+    // -------------------------------------------------------------------------
 
-	// -------------------------------------------------------------------------
-	public static final int     DEFAULT_STACK_TRACE_HISTORY_SIZE = 5;
-	public static final String  DEFAULT_NODE_NAME                = "node-01";
-	public static final boolean DEFAULT_MODULE_ENABLED           = true;
-	// -------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
+    public static final int     DEFAULT_STACK_TRACE_HISTORY_SIZE = 5;
+    public static final String  DEFAULT_NODE_NAME                = "node-01";
+    public static final boolean DEFAULT_MODULE_ENABLED           = true;
+    // -------------------------------------------------------------------------
 
-	/**
-	 * Return a string representation of a stack trace for given error.
-	 *
-	 * @return a string representation of a stack trace for given error.
-	 * @param throwable error.
-	 */
-	public static String getStackTrace(Throwable throwable) {
-		StringWriter stringWriter = new StringWriter();
-		throwable.printStackTrace(new PrintWriter(stringWriter));
+    /**
+     * Return a string representation of a stack trace for given error.
+     *
+     * @return a string representation of a stack trace for given error.
+     * @param throwable error.
+     */
+    public static String getStackTrace(Throwable throwable) {
+        StringWriter stringWriter = new StringWriter();
+        throwable.printStackTrace(new PrintWriter(stringWriter));
 
-		return stringWriter.toString();
-	}
-	// =========================================================================
+        return stringWriter.toString();
+    }
+    // =========================================================================
+    // </editor-fold>
 
-	// INSTANCE SCOPE ==========================================================
-	// -------------------------------------------------------------------------
-	private final List<String> stackTraceHistory = new LinkedList<>();
+    // -------------------------------------------------------------------------
+    private final List<String> stackTraceHistory = new LinkedList<>();
 
-	private String  nodeName              = DEFAULT_NODE_NAME;
-	private int     stackTraceHistorySize = DEFAULT_STACK_TRACE_HISTORY_SIZE;
-	private boolean enabled               = DEFAULT_MODULE_ENABLED;
+    private String  nodeName              = DEFAULT_NODE_NAME;
+    private int     stackTraceHistorySize = DEFAULT_STACK_TRACE_HISTORY_SIZE;
+    private boolean enabled               = DEFAULT_MODULE_ENABLED;
 
-	private AttributeService attributeService;
-	// -------------------------------------------------------------------------
+    private AttributeService attributeService;
+    // -------------------------------------------------------------------------
 
-	public ExceptionReporterModule() {
-		reset();
-	}
+    public ExceptionReporterModule() {
+        reset();
+    }
 
-	private void reset() {
-		nodeName = DEFAULT_NODE_NAME;
-		stackTraceHistorySize = DEFAULT_STACK_TRACE_HISTORY_SIZE;
-		stackTraceHistory.clear();
-		enabled = DEFAULT_MODULE_ENABLED;
-	}
+    private void reset() {
+        nodeName = DEFAULT_NODE_NAME;
+        stackTraceHistorySize = DEFAULT_STACK_TRACE_HISTORY_SIZE;
+        stackTraceHistory.clear();
+        enabled = DEFAULT_MODULE_ENABLED;
+    }
 
-	@Override
-	protected final String getSettingsGroupName() {
-		return SETTINGS_GROUP_NAME;
-	}
+    @Override
+    protected final String getSettingsGroupName() {
+        return SETTINGS_GROUP_NAME;
+    }
 
-	@Override
-	protected Properties getDefaultProperties() {
-		Properties properties = super.getDefaultProperties();
+    @Override
+    protected Properties getDefaultProperties() {
+        Properties properties = super.getDefaultProperties();
 
-		properties.setProperty(KEY_NODE_NAME,                DEFAULT_NODE_NAME);
-		properties.setProperty(KEY_STACK_TRACE_HISTORY_SIZE, "" + DEFAULT_STACK_TRACE_HISTORY_SIZE);
-		properties.setProperty(KEY_MODULE_ENABLED,           "" + DEFAULT_MODULE_ENABLED);
+        properties.setProperty(KEY_NODE_NAME,                DEFAULT_NODE_NAME);
+        properties.setProperty(KEY_STACK_TRACE_HISTORY_SIZE, "" + DEFAULT_STACK_TRACE_HISTORY_SIZE);
+        properties.setProperty(KEY_MODULE_ENABLED,           "" + DEFAULT_MODULE_ENABLED);
 
-		return properties;
-	}
+        return properties;
+    }
 
-	@Override
-	protected void onInit(AbstractApplication app) {
-		super.onInit(app);
+    @Override
+    protected void onInit(AbstractApplication app) {
+        super.onInit(app);
 
-		reset();
+        reset();
 
-		Properties props = getProperties();
+        Properties props = getProperties();
 
-		attributeService = getService(AttributeService.class);
+        attributeService = getService(AttributeService.class);
 
-		String val;
+        String val;
 
-		// isEnabled
-		val = ApplicationSettings.getMandatoryProperty(props, KEY_MODULE_ENABLED);
-		enabled = Boolean.parseBoolean(val);
+        // isEnabled
+        val = ApplicationSettings.getMandatoryProperty(props, KEY_MODULE_ENABLED);
+        enabled = Boolean.parseBoolean(val);
 
-		// nodeName
-		val = ApplicationSettings.getMandatoryProperty(props, KEY_NODE_NAME);
-		nodeName = val;
+        // nodeName
+        val = ApplicationSettings.getMandatoryProperty(props, KEY_NODE_NAME);
+        nodeName = val;
 
-		// stackTraceHistorySize
-		val = ApplicationSettings.getMandatoryProperty(props, KEY_STACK_TRACE_HISTORY_SIZE);
-		stackTraceHistorySize = Integer.parseInt(val);
-	}
+        // stackTraceHistorySize
+        val = ApplicationSettings.getMandatoryProperty(props, KEY_STACK_TRACE_HISTORY_SIZE);
+        stackTraceHistorySize = Integer.parseInt(val);
+    }
 
-	/**
-	 * Returns the stack trace history size defined in application settings.
-	 *
-	 * @return stack trace history size defined in application settings.
-	 */
-	public int getStacktraceHistorySize() {
-		return stackTraceHistorySize;
-	}
+    /**
+     * Returns the stack trace history size defined in application settings.
+     *
+     * @return stack trace history size defined in application settings.
+     */
+    public int getStacktraceHistorySize() {
+        return stackTraceHistorySize;
+    }
 
-	/**
-	 * Returns the node name defined in application settings.
-	 *
-	 * @return the node name defined in application settings.
-	 */
-	public String getNodeName() {
-		return nodeName;
-	}
+    /**
+     * Returns the node name defined in application settings.
+     *
+     * @return the node name defined in application settings.
+     */
+    public String getNodeName() {
+        return nodeName;
+    }
 
-	/**
-	 * Returns a boolean status indicating if module is enabled.
-	 *
-	 * @return a boolean status indicating if module is enabled (this property is defined in application settings).
-	 */
-	public boolean isModuleEnabled() {
-		return enabled;
-	}
+    /**
+     * Returns a boolean status indicating if module is enabled.
+     *
+     * @return a boolean status indicating if module is enabled (this property is defined in application settings).
+     */
+    public boolean isModuleEnabled() {
+        return enabled;
+    }
 
-	/**
-	 * Returns the message generated for exception report.
-	 *
-	 * @param throwable exception instance.
-	 * @param req HTTP request which thrown the exception.
-	 * @param originalRequestUri original request URI.
-	 * @return error message.
-	 */
-	protected String getErrorMessage(Throwable throwable, HttpServletRequest req, String originalRequestUri) {
-		String stackTrace = getStackTrace(throwable);
+    /**
+     * Returns the message generated for exception report.
+     *
+     * @param throwable exception instance.
+     * @param req HTTP request which thrown the exception.
+     * @param originalRequestUri original request URI.
+     * @return error message.
+     */
+    protected String getErrorMessage(Throwable throwable, HttpServletRequest req, String originalRequestUri) {
+        String stackTrace = getStackTrace(throwable);
 
-		AbstractApplication app = getApplication();
-		HttpUtils httpUtils = HttpUtils.getInstance();
+        AbstractApplication app = getApplication();
 
-		String msg =
-			"An error was detected"
-			+ "\n\n"
-			+ "Application: "          + app.getName() + "\n"
-			+ "Application version: "  + app.getVersion() + "\n"
-			+ "Node name: "            + getNodeName() + "\n\n"
-			+ "Server timestamp: "     + DateUtils.getInstance().getIso8601Date() + "\n"
-			+ "Error message: "        + throwable.getMessage() + "\n"
-			+ "Original request URI: " + originalRequestUri + "\n"
-			+ "Request URI: "          + httpUtils.getRequestUri(req) + "\n"
-			+ "User-agent: "           + httpUtils.getOriginUserAgent(req) + "\n"
-			+ "Client id: "            + httpUtils.getOriginIp(req) + "\n"
-			+ "Stacktrace:\n"          + stackTrace;
+        String msg =
+            "An error was detected"
+            + "\n\n"
+            + "Application: "          + app.getName() + "\n"
+            + "Application version: "  + app.getVersion() + "\n"
+            + "Node name: "            + getNodeName() + "\n\n"
+            + "Server timestamp: "     + DateUtils.getIso8601Date() + "\n"
+            + "Error message: "        + throwable.getMessage() + "\n"
+            + "Original request URI: " + originalRequestUri + "\n"
+            + "Request URI: "          + HttpUtils.getRequestUri(req) + "\n"
+            + "User-agent: "           + HttpUtils.getOriginUserAgent(req) + "\n"
+            + "Client id: "            + HttpUtils.getOriginIp(req) + "\n"
+            + "Stacktrace:\n"          + stackTrace;
 
-		return msg;
-	}
+        return msg;
+    }
 
-	/**
-	 * @param t error to test.
-	 *
-	 * @return a boolean indicating if report shall be skipped for given error.
-	 */
-	protected boolean skipErrorReport(Throwable t) {
-		String stackTrace = getStackTrace(t);
+    /**
+     * @param t error to test.
+     *
+     * @return a boolean indicating if report shall be skipped for given error.
+     */
+    protected boolean skipErrorReport(Throwable t) {
+        String stackTrace = getStackTrace(t);
 
-		if (stackTraceHistory.contains(stackTrace)) {
-			return true;
-		} else {
-			if (stackTraceHistory.size() == getStacktraceHistorySize())
-				stackTraceHistory.remove(0); // Remove oldest
+        if (stackTraceHistory.contains(stackTrace)) {
+            return true;
+        } else {
+            if (stackTraceHistory.size() == getStacktraceHistorySize())
+                stackTraceHistory.remove(0); // Remove oldest
 
-			stackTraceHistory.add(stackTrace);
-			return false;
-		}
-	}
+            stackTraceHistory.add(stackTrace);
+            return false;
+        }
+    }
 
-	/**
-	 * Actual exception report code.
-	 *
-	 * This method will be called only when module is running.
-	 * @param t exception to be reported.
-	 * @param req HTTP request which thrown the exception.
-	 */
-	protected void onExceptionReport(Throwable t, HttpServletRequest req) {
-		if (isModuleEnabled()) {
-			if (!skipErrorReport(t)) {
-				String originalRequestStr = (String) attributeService.getAttribute(WebApplicationFilter.ATTR_ORIGINAL_REQUEST_URI);
-				reportErrorMessage(getErrorMessage(t, req, originalRequestStr));
-			} else {
-				getApplication().log(LogType.ERROR, "Application error (already reported): %s", t.getMessage());
-			}
-		}
-	}
+    /**
+     * Actual exception report code.
+     *
+     * This method will be called only when module is running.
+     * @param t exception to be reported.
+     * @param req HTTP request which thrown the exception.
+     */
+    protected void onExceptionReport(Throwable t, HttpServletRequest req) {
+        if (isModuleEnabled()) {
+            if (!skipErrorReport(t)) {
+                String originalRequestStr = (String) attributeService.getAttribute(WebApplicationFilter.ATTR_ORIGINAL_REQUEST_URI);
+                reportErrorMessage(getErrorMessage(t, req, originalRequestStr));
+            } else {
+                getApplication().log(LogType.ERROR, "Application error (already reported): %s", t.getMessage());
+            }
+        }
+    }
 
-	/**
-	 * Report the error message.
-	 *
-	 * @param message complete error message.
-	 */
-	protected void reportErrorMessage(String message) {
-		getApplication().log(LogType.ERROR, "Application error:\n----\n%s\n----", message);
-	}
+    /**
+     * Report the error message.
+     *
+     * @param message complete error message.
+     */
+    protected void reportErrorMessage(String message) {
+        getApplication().log(LogType.ERROR, "Application error:\n----\n%s\n----", message);
+    }
 
-	/**
-	 * Reports an error in the application.
-	 *
-	 * @param t exception to be reported.
-	 * @param req HTTP request which thrown the exception.
-	 */
-	public final void reportException(Throwable t, HttpServletRequest req) {
-		synchronized(this) {
-			if (t == null)
-				throw new IllegalArgumentException("null throwable");
+    /**
+     * Reports an error in the application.
+     *
+     * @param t exception to be reported.
+     * @param req HTTP request which thrown the exception.
+     */
+    public final void reportException(Throwable t, HttpServletRequest req) {
+        synchronized(this) {
+            if (t == null)
+                throw new IllegalArgumentException("null throwable");
 
-			if (req == null)
-				throw new IllegalArgumentException("Null request");
+            if (req == null)
+                throw new IllegalArgumentException("Null request");
 
-			if (!isActive())
-				throw new IllegalStateException("Module is not running");
+            if (!isActive())
+                throw new IllegalStateException("Module is not running");
 
-			onExceptionReport(t, req);
-		}
-	}
-	// =========================================================================
+            onExceptionReport(t, req);
+        }
+    }
+
 }

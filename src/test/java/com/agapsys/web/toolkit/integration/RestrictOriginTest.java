@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Agapsys Tecnologia Ltda-ME.
+ * Copyright 2015-2016 Agapsys Tecnologia Ltda-ME.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,62 +34,62 @@ import org.junit.Assert;
 import org.junit.Test;
 
 public class RestrictOriginTest {
-	// CLASS SCOPE =============================================================
-	@WebListener
-	public static class ForbiddenLocalHostApp extends MockedWebApplication {
+    // <editor-fold desc="STATIC SCOPE">
+    // =========================================================================
+    @WebListener
+    public static class ForbiddenLocalHostApp extends MockedWebApplication {
 
-		@Override
-		protected boolean isOriginAllowed(HttpServletRequest req) {
-			return false;
-		}
-	}
-	
-	public static class AnyOriginApp extends MockedWebApplication {}
-	
-	@WebServlet("/*")
-	public static class TestServlet extends HttpServlet {
+        @Override
+        protected boolean isOriginAllowed(HttpServletRequest req) {
+            return false;
+        }
+    }
 
-		@Override
-		protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-			resp.getWriter().print("OK");
-		}
-	}
-	// =========================================================================
-	
-	// INSTANCE SCOPE ==========================================================
-	private ServletContainer sc;
-	
-	@After
-	public void after() {
-		sc.stopServer();
-	}
-	
-	@Test
-	public void testEnabledApplication() {
-		sc = new ServletContainerBuilder()
-			.registerEventListener(AnyOriginApp.class)
-			.registerServlet(TestServlet.class)
-			.registerFilter(WebApplicationFilter.class, "/*")
-			.build();
-		
-		sc.startServer();
-		
-		HttpResponse resp = sc.doRequest(new HttpGet("/test"));
-		Assert.assertEquals(HttpServletResponse.SC_OK, resp.getStatusCode());
-	}
-	
-	@Test
-	public void testDisabledApplication() {
-		sc = new ServletContainerBuilder()
-			.registerEventListener(ForbiddenLocalHostApp.class)
-			.registerServlet(TestServlet.class)
-			.registerFilter(WebApplicationFilter.class, "/*")
-			.build();
-		
-		sc.startServer();
-		
-		HttpResponse resp =sc.doRequest(new HttpGet("/test"));
-		Assert.assertEquals(HttpServletResponse.SC_FORBIDDEN, resp.getStatusCode());
-	}
-	// =========================================================================
+    public static class AnyOriginApp extends MockedWebApplication {}
+
+    @WebServlet("/*")
+    public static class TestServlet extends HttpServlet {
+
+        @Override
+        protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+            resp.getWriter().print("OK");
+        }
+    }
+    // =========================================================================
+    // </editor-fold>
+
+    private ServletContainer sc;
+
+    @After
+    public void after() {
+        sc.stopServer();
+    }
+
+    @Test
+    public void testEnabledApplication() {
+        sc = new ServletContainerBuilder()
+            .registerEventListener(AnyOriginApp.class)
+            .registerServlet(TestServlet.class)
+            .registerFilter(WebApplicationFilter.class, "/*")
+            .build();
+
+        sc.startServer();
+
+        HttpResponse resp = sc.doRequest(new HttpGet("/test"));
+        Assert.assertEquals(HttpServletResponse.SC_OK, resp.getStatusCode());
+    }
+
+    @Test
+    public void testDisabledApplication() {
+        sc = new ServletContainerBuilder()
+            .registerEventListener(ForbiddenLocalHostApp.class)
+            .registerServlet(TestServlet.class)
+            .registerFilter(WebApplicationFilter.class, "/*")
+            .build();
+
+        sc.startServer();
+
+        HttpResponse resp =sc.doRequest(new HttpGet("/test"));
+        Assert.assertEquals(HttpServletResponse.SC_FORBIDDEN, resp.getStatusCode());
+    }
 }

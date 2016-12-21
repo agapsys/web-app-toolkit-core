@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Agapsys Tecnologia Ltda-ME.
+ * Copyright 2015-2016 Agapsys Tecnologia Ltda-ME.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,279 +24,279 @@ import org.junit.Assert;
 import org.junit.Test;
 
 public class AbstractWebApplicationTest  {
-	// CLASS SCOPE =============================================================
-	private static final String APP_NAME   = "test-app";
-	private static final String APP_VERSION = "0.1.0";
 
-	// Custom modules ----------------------------------------------------------
-	public static class CustomPersistenceModule extends PersistenceModule {
+    // <editor-fold desc="STATIC SCOPE">
+    // =========================================================================
+    private static final String APP_NAME   = "test-app";
+    private static final String APP_VERSION = "0.1.0";
 
-		@Override
-		protected void onInit(AbstractApplication webApp) {
-			super.onInit(webApp);
-			((WebApplicationBase)webApp).onPersistenceModuleStartCalled = true;
-		}
+    // Custom modules ----------------------------------------------------------
+    public static class CustomPersistenceModule extends PersistenceModule {
 
-		@Override
-		protected void onStop() {
-			super.onStop();
-			((WebApplicationBase)getApplication()).onPersistenceModuleStopCalled = true;
-		}
+        @Override
+        protected void onInit(AbstractApplication webApp) {
+            super.onInit(webApp);
+            ((WebApplicationBase)webApp).onPersistenceModuleStartCalled = true;
+        }
 
-	}
+        @Override
+        protected void onStop() {
+            super.onStop();
+            ((WebApplicationBase)getApplication()).onPersistenceModuleStopCalled = true;
+        }
 
-	public static class CustomExceptionReporterModule extends ExceptionReporterModule {
+    }
 
-		@Override
-		protected void onInit(AbstractApplication webApp) {
-			super.onInit(webApp);
-			((WebApplicationBase)webApp).onExceptionReporterModuleStartCalled = true;
-		}
+    public static class CustomExceptionReporterModule extends ExceptionReporterModule {
 
-		@Override
-		protected void onStop() {
-			super.onStop();
-			((WebApplicationBase)getApplication()).onExceptionReporterModuleStopCalled = true;
-		}
+        @Override
+        protected void onInit(AbstractApplication webApp) {
+            super.onInit(webApp);
+            ((WebApplicationBase)webApp).onExceptionReporterModuleStartCalled = true;
+        }
 
-	}
+        @Override
+        protected void onStop() {
+            super.onStop();
+            ((WebApplicationBase)getApplication()).onExceptionReporterModuleStopCalled = true;
+        }
 
-	public static class CustomSmtpModule extends SmtpModule {
-		public static final String MODULE_ID = "smtp";
+    }
 
-		@Override
-		protected void onInit(AbstractApplication webApp) {
-			super.onInit(webApp);
-			((WebApplicationBase)webApp).onSmtpModuleStartCalled = true;
-		}
+    public static class CustomSmtpModule extends SmtpModule {
+        public static final String MODULE_ID = "smtp";
 
-		@Override
-		protected void onStop() {
-			super.onStop();
-			((WebApplicationBase)getApplication()).onSmtpModuleStopCalled = true;
-		}
-	}
-	// -------------------------------------------------------------------------
+        @Override
+        protected void onInit(AbstractApplication webApp) {
+            super.onInit(webApp);
+            ((WebApplicationBase)webApp).onSmtpModuleStartCalled = true;
+        }
 
-	// Custom applications -----------------------------------------------------
-	private static class WebApplicationBase extends MockedWebApplication {
-		private boolean beforeApplicationStopCalled = false;
-		private boolean beforeApplicationStartCalled = false;
+        @Override
+        protected void onStop() {
+            super.onStop();
+            ((WebApplicationBase)getApplication()).onSmtpModuleStopCalled = true;
+        }
+    }
+    // -------------------------------------------------------------------------
 
-		private boolean afterApplicationStartCalled = false;
-		private boolean afterApplicationStopCalled = false;
+    // Custom applications -----------------------------------------------------
+    private static class WebApplicationBase extends MockedWebApplication {
+        private boolean beforeApplicationStopCalled = false;
+        private boolean beforeApplicationStartCalled = false;
 
-		public boolean isBeforeApplicationStartCalled() {
-			return beforeApplicationStartCalled;
-		}
-		public boolean isAfterApplicationStartCalled() {
-			return afterApplicationStartCalled;
-		}
+        private boolean afterApplicationStartCalled = false;
+        private boolean afterApplicationStopCalled = false;
 
-		public boolean isBeforeApplicationStopCalled() {
-			return beforeApplicationStopCalled;
-		}
-		public boolean isAfterApplicationStopCalled() {
-			return afterApplicationStopCalled;
-		}
+        public boolean isBeforeApplicationStartCalled() {
+            return beforeApplicationStartCalled;
+        }
+        public boolean isAfterApplicationStartCalled() {
+            return afterApplicationStartCalled;
+        }
 
-		private boolean onPersistenceModuleStartCalled = false;
-		private boolean onPersistenceModuleStopCalled = false;
+        public boolean isBeforeApplicationStopCalled() {
+            return beforeApplicationStopCalled;
+        }
+        public boolean isAfterApplicationStopCalled() {
+            return afterApplicationStopCalled;
+        }
 
-		public boolean isOnPersistenceModuleStartCalled() {
-			return onPersistenceModuleStartCalled;
-		}
-		public boolean isOnPersistenceModuleStopCalled() {
-			return onPersistenceModuleStopCalled;
-		}
+        private boolean onPersistenceModuleStartCalled = false;
+        private boolean onPersistenceModuleStopCalled = false;
 
-		private boolean onExceptionReporterModuleStartCalled = false;
-		private boolean onExceptionReporterModuleStopCalled = false;
+        public boolean isOnPersistenceModuleStartCalled() {
+            return onPersistenceModuleStartCalled;
+        }
+        public boolean isOnPersistenceModuleStopCalled() {
+            return onPersistenceModuleStopCalled;
+        }
 
-		public boolean isOnExceptionReporterModuleStartCalled() {
-			return onExceptionReporterModuleStartCalled;
-		}
-		public boolean isOnExceptionReporterModuleStopCalled() {
-			return onExceptionReporterModuleStopCalled;
-		}
+        private boolean onExceptionReporterModuleStartCalled = false;
+        private boolean onExceptionReporterModuleStopCalled = false;
 
-		private boolean onSmtpModuleStartCalled = false;
-		private boolean onSmtpModuleStopCalled = false;
+        public boolean isOnExceptionReporterModuleStartCalled() {
+            return onExceptionReporterModuleStartCalled;
+        }
+        public boolean isOnExceptionReporterModuleStopCalled() {
+            return onExceptionReporterModuleStopCalled;
+        }
 
-		public boolean isOnSmtpModuleStartCalled() {
-			return onSmtpModuleStartCalled;
-		}
-		public boolean isOnSmtpModuleStopCalled() {
-			return onSmtpModuleStopCalled;
-		}
+        private boolean onSmtpModuleStartCalled = false;
+        private boolean onSmtpModuleStopCalled = false;
 
-		@Override
-		protected void beforeApplicationStart() {
-			this.beforeApplicationStartCalled = true;
-			super.beforeApplicationStart();
-			java.util.logging.Logger.getLogger("org.hibernate").setLevel(Level.OFF); // Disable Hibernate log output
-		}
-		@Override
-		protected void afterApplicationStart() {
-			this.afterApplicationStartCalled = true;
-		}
+        public boolean isOnSmtpModuleStartCalled() {
+            return onSmtpModuleStartCalled;
+        }
+        public boolean isOnSmtpModuleStopCalled() {
+            return onSmtpModuleStopCalled;
+        }
 
-		@Override
-		protected void beforeApplicationStop() {
-			this.beforeApplicationStopCalled = true;
-			super.beforeApplicationStop();
-		}
-		@Override
-		protected void afterApplicationStop() {
-			this.afterApplicationStopCalled = true;
-			super.afterApplicationStop();
-		}
+        @Override
+        protected void beforeApplicationStart() {
+            this.beforeApplicationStartCalled = true;
+            super.beforeApplicationStart();
+            java.util.logging.Logger.getLogger("org.hibernate").setLevel(Level.OFF); // Disable Hibernate log output
+        }
+        @Override
+        protected void afterApplicationStart() {
+            this.afterApplicationStartCalled = true;
+        }
 
-		@Override
-		public String getName() {
-			return APP_NAME;
-		}
+        @Override
+        protected void beforeApplicationStop() {
+            this.beforeApplicationStopCalled = true;
+            super.beforeApplicationStop();
+        }
+        @Override
+        protected void afterApplicationStop() {
+            this.afterApplicationStopCalled = true;
+            super.afterApplicationStop();
+        }
 
-		@Override
-		public String getVersion() {
-			return APP_VERSION;
-		}
-	}
+        @Override
+        public String getName() {
+            return APP_NAME;
+        }
 
-	private static class WebApplicationWithPersistence extends WebApplicationBase {
+        @Override
+        public String getVersion() {
+            return APP_VERSION;
+        }
+    }
 
-		@Override
-		protected void beforeApplicationStart() {
-			super.beforeApplicationStart();
-			registerModule(CustomPersistenceModule.class);
-		}
-	}
+    private static class WebApplicationWithPersistence extends WebApplicationBase {
 
-	private static class WebApplicationWithErrorReport extends WebApplicationBase {
+        @Override
+        protected void beforeApplicationStart() {
+            super.beforeApplicationStart();
+            registerModule(CustomPersistenceModule.class);
+        }
+    }
 
-		@Override
-		protected void beforeApplicationStart() {
-			super.beforeApplicationStart();
-			registerModule(CustomExceptionReporterModule.class);
-		}
-	}
+    private static class WebApplicationWithErrorReport extends WebApplicationBase {
 
-	private static class WebApplicationWithSmtpSender extends WebApplicationBase {
+        @Override
+        protected void beforeApplicationStart() {
+            super.beforeApplicationStart();
+            registerModule(CustomExceptionReporterModule.class);
+        }
+    }
 
-		@Override
-		protected void beforeApplicationStart() {
-			super.beforeApplicationStart();
-			registerModule(CustomSmtpModule.class);
-		}
-	}
+    private static class WebApplicationWithSmtpSender extends WebApplicationBase {
 
-	private static class FullFledgedApplication extends WebApplicationBase {
+        @Override
+        protected void beforeApplicationStart() {
+            super.beforeApplicationStart();
+            registerModule(CustomSmtpModule.class);
+        }
+    }
 
-		@Override
-		protected void beforeApplicationStart() {
-			super.beforeApplicationStart();
-			registerModule(CustomPersistenceModule.class);
-			registerModule(CustomSmtpModule.class);
-			registerModule(CustomExceptionReporterModule.class);
-		}
-	}
-	// -------------------------------------------------------------------------
-	// =========================================================================
+    private static class FullFledgedApplication extends WebApplicationBase {
 
-	// INSTANCE SCOPE ==========================================================
-	@Test
-	public void Simple_web_application_start_stop_test() {
-		WebApplicationBase webApp = new WebApplicationBase();
-		webApp.init();
-		Assert.assertTrue(webApp.isBeforeApplicationStartCalled());
-		Assert.assertTrue(webApp.isActive());
-		Assert.assertFalse(webApp.isOnPersistenceModuleStartCalled());
-		Assert.assertFalse(webApp.isOnExceptionReporterModuleStartCalled());
-		Assert.assertFalse(webApp.isOnSmtpModuleStartCalled());
-		Assert.assertTrue(webApp.isAfterApplicationStartCalled());
-		Assert.assertFalse(webApp.isBeforeApplicationStopCalled());
-		Assert.assertFalse(webApp.isAfterApplicationStopCalled());
+        @Override
+        protected void beforeApplicationStart() {
+            super.beforeApplicationStart();
+            registerModule(CustomPersistenceModule.class);
+            registerModule(CustomSmtpModule.class);
+            registerModule(CustomExceptionReporterModule.class);
+        }
+    }
+    // -------------------------------------------------------------------------
+    // =========================================================================
+    // </editor-fold>
 
-		webApp.stop();
-		Assert.assertTrue(webApp.isBeforeApplicationStopCalled());
-		Assert.assertFalse(webApp.isOnPersistenceModuleStopCalled());
-		Assert.assertFalse(webApp.isOnExceptionReporterModuleStopCalled());
-		Assert.assertFalse(webApp.isOnSmtpModuleStopCalled());
-		Assert.assertFalse(!webApp.isActive());
-		Assert.assertTrue(webApp.isAfterApplicationStopCalled());
-		Assert.assertNull(AbstractWebApplication.getRunningInstance());
-	}
+    @Test
+    public void Simple_web_application_start_stop_test() {
+        WebApplicationBase webApp = new WebApplicationBase();
+        webApp.start();
+        Assert.assertTrue(webApp.isBeforeApplicationStartCalled());
+        Assert.assertTrue(webApp.isActive());
+        Assert.assertFalse(webApp.isOnPersistenceModuleStartCalled());
+        Assert.assertFalse(webApp.isOnExceptionReporterModuleStartCalled());
+        Assert.assertFalse(webApp.isOnSmtpModuleStartCalled());
+        Assert.assertTrue(webApp.isAfterApplicationStartCalled());
+        Assert.assertFalse(webApp.isBeforeApplicationStopCalled());
+        Assert.assertFalse(webApp.isAfterApplicationStopCalled());
 
-	@Test
-	public void Simple_web_application_getName_test() {
-		AbstractWebApplication webApp = new WebApplicationBase();
-		webApp.init();
-		Assert.assertEquals(APP_NAME, AbstractWebApplication.getRunningInstance().getName());
+        webApp.stop();
+        Assert.assertTrue(webApp.isBeforeApplicationStopCalled());
+        Assert.assertFalse(webApp.isOnPersistenceModuleStopCalled());
+        Assert.assertFalse(webApp.isOnExceptionReporterModuleStopCalled());
+        Assert.assertFalse(webApp.isOnSmtpModuleStopCalled());
+        Assert.assertFalse(!webApp.isActive());
+        Assert.assertTrue(webApp.isAfterApplicationStopCalled());
+        Assert.assertNull(AbstractWebApplication.getRunningInstance());
+    }
 
-		webApp.stop();
-	}
+    @Test
+    public void Simple_web_application_getName_test() {
+        AbstractWebApplication webApp = new WebApplicationBase();
+        webApp.contextInitialized(null);
+        Assert.assertEquals(APP_NAME, AbstractWebApplication.getRunningInstance().getName());
+        webApp.contextDestroyed(null);
+    }
 
-	@Test
-	public void Simple_web_application_getVersion_test() {
-		AbstractWebApplication webApp = new WebApplicationBase();
-		webApp.init();
-		Assert.assertEquals(APP_VERSION, AbstractWebApplication.getRunningInstance().getVersion());
+    @Test
+    public void Simple_web_application_getVersion_test() {
+        AbstractWebApplication webApp = new WebApplicationBase();
+        webApp.contextInitialized(null);
+        Assert.assertEquals(APP_VERSION, AbstractWebApplication.getRunningInstance().getVersion());
+        webApp.contextDestroyed(null);
+    }
 
-		webApp.stop();
-	}
+    @Test
+    public void Web_application_with_persistence_test() {
+        WebApplicationBase webApp = new WebApplicationWithPersistence();
+        webApp.start();
+        Assert.assertTrue(webApp.isOnPersistenceModuleStartCalled());
 
-	@Test
-	public void Web_application_with_persistence_test() {
-		WebApplicationBase webApp = new WebApplicationWithPersistence();
-		webApp.init();
-		Assert.assertTrue(webApp.isOnPersistenceModuleStartCalled());
+        PersistenceModule persistenceModule = (PersistenceModule) webApp.getModule(CustomPersistenceModule.class);
+        Assert.assertNotNull(persistenceModule.getEntityManager());
 
-		PersistenceModule persistenceModule = (PersistenceModule) webApp.getModule(CustomPersistenceModule.class);
-		Assert.assertNotNull(persistenceModule.getEntityManager());
+        webApp.stop();
+    }
 
-		webApp.stop();
-	}
+    @Test
+    public void Web_application_with_error_report_test() {
+        WebApplicationBase webApp = new WebApplicationWithErrorReport();
+        webApp.start();
+        Assert.assertTrue(webApp.isOnExceptionReporterModuleStartCalled());
 
-	@Test
-	public void Web_application_with_error_report_test() {
-		WebApplicationBase webApp = new WebApplicationWithErrorReport();
-		webApp.init();
-		Assert.assertTrue(webApp.isOnExceptionReporterModuleStartCalled());
+        webApp.stop();
+        Assert.assertTrue(webApp.isOnExceptionReporterModuleStopCalled());
+    }
 
-		webApp.stop();
-		Assert.assertTrue(webApp.isOnExceptionReporterModuleStopCalled());
-	}
+    @Test
+    public void Web_application_with_smtp_sender_test() {
+        WebApplicationBase webApp = new WebApplicationWithSmtpSender();
+        webApp.start();
+        Assert.assertTrue(webApp.isOnSmtpModuleStartCalled());
 
-	@Test
-	public void Web_application_with_smtp_sender_test() {
-		WebApplicationBase webApp = new WebApplicationWithSmtpSender();
-		webApp.init();
-		Assert.assertTrue(webApp.isOnSmtpModuleStartCalled());
+        webApp.stop();
+        Assert.assertTrue(webApp.isOnSmtpModuleStopCalled());
+    }
 
-		webApp.stop();
-		Assert.assertTrue(webApp.isOnSmtpModuleStopCalled());
-	}
+    @Test
+    public void Full_fledged_application_test() {
+        WebApplicationBase webApp = new FullFledgedApplication();
+        webApp.start();
 
-	@Test
-	public void Full_fledged_application_test() {
-		WebApplicationBase webApp = new FullFledgedApplication();
-		webApp.init();
+        Assert.assertTrue(webApp.isOnPersistenceModuleStartCalled());
+        Assert.assertTrue(webApp.isOnSmtpModuleStartCalled());
+        Assert.assertTrue(webApp.isOnExceptionReporterModuleStartCalled());
 
-		Assert.assertTrue(webApp.isOnPersistenceModuleStartCalled());
-		Assert.assertTrue(webApp.isOnSmtpModuleStartCalled());
-		Assert.assertTrue(webApp.isOnExceptionReporterModuleStartCalled());
+        webApp.stop();
+        Assert.assertTrue(webApp.isOnPersistenceModuleStopCalled());
+        Assert.assertTrue(webApp.isOnSmtpModuleStopCalled());
+        Assert.assertTrue(webApp.isOnExceptionReporterModuleStopCalled());
+    }
 
-		webApp.stop();
-		Assert.assertTrue(webApp.isOnPersistenceModuleStopCalled());
-		Assert.assertTrue(webApp.isOnSmtpModuleStopCalled());
-		Assert.assertTrue(webApp.isOnExceptionReporterModuleStopCalled());
-	}
+    @Test
+    public void Full_fledged_application_with_standard_modules_test() {
+        MockedWebApplication app = new MockedWebApplication();
+        app.start();
+        app.stop();
+    }
 
-	@Test
-	public void Full_fledged_application_with_standard_modules_test() {
-		MockedWebApplication app = new MockedWebApplication();
-		app.init();
-		app.stop();
-	}
-	// =========================================================================
 }

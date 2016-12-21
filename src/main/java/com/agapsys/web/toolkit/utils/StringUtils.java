@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Agapsys Tecnologia Ltda-ME.
+ * Copyright 2015-2016 Agapsys Tecnologia Ltda-ME.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,57 +19,27 @@ package com.agapsys.web.toolkit.utils;
 import java.util.Random;
 
 public class StringUtils {
-	// CLASS SCOPE =============================================================
-	private static final StringUtils SINGLETON = new StringUtils();
 
-	public static StringUtils getInstance() {
-		return SINGLETON;
-	}
+    protected StringUtils() {}
 
-	@Deprecated
-	public static String getRandomString(int length) {
-		char[] chars = "abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ".toCharArray();
-		return getRandomString(length, chars);
-	}
+    public static String getRandom(int length) {
+        char[] chars = "abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ".toCharArray();
+        return getRandom(length, chars);
+    }
 
-	@Deprecated
-	public static String getRandomString(int length, char[] chars)  {
-		if (length < 1) throw new IllegalArgumentException("Invalid length: " + length);
+    public static String getRandom(int length, char[] chars)  {
+        if (length < 1) throw new IllegalArgumentException("Invalid length: " + length);
 
-		if (chars == null || chars.length == 0) throw new IllegalArgumentException("Null/Empty chars");
+        if (chars == null || chars.length == 0) throw new IllegalArgumentException("Null/Empty chars");
 
-		StringBuilder sb = new StringBuilder();
-		Random random = new Random();
-		for (int i = 0; i < length; i++) {
-			char c = chars[random.nextInt(chars.length)];
-			sb.append(c);
-		}
+        StringBuilder sb = new StringBuilder();
+        Random random = new Random();
+        for (int i = 0; i < length; i++) {
+            char c = chars[random.nextInt(chars.length)];
+            sb.append(c);
+        }
 
-		return sb.toString();
-	}
-	// =========================================================================
-
-	// INSTANCE SCOPE ==========================================================
-	protected StringUtils() {}
-
-	public final String getRandom(int length) {
-		char[] chars = "abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ".toCharArray();
-		return getRandom(length, chars);
-	}
-
-	public String getRandom(int length, char[] chars) {
-		if (length < 1) throw new IllegalArgumentException("Invalid length: " + length);
-
-		if (chars == null || chars.length == 0) throw new IllegalArgumentException("Null/Empty chars");
-
-		StringBuilder sb = new StringBuilder();
-		Random random = new Random();
-		for (int i = 0; i < length; i++) {
-			char c = chars[random.nextInt(chars.length)];
-			sb.append(c);
-		}
-
-		return sb.toString();
-	}
-	// =========================================================================
+        return sb.toString();
+    }
+    
 }

@@ -26,146 +26,143 @@ import javax.servlet.http.HttpServletResponse;
 
 /**
  * Represents a web application.
- *
- * @author Leandro Oliveira (leandro@agapsys.com)
  */
 public abstract class AbstractWebApplication extends AbstractApplication implements ServletContextListener {
-	// CLASS SCOPE =============================================================
 
-	// Global settings ---------------------------------------------------------
-	/** Defines if application is disabled. When an application is disabled, all requests are ignored and a {@linkplain HttpServletResponse#SC_SERVICE_UNAVAILABLE} is sent to the client. */
-	public static final String KEY_APP_DISABLE = "com.agapsys.webtoolkit.appDisable";
+    // <editor-fold desc="STATIC SCOPE">
+    // =========================================================================
+    // Global settings ---------------------------------------------------------
+    /** Defines if application is disabled. When an application is disabled, all requests are ignored and a {@linkplain HttpServletResponse#SC_SERVICE_UNAVAILABLE} is sent to the client. */
+    public static final String KEY_APP_DISABLE = "com.agapsys.webtoolkit.appDisable";
 
-	/** Defines a comma-delimited list of allowed origins for this application or '*' for any origin. If an origin is not accepted a {@linkplain HttpServletResponse#SC_FORBIDDEN} is sent to the client. */
-	public static final String KEY_APP_ALLOWED_ORIGINS = "com.agapsys.webtoolkit.allowedOrigins";
+    /** Defines a comma-delimited list of allowed origins for this application or '*' for any origin. If an origin is not accepted a {@linkplain HttpServletResponse#SC_FORBIDDEN} is sent to the client. */
+    public static final String KEY_APP_ALLOWED_ORIGINS = "com.agapsys.webtoolkit.allowedOrigins";
 
-	public static final boolean DEFAULT_APP_DISABLED        = false;
-	public static final String  DEFAULT_APP_ALLOWED_ORIGINS = "*";
-	public static final String  ORIGIN_DELIMITER            = ",";
-	// -------------------------------------------------------------------------
+    public static final boolean DEFAULT_APP_DISABLED        = false;
+    public static final String  DEFAULT_APP_ALLOWED_ORIGINS = "*";
+    public static final String  ORIGIN_DELIMITER            = ",";
 
-	/**
-	 * Return application running instance.
-	 *
-	 * @return application singleton instance. If an application is not running returns null
-	 */
-	public static AbstractWebApplication getRunningInstance() {
-		return (AbstractWebApplication) AbstractApplication.getRunningInstance();
-	}
-	// =========================================================================
+    private static AbstractWebApplication singleton;
+    public static AbstractWebApplication getRunningInstance() {
+        return singleton;
+    }
+    // -------------------------------------------------------------------------
+    // =========================================================================
+    // </editor-fold>
 
-	// INSTANCE SCOPE ==========================================================
-	private boolean  disabled;
-	private String[] allowedOrigins;
+    private boolean  disabled;
+    private String[] allowedOrigins;
 
-	public AbstractWebApplication() {
-		super();
-		reset();
-	}
+    public AbstractWebApplication() {
+        super();
+        reset();
+    }
 
-	/** Resets application state. */
-	private void reset() {
-		disabled       = DEFAULT_APP_DISABLED;
-		allowedOrigins = new String[] {DEFAULT_APP_ALLOWED_ORIGINS};
-	}
+    /** Resets application state. */
+    private void reset() {
+        disabled       = DEFAULT_APP_DISABLED;
+        allowedOrigins = new String[] {DEFAULT_APP_ALLOWED_ORIGINS};
+    }
 
-	/**
-	 * Returns a boolean indicating if application is disabled.
-	 *
-	 * @return a boolean indicating if application is disabled.
-	 */
-	public boolean isDisabled() {
-		if (!isActive())
-			throw new RuntimeException("Application is not running");
+    /**
+     * Returns a boolean indicating if application is disabled.
+     *
+     * @return a boolean indicating if application is disabled.
+     */
+    public boolean isDisabled() {
+        if (!isActive())
+            throw new RuntimeException("Application is not running");
 
-		return disabled;
-	}
+        return disabled;
+    }
 
-	/**
-	 * Returns a boolean indicating if given request is allowed to proceed.
-	 *
-	 * @param req HTTP request.
-	 * @return boolean indicating if given request is allowed to proceed.
-	 */
-	final boolean _isOriginAllowed(HttpServletRequest req) {
-		return isOriginAllowed(req);
-	}
+    /**
+     * Returns a boolean indicating if given request is allowed to proceed.
+     *
+     * @param req HTTP request.
+     * @return boolean indicating if given request is allowed to proceed.
+     */
+    final boolean _isOriginAllowed(HttpServletRequest req) {
+        return isOriginAllowed(req);
+    }
 
-	/**
-	 * Returns a boolean indicating if given request is allowed to proceed.
-	 *
-	 * @param req HTTP request.
-	 * @return boolean indicating if given request is allowed to proceed.
-	 */
-	protected boolean isOriginAllowed(HttpServletRequest req) {
-		if (!isActive())
-			throw new RuntimeException("Application is not running");
+    /**
+     * Returns a boolean indicating if given request is allowed to proceed.
+     *
+     * @param req HTTP request.
+     * @return boolean indicating if given request is allowed to proceed.
+     */
+    protected boolean isOriginAllowed(HttpServletRequest req) {
+        if (!isActive())
+            throw new RuntimeException("Application is not running");
 
-		boolean isOriginAllowed = allowedOrigins.length == 1 && allowedOrigins[0].equals(DEFAULT_APP_ALLOWED_ORIGINS);
+        boolean isOriginAllowed = allowedOrigins.length == 1 && allowedOrigins[0].equals(DEFAULT_APP_ALLOWED_ORIGINS);
 
-		if (isOriginAllowed)
-			return true;
+        if (isOriginAllowed)
+            return true;
 
-		String originIp = HttpUtils.getInstance().getOriginIp(req);
+        String originIp = HttpUtils.getOriginIp(req);
 
-		for (String allowedOrigin : allowedOrigins) {
-			if (allowedOrigin.equals(originIp))
-				return true;
-		}
+        for (String allowedOrigin : allowedOrigins) {
+            if (allowedOrigin.equals(originIp))
+                return true;
+        }
 
-		return false;
-	}
+        return false;
+    }
 
-	@Override
-	protected void beforeApplicationStart() {
-		reset();
-		super.beforeApplicationStart();
-	}
+    @Override
+    protected void beforeApplicationStart() {
+        reset();
+        super.beforeApplicationStart();
+    }
 
-	@Override
-	protected Properties getDefaultProperties() {
-		Properties defaultProperties = super.getDefaultProperties();
+    @Override
+    protected Properties getDefaultProperties() {
+        Properties defaultProperties = super.getDefaultProperties();
 
-		defaultProperties.setProperty(KEY_APP_DISABLE,         "" + DEFAULT_APP_DISABLED);
-		defaultProperties.setProperty(KEY_APP_ALLOWED_ORIGINS, DEFAULT_APP_ALLOWED_ORIGINS);
+        defaultProperties.setProperty(KEY_APP_DISABLE,         "" + DEFAULT_APP_DISABLED);
+        defaultProperties.setProperty(KEY_APP_ALLOWED_ORIGINS, DEFAULT_APP_ALLOWED_ORIGINS);
 
-		return defaultProperties;
-	}
+        return defaultProperties;
+    }
 
-	@Override
-	protected void afterApplicationStart() {
-		disabled       = Boolean.parseBoolean(getProperties().getProperty(KEY_APP_DISABLE, "" + DEFAULT_APP_DISABLED));
-		allowedOrigins = getProperties().getProperty(KEY_APP_ALLOWED_ORIGINS, AbstractWebApplication.DEFAULT_APP_ALLOWED_ORIGINS).split(Pattern.quote(ORIGIN_DELIMITER));
+    @Override
+    protected void afterApplicationStart() {
+        disabled       = Boolean.parseBoolean(getProperties().getProperty(KEY_APP_DISABLE, "" + DEFAULT_APP_DISABLED));
+        allowedOrigins = getProperties().getProperty(KEY_APP_ALLOWED_ORIGINS, AbstractWebApplication.DEFAULT_APP_ALLOWED_ORIGINS).split(Pattern.quote(ORIGIN_DELIMITER));
 
-		for (int i = 0; i < allowedOrigins.length; i++) {
-			allowedOrigins[i] = allowedOrigins[i].trim();
-		}
-	}
+        for (int i = 0; i < allowedOrigins.length; i++) {
+            allowedOrigins[i] = allowedOrigins[i].trim();
+        }
+    }
 
-	/**
-	 * Called during context initialization
-	 *
-	 * @param sce Servlet context event
-	 */
-	protected void onContextInitialized(ServletContextEvent sce) {}
+    /**
+     * Called during context initialization.
+     *
+     * @param sce Servlet context event
+     */
+    protected void onContextInitialized(ServletContextEvent sce) {}
 
-	/**
-	 * Called during context initialization
-	 *
-	 * @param sce Servlet context event
-	 */
-	protected void onContextDestroyed(ServletContextEvent sce) {}
+    /**
+     * Called during context initialization.
+     *
+     * @param sce Servlet context event
+     */
+    protected void onContextDestroyed(ServletContextEvent sce) {}
 
-	@Override
-	public final void contextInitialized(ServletContextEvent sce) {
-		init();
-		onContextInitialized(sce);
-	}
+    @Override
+    public final void contextInitialized(ServletContextEvent sce) {
+        start();
+        singleton = this;
+        onContextInitialized(sce);
+    }
 
-	@Override
-	public final void contextDestroyed(ServletContextEvent sce) {
-		stop();
-		onContextDestroyed(sce);
-	}
-	// =========================================================================
+    @Override
+    public final void contextDestroyed(ServletContextEvent sce) {
+        stop();
+        singleton = null;
+        onContextDestroyed(sce);
+    }
+
 }

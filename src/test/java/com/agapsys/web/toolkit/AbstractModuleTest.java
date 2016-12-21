@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Agapsys Tecnologia Ltda-ME.
+ * Copyright 2015-2016 Agapsys Tecnologia Ltda-ME.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,55 +21,57 @@ import org.junit.Before;
 import org.junit.Test;
 
 public class AbstractModuleTest {
-	// CLASS SCOPE =============================================================
-	private static class TestModule extends Module {
-		private boolean isStartCalled = false;
-		private boolean isStopCalled = false;
 
-		@Override
-		protected void onInit(AbstractApplication app) {
-			isStartCalled = true;
-		}
+    // <editor-fold desc="STATIC SCOPE" defaultstate="collapsed">
+    // =========================================================================
+    private static class TestModule extends Module {
+        private boolean isStartCalled = false;
+        private boolean isStopCalled = false;
 
-		@Override
-		protected void onStop() {
-			isStopCalled = true;
-		}
+        @Override
+        protected void onInit(AbstractApplication app) {
+            isStartCalled = true;
+        }
 
-		@Override
-		protected String getSettingsGroupName() {
-			return "";
-		}
-	}
-	// =========================================================================
+        @Override
+        protected void onStop() {
+            isStopCalled = true;
+        }
 
-	// INSTANCE SCOPE ==========================================================
-	private final AbstractWebApplication app = new MockedWebApplication();
-	private TestModule module = null;
+        @Override
+        protected String getSettingsGroupName() {
+            return "";
+        }
+    }
+    // =========================================================================
+    // </editor-fold>
 
-	@Before
-	public void before() {
-		module = new TestModule();
-	}
+    private final AbstractWebApplication app = new MockedWebApplication();
+    private TestModule module = null;
 
-	@Test
-	public void testDefaults() {
-		Assert.assertFalse(module.isStartCalled);
-		Assert.assertFalse(module.isStopCalled);
-	}
+    @Before
+    public void before() {
+        module = new TestModule();
+    }
 
-	@Test
-	public void testRunning() {
-		Assert.assertFalse(module.isActive());
+    @Test
+    public void testDefaults() {
+        Assert.assertFalse(module.isStartCalled);
+        Assert.assertFalse(module.isStopCalled);
+    }
 
-		module.init(app);
-		Assert.assertTrue(module.isStartCalled);
-		Assert.assertFalse(module.isStopCalled);
-		Assert.assertTrue(module.isStartCalled);
+    @Test
+    public void testRunning() {
+        Assert.assertFalse(module.isActive());
 
-		module.stop();
-		Assert.assertTrue(module.isStopCalled);
-		Assert.assertFalse(module.isActive());
-	}
-	// =========================================================================
+        module._init(app);
+        Assert.assertTrue(module.isStartCalled);
+        Assert.assertFalse(module.isStopCalled);
+        Assert.assertTrue(module.isStartCalled);
+
+        module._stop();
+        Assert.assertTrue(module.isStopCalled);
+        Assert.assertFalse(module.isActive());
+    }
+
 }

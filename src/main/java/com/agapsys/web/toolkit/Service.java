@@ -18,109 +18,109 @@ package com.agapsys.web.toolkit;
 
 /** Basic service implementation. */
 public abstract class Service {
-	
-	private AbstractApplication app;
 
-	final void throwIfNotActive() {
-		if (!isActive())
-			throw new RuntimeException("Instance is not active");
-	}
+    private AbstractApplication app;
 
-	/**
-	 * Returns a boolean indicating if this instance was initialized.
-	 *
-	 * @return a boolean indicating if this instance was initialized.
-	 */
-	public final boolean isActive() {
-		synchronized(this) {
-			return app != null;
-		}
-	}
+    final void throwIfNotActive() {
+        if (!isActive())
+            throw new RuntimeException("Instance is not active");
+    }
 
-	/**
-	 * Initializes this instance.
-	 *
-	 * @param app associated application.
-	 */
-	public final void init(AbstractApplication app) {
-		synchronized(this) {
-			if (isActive())
-				throw new IllegalStateException("Instance was already initialized");
+    /**
+     * Returns a boolean indicating if this instance was initialized.
+     *
+     * @return a boolean indicating if this instance was initialized.
+     */
+    public final boolean isActive() {
+        synchronized(this) {
+            return app != null;
+        }
+    }
 
-			if (app == null)
-				throw new IllegalArgumentException("Application cannot be null");
+    /**
+     * Initializes this instance.
+     *
+     * @param app associated application.
+     */
+    final void _init(AbstractApplication app) {
+        synchronized(this) {
+            if (isActive())
+                throw new IllegalStateException("Instance was already initialized");
 
-			this.app = app;
-			onInit(app);
-		}
-	}
+            if (app == null)
+                throw new IllegalArgumentException("Application cannot be null");
 
-	/**
-	 * Called upon instance initialization. Default implementation does nothing.
-	 *
-	 * @param app associated application.
-	 */
-	protected void onInit(AbstractApplication app) {}
+            this.app = app;
+            onInit(app);
+        }
+    }
 
-	/**
-	 * Stops the instance.
-	 */
-	public final void stop() {
-		synchronized(this) {
-			throwIfNotActive();
+    /**
+     * Called upon instance initialization. Default implementation does nothing.
+     *
+     * @param app associated application.
+     */
+    protected void onInit(AbstractApplication app) {}
 
-			onStop();
+    /**
+     * Stops the instance.
+     */
+    final void _stop() {
+        synchronized(this) {
+            throwIfNotActive();
 
-			this.app = null;
-		}
-	}
+            onStop();
 
-	/**
-	 * Actual instance shutdown code.
-	 *
-	 * Default implementation does nothing.
-	 */
-	protected void onStop() {}
+            this.app = null;
+        }
+    }
 
-	/**
-	 * Return the application managing this instance.
-	 *
-	 * @return the application managing this instance.
-	 */
-	public final AbstractApplication getApplication() {
-		synchronized(this) {
-			return app;
-		}
-	}
+    /**
+     * Actual instance shutdown code.
+     *
+     * Default implementation does nothing.
+     */
+    protected void onStop() {}
 
-	/**
-	 * Returns a module registered in the same application as this instance is registered with.
-	 *
-	 * @param <M> Module type.
-	 * @param moduleClass module class.
-	 * @return module instance or null if given module class was not registered with associated application..
-	 */
-	public final <M extends Module> M getModule(Class<M> moduleClass) {
-		synchronized(this) {
-			throwIfNotActive();
+    /**
+     * Return the application managing this instance.
+     *
+     * @return the application managing this instance.
+     */
+    public final AbstractApplication getApplication() {
+        synchronized(this) {
+            return app;
+        }
+    }
 
-			return app.getModule(moduleClass);
-		}
-	}
+    /**
+     * Returns a module registered in the same application as this instance is registered with.
+     *
+     * @param <M> Module type.
+     * @param moduleClass module class.
+     * @return module instance or null if given module class was not registered with associated application..
+     */
+    public final <M extends Module> M getModule(Class<M> moduleClass) {
+        synchronized(this) {
+            throwIfNotActive();
 
-	/**
-	 * Returns a service instance.
-	 *
-	 * @param <S> Service type.
-	 * @param serviceClass service class.
-	 * @return service instance.
-	 */
-	public final <S extends Service> S getService(Class<S> serviceClass) {
-		synchronized(this) {
-			throwIfNotActive();
+            return app.getModule(moduleClass);
+        }
+    }
 
-			return app.getService(serviceClass);
-		}
-	}
+    /**
+     * Returns a service instance.
+     *
+     * @param <S> Service type.
+     * @param serviceClass service class.
+     * @return service instance.
+     */
+    public final <S extends Service> S getService(Class<S> serviceClass) {
+        synchronized(this) {
+            throwIfNotActive();
+
+            return app.getService(serviceClass);
+        }
+    }
 
 }
