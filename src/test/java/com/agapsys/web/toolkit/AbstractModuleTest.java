@@ -39,7 +39,7 @@ public class AbstractModuleTest {
         }
 
         @Override
-        protected String getSettingsGroupName() {
+        protected String getSettingsSection() {
             return "";
         }
     }

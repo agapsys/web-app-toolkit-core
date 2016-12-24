@@ -16,13 +16,13 @@
 
 package com.agapsys.web.toolkit;
 
+import com.agapsys.web.toolkit.utils.Settings;
 import java.util.LinkedHashSet;
-import java.util.Properties;
 import java.util.Set;
 
 /**
  * Represents a module in a {@linkplain AbstractApplication application}.
- * 
+ *
  * A module must be registered with an application and will be initialized upon
  * application initialization. A module share settings with the application and
  * will have a singleton scope controlled by associated application.
@@ -30,79 +30,75 @@ import java.util.Set;
 
 public abstract class Module extends Service {
 
-    // -------------------------------------------------------------------------
-    private final Properties defaultProperties = new Properties();
-    private final Set<Class<? extends Module>> defaultDependencies = new LinkedHashSet<>();
-    // -------------------------------------------------------------------------
-
-    // -------------------------------------------------------------------------
     /**
-     * Returns the name of settings group associated with this module.
+     * Returns the name of settings section associated with this module.
      *
-     * @return the name of settings group associated with this module.
+     * @return the name of settings section associated with this module.
      */
-    protected abstract String getSettingsGroupName();
+    protected abstract String getSettingsSection();
 
     /**
-     * @see Module#getSettingsGroupName()
+     * @see Module#getSettingsSection()
      */
-    final String _getSettingsGroupName() {
-        return getSettingsGroupName();
+    final String _getSettingsSection() {
+        return getSettingsSection();
     }
-    // -------------------------------------------------------------------------
 
-    // -------------------------------------------------------------------------
+
     /**
-     * Return default properties associated with this module.
+     * Return default settings associated with this module.
      *
-     * @return default properties associated with this module.
+     * @return default settings associated with this module. Default implementation just returns null
      */
-    protected Properties getDefaultProperties() {
-        return defaultProperties;
+    protected Settings getDefaultSettings() {
+        return null;
     }
 
     /**
-     * @see Module#getDefaultProperties()
+     * @see Module#getDefaultSettings()
      */
-    final Properties _getDefaultProperties() {
-        return getDefaultProperties();
+    final Settings _getDefaultSettings() {
+        Settings settings = getDefaultSettings();
+        if (settings == null)
+            return new Settings();
+
+        return settings;
     }
 
     /**
-     * Returns the properties associated with this module.
+     * Returns the settings associated with this module.
      *
-     * @return properties instance associated with this module.
+     * @return settings associated with this module.
      */
-    protected final Properties getProperties() {
+    protected final Settings getSettings() {
         synchronized(this) {
             throwIfNotActive();
+            Settings settings = getApplication()._getApplicationSettings().getSection(getSettingsSection());
+            if (settings == null)
+                settings = new Settings();
 
-            Properties mainProperties = getApplication()._getSettings().getProperties(getSettingsGroupName());
-            if (mainProperties == null)
-                mainProperties = new Properties();
-
-            Properties defaults = getDefaultProperties();
-
-            return ApplicationSettings.mergeProperties(mainProperties, defaults);
+            return settings;
         }
     }
-    // -------------------------------------------------------------------------
 
-    // -------------------------------------------------------------------------
     /**
      * Return required modules used by this module.
      *
-     * @return required modules used by this module.
+     * @return required modules used by this module. Default implementation returns null.
      */
     protected Set<Class<? extends Module>> getDependencies() {
-        return defaultDependencies;
+        return null;
     }
 
     /**
      * @see Module#getDependencies()
      */
     final Set<Class<? extends Module>> _getDependencies() {
-        return getDependencies();
+        Set<Class<? extends Module>> dependencies = getDependencies();
+        if (dependencies == null)
+            return new LinkedHashSet<>();
+
+        return dependencies;
     }
     // -------------------------------------------------------------------------
 }

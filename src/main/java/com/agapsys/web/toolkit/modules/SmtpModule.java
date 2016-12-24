@@ -24,17 +24,19 @@ import com.agapsys.mail.SmtpSettings;
 import com.agapsys.web.toolkit.AbstractApplication;
 import com.agapsys.web.toolkit.WebModule;
 import com.agapsys.web.toolkit.utils.DateUtils;
+import com.agapsys.web.toolkit.utils.Settings;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.Map.Entry;
 import java.util.Properties;
 import javax.mail.MessagingException;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 
 public class SmtpModule extends WebModule {
-    
+
     // <editor-fold desc="STATIC SCOPE">
     // =========================================================================
     // SETTINGS ----------------------------------------------------------------
@@ -92,7 +94,7 @@ public class SmtpModule extends WebModule {
     }
 
     @Override
-    protected final String getSettingsGroupName() {
+    protected final String getSettingsSection() {
         return SETTINGS_GROUP_NAME;
     }
 
@@ -106,18 +108,21 @@ public class SmtpModule extends WebModule {
     }
 
     @Override
-    public Properties getDefaultProperties() {
-        Properties properties = super.getDefaultProperties();
+    public Settings getDefaultSettings() {
+        Settings defaultSettings = super.getDefaultSettings();
 
-        properties.setProperty(KEY_SENDER,       DEFAULT_SENDER);
-        properties.setProperty(KEY_SERVER,       DEFAULT_SERVER);
-        properties.setProperty(KEY_AUTH_ENABLED,  "" + DEFAULT_AUTH_ENABLED);
-        properties.setProperty(KEY_USERNAME,      DEFAULT_USERNAME);
-        properties.setProperty(KEY_PASSWORD,      DEFAULT_PASSWORD);
-        properties.setProperty(KEY_SECURITY_TYPE, DEFAULT_SECURITY_TYPE.name());
-        properties.setProperty(KEY_PORT,          "" + DEFAULT_PORT);
+        if (defaultSettings == null)
+            defaultSettings = new Settings();
 
-        return properties;
+        defaultSettings.setProperty(KEY_SENDER,       DEFAULT_SENDER);
+        defaultSettings.setProperty(KEY_SERVER,       DEFAULT_SERVER);
+        defaultSettings.setProperty(KEY_AUTH_ENABLED,  "" + DEFAULT_AUTH_ENABLED);
+        defaultSettings.setProperty(KEY_USERNAME,      DEFAULT_USERNAME);
+        defaultSettings.setProperty(KEY_PASSWORD,      DEFAULT_PASSWORD);
+        defaultSettings.setProperty(KEY_SECURITY_TYPE, DEFAULT_SECURITY_TYPE.name());
+        defaultSettings.setProperty(KEY_PORT,          "" + DEFAULT_PORT);
+
+        return defaultSettings;
     }
 
 
@@ -127,12 +132,16 @@ public class SmtpModule extends WebModule {
 
         reset();
 
-        Properties moduleProperties = getProperties();
+        Settings moduleSettings = getSettings();
+        Properties moduleProperties = new Properties();
+        for (Entry<String, String> entry : moduleSettings.entrySet()) {
+            moduleProperties.setProperty(entry.getKey(), entry.getValue());
+        }
 
         SmtpSettings settings = new SmtpSettings(moduleProperties);
 
         smtpSender = new SmtpSender(settings);
-        sender = getSenderFromString(moduleProperties.getProperty(KEY_SENDER));
+        sender = getSenderFromString(moduleProperties.getProperty(KEY_PORT, DEFAULT_SENDER));
     }
 
     /**

@@ -299,7 +299,7 @@ public final class LogModule extends Module {
     }
 
     @Override
-    protected final String getSettingsGroupName() {
+    protected final String getSettingsSection() {
         return SETTINGS_GROUP_NAME;
     }
 

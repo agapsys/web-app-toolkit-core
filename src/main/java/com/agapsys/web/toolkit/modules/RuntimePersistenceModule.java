@@ -17,14 +17,13 @@
 package com.agapsys.web.toolkit.modules;
 
 import com.agapsys.web.toolkit.AbstractApplication;
-import com.agapsys.web.toolkit.ApplicationSettings;
 import com.agapsys.web.toolkit.utils.RuntimeJarLoader;
+import com.agapsys.web.toolkit.utils.Settings;
 import java.io.File;
 import java.util.Map;
-import java.util.Properties;
 
 public class RuntimePersistenceModule extends PersistenceModule {
-    
+
     // <editor-fold desc="STATIC SCOPE">
     // =========================================================================
     // -------------------------------------------------------------------------
@@ -81,16 +80,19 @@ public class RuntimePersistenceModule extends PersistenceModule {
     }
 
     @Override
-    public Properties getDefaultProperties() {
-        Properties defaultProperties = super.getDefaultProperties();
+    public Settings getDefaultSettings() {
+        Settings defaultSettings = super.getDefaultSettings();
 
-        defaultProperties.setProperty(KEY_JDBC_DRIVER_FILENAME, DEFAULT_JDBC_DRIVER_FILENAME);
-        defaultProperties.setProperty(KEY_JDBC_DRIVER_CLASS,    DEFAULT_JDBC_DRIVER_CLASS);
-        defaultProperties.setProperty(KEY_JDBC_URL,             DEFAULT_JDBC_URL);
-        defaultProperties.setProperty(KEY_JDBC_USER,            DEFAULT_JDBC_USER);
-        defaultProperties.setProperty(KEY_JDBC_PASSWORD,        DEFAULT_JDBC_PASSWORD);
+        if (defaultSettings == null)
+            defaultSettings = new Settings();
 
-        return defaultProperties;
+        defaultSettings.setProperty(KEY_JDBC_DRIVER_FILENAME, DEFAULT_JDBC_DRIVER_FILENAME);
+        defaultSettings.setProperty(KEY_JDBC_DRIVER_CLASS,    DEFAULT_JDBC_DRIVER_CLASS);
+        defaultSettings.setProperty(KEY_JDBC_URL,             DEFAULT_JDBC_URL);
+        defaultSettings.setProperty(KEY_JDBC_USER,            DEFAULT_JDBC_USER);
+        defaultSettings.setProperty(KEY_JDBC_PASSWORD,        DEFAULT_JDBC_PASSWORD);
+
+        return defaultSettings;
     }
 
     @Override
@@ -98,14 +100,14 @@ public class RuntimePersistenceModule extends PersistenceModule {
         reset();
 
         Map props = super.getAdditionalProperties(app);
+        Settings settings = getSettings();
+        jdbcDriverClass = settings.getMandatoryProperty(KEY_JDBC_DRIVER_CLASS);
+        jdbcUrl         = settings.getMandatoryProperty(KEY_JDBC_URL);
+        jdbcUser        = settings.getMandatoryProperty(KEY_JDBC_USER);
 
-        jdbcDriverClass = (String) ApplicationSettings.getMandatoryProperty(props, KEY_JDBC_DRIVER_CLASS);
-        jdbcUrl         = (String) ApplicationSettings.getMandatoryProperty(props, KEY_JDBC_URL);
-        jdbcUser        = (String) ApplicationSettings.getMandatoryProperty(props, KEY_JDBC_USER);
+        settings.getMandatoryProperty(KEY_JDBC_PASSWORD); // <-- in PersistenceModule this attribute is optional.
 
-        ApplicationSettings.getMandatoryProperty(props, KEY_JDBC_PASSWORD); // <-- in PersistenceModule this attribute is optional.
-
-        String jdbcFilename = (String) ApplicationSettings.getProperty(props, KEY_JDBC_DRIVER_FILENAME);
+        String jdbcFilename = settings.getProperty(KEY_JDBC_DRIVER_FILENAME, DEFAULT_JDBC_URL);
 
         if (jdbcFilename != null && !jdbcFilename.isEmpty()) {
             jdbcDriverFile = new File(app.getDirectory(), jdbcFilename);

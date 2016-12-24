@@ -33,16 +33,11 @@ import org.junit.Before;
 import org.junit.Test;
 
 public class SmtpExceptionReporterTest {
-    
+
     // <editor-fold desc="STATIC SCOPE">
     // =========================================================================
     @WebListener
     public static class Application extends MockedWebApplication {
-
-        @Override
-        protected String getSettingsFilename() {
-            return "smtp-exception-test.properties";
-        }
 
         @Override
         protected void beforeApplicationStart() {

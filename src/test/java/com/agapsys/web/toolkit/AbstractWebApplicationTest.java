@@ -211,7 +211,7 @@ public class AbstractWebApplicationTest  {
         WebApplicationBase webApp = new WebApplicationBase();
         webApp.start();
         Assert.assertTrue(webApp.isBeforeApplicationStartCalled());
-        Assert.assertTrue(webApp.isActive());
+        Assert.assertTrue(webApp.isRunning());
         Assert.assertFalse(webApp.isOnPersistenceModuleStartCalled());
         Assert.assertFalse(webApp.isOnExceptionReporterModuleStartCalled());
         Assert.assertFalse(webApp.isOnSmtpModuleStartCalled());
@@ -224,7 +224,7 @@ public class AbstractWebApplicationTest  {
         Assert.assertFalse(webApp.isOnPersistenceModuleStopCalled());
         Assert.assertFalse(webApp.isOnExceptionReporterModuleStopCalled());
         Assert.assertFalse(webApp.isOnSmtpModuleStopCalled());
-        Assert.assertFalse(!webApp.isActive());
+        Assert.assertFalse(!webApp.isRunning());
         Assert.assertTrue(webApp.isAfterApplicationStopCalled());
         Assert.assertNull(AbstractWebApplication.getRunningInstance());
     }

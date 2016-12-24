@@ -19,15 +19,17 @@ package com.agapsys.web.toolkit;
 import com.agapsys.web.toolkit.modules.ExceptionReporterModule;
 import com.agapsys.web.toolkit.modules.LogModule;
 import com.agapsys.web.toolkit.modules.LogModule.DailyLogFileStream;
+import com.agapsys.web.toolkit.utils.ApplicationSettings;
 import com.agapsys.web.toolkit.utils.FileUtils;
 import com.agapsys.web.toolkit.utils.FileUtils.AccessError;
+import com.agapsys.web.toolkit.utils.Settings;
 import com.agapsys.web.toolkit.utils.SingletonManager;
 import java.io.File;
 import java.io.IOException;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Properties;
+import java.util.Map.Entry;
 import java.util.Set;
 
 /**
@@ -37,25 +39,25 @@ public abstract class AbstractApplication {
 
     // <editor-fold desc="STATIC SCOPE">
     // =========================================================================
-    // Global settings ---------------------------------------------------------
-    public static final String DEFAULT_SETTINGS_GROUP_NAME = AbstractApplication.class.getPackage().getName() + ".Application";
+    private static final String APP_NAME_PATTERN  = "^[a-zA-Z][a-zA-Z0-9\\-_]*$";
+    private static final String SETTINGS_FILENAME = "settings.ini";
+    private static final String LOG_DIR           = "log";
 
-    private static final String APP_NAME_PATTERN = "^[a-zA-Z][a-zA-Z0-9\\-_]*$";
-    // -------------------------------------------------------------------------
-    private static final String SETTINGS_FILENAME = "application.properties";
-    private static final String LOG_DIR_NAME      = "log";
+    private static AbstractApplication singleton = null;
+    public static AbstractApplication getRunningInstance() {
+        return singleton;
+    }
     // =========================================================================
     // </editor-fold>
 
-    private final SingletonManager<Module>  moduleManager  = new SingletonManager<>(Module.class);
-    private final SingletonManager<Service> serviceManager = new SingletonManager<>(Service.class);
+    private final SingletonManager<Module>  moduleManager      = new SingletonManager<>(Module.class);
+    private final SingletonManager<Service> serviceManager     = new SingletonManager<>(Service.class);
+    private final List<Module>              initializedModules = new LinkedList<>();
 
-    private final List<Module> initializedModules  = new LinkedList<>();
-    private final ApplicationSettings settings = new ApplicationSettings();
-    private final Properties defaultProperties = new Properties();
+    private File                appDirectory;
+    private boolean             running;
+    private ApplicationSettings applicationSettings;
 
-    private File     appDirectory;
-    private boolean  running;
 
     public AbstractApplication() {
         reset();
@@ -66,11 +68,9 @@ public abstract class AbstractApplication {
         moduleManager.clear();
         serviceManager.clear();
         initializedModules.clear();
-        settings.clear();
-        defaultProperties.clear();
 
-        appDirectory   = null;
-        running        = false;
+        appDirectory = null;
+        running      = false;
     }
 
     /**
@@ -90,7 +90,7 @@ public abstract class AbstractApplication {
      *
      * @return a boolean indicating if application is running.
      */
-    public final boolean isActive() {
+    public final boolean isRunning() {
         return running;
     }
 
@@ -109,33 +109,13 @@ public abstract class AbstractApplication {
     public abstract String getVersion();
 
     /**
-     * Returns application settings filename.
-     *
-     * @return application settings filename.
-     */
-    protected String getSettingsFilename() {
-        return SETTINGS_FILENAME;
-    }
-
-    /**
-     * Returns the absolute path of application folder.
-     *
-     * @return the path of application directory.
-     */
-    protected String getDirectoryAbsolutePath() {
-        File d = new File(FileUtils.USER_HOME, "." + getName());
-
-        return d.getAbsolutePath();
-    }
-
-    /**
      * Returns a file representing application directory.
      *
      * @return the directory where application stores resources.
      */
     public final File getDirectory() {
         if (appDirectory == null) {
-            String directoryPath = getDirectoryAbsolutePath();
+            String directoryPath = new File(FileUtils.USER_HOME, "." + getName()).getAbsolutePath();
 
             appDirectory = new File(directoryPath);
 
@@ -149,15 +129,6 @@ public abstract class AbstractApplication {
         }
 
         return appDirectory;
-    }
-
-    /**
-     * Returns the name of log directory.
-     *
-     * @return the name of log directory.
-     */
-    protected String getLogDirName() {
-        return LOG_DIR_NAME;
     }
 
     /**
@@ -199,7 +170,9 @@ public abstract class AbstractApplication {
      * @return registered instance
      */
     public final <M extends Module> M registerModule(Class<M> moduleClass) {
-        if (isActive()) throw new RuntimeException("Cannot register a module with a running application");
+        if (isRunning())
+            throw new RuntimeException("Cannot register a module with a running application");
+
         return moduleManager.registerClass(moduleClass);
     }
 
@@ -209,7 +182,9 @@ public abstract class AbstractApplication {
      * @param moduleInstance associated module instance.
      */
     public final void registerModule(Module moduleInstance) {
-        if (isActive()) throw new RuntimeException("Cannot register a module with a running application");
+        if (isRunning())
+            throw new RuntimeException("Cannot register a module with a running application");
+
         moduleManager.registerInstance(moduleInstance);
     }
 
@@ -309,8 +284,8 @@ public abstract class AbstractApplication {
     /**
      * @return application global settings
      */
-    ApplicationSettings _getSettings() {
-        return settings.getReadOnlyInstance();
+    ApplicationSettings _getApplicationSettings() {
+        return applicationSettings;
     }
 
     /**
@@ -318,30 +293,27 @@ public abstract class AbstractApplication {
      *
      * @return the properties associated to this application.
      */
-    protected Properties getProperties() {
+    protected Settings getSettings() {
         synchronized(this) {
-            Properties mainProperties = _getSettings().getProperties(getAppSettingsGroupName());
-            Properties defaults = getDefaultProperties();
-            return ApplicationSettings.mergeProperties(mainProperties, defaults);
+            return _getApplicationSettings().getSection(null);
         }
     }
 
     /**
-     * Returns the name of the settings group used by application.
+     * Returns application default settings.
      *
-     * @return the name of the settings group used by application.
+     * @return application sections properties. Default implementation returns null.
      */
-    protected final String getAppSettingsGroupName() {
-        return DEFAULT_SETTINGS_GROUP_NAME;
+    protected Settings getDefaultSettings() {
+        return null;
     }
 
-    /**
-     * Returns application default properties.
-     *
-     * @return application default properties.
-     */
-    protected Properties getDefaultProperties() {
-        return defaultProperties;
+    private Settings __getDefaultSettings() {
+        Settings settings = getDefaultSettings();
+        if (settings == null)
+            return new Settings();
+
+        return settings;
     }
 
     /**
@@ -350,27 +322,42 @@ public abstract class AbstractApplication {
      * @throws IOException if there is an error reading settings file.
      */
     private void __loadSettings() throws IOException {
-        File settingsFile = new File(getDirectory(), getSettingsFilename());
+        File settingsFile = new File(getDirectory(), SETTINGS_FILENAME);
+        ApplicationSettings mDefaultApplicationSettings = new ApplicationSettings();
 
-        // Apply application default properties...
-        settings.addProperties(getAppSettingsGroupName(), getDefaultProperties());
 
-        // Apply modules default properties...
-        Set<Module> moduleInstanceSet = new LinkedHashSet<>();
-        for (Module module : moduleManager.getInstances()) {
-            moduleInstanceSet.add(module);
+        // Consolidate default settings (APPLICATION)...
+        Settings mDefaultSettings = __getDefaultSettings();
+        for (Entry<String, String> entry : mDefaultSettings.entrySet()) {
+            mDefaultApplicationSettings.setProperty(entry.getKey(), entry.getValue());
         }
-        for (Module module : moduleInstanceSet) {
-            settings.addProperties(module._getSettingsGroupName(), module._getDefaultProperties());
+
+        // Consolidate default settings (MODULES)...
+        for (Module module : moduleManager.getInstances()) {
+            String section = module._getSettingsSection();
+            Settings defaults = module._getDefaultSettings();
+
+            for (Entry<String, String> entry : defaults.entrySet()) {
+                mDefaultApplicationSettings.setProperty(section, entry.getKey(), entry.getValue());
+            }
         }
 
         if (settingsFile.exists()) {
-            // Apply settings file properties if file exists...
-            settings.read(settingsFile);
+            applicationSettings = applicationSettings.load(settingsFile);
         } else {
+            applicationSettings = new ApplicationSettings();
+        }
+
+        for(Entry<String, Settings> entry : mDefaultApplicationSettings.entrySet()) {
+            for (Entry<String, String> sectionEntry : entry.getValue().entrySet()) {
+                applicationSettings.setPropertyIfAbsent(entry.getKey(), sectionEntry.getKey(), sectionEntry.getValue());
+            }
+        }
+
+        if (!settingsFile.exists()) {
             // Write properties to disk if file doesn't exist...
             log(LogType.INFO, "Creating default settings file...");
-            settings.writeToFile(settingsFile);
+            applicationSettings.store(settingsFile);
         }
     }
 
@@ -378,56 +365,67 @@ public abstract class AbstractApplication {
      * Starts this application.
      */
     public void start() {
-        if (isActive())
+        if (isRunning())
             throw new RuntimeException("Application is already running");
 
-        String name = getName();
-
-        if (name != null)
-            name = name.trim();
-
-        if (name == null || name.isEmpty())
-            throw new IllegalStateException("Missing application name");
-
-        if (!name.matches(APP_NAME_PATTERN))
-            throw new IllegalArgumentException("Invalid application name: " + name);
-
-        String version = getVersion();
-
-        if (version != null)
-            version = version.trim();
-
-        if (version == null || version.isEmpty())
-            throw new IllegalStateException("Missing application version");
-
-        __beforeApplicationStart();
-
-        log(LogType.INFO, "Starting application: %s", name);
-
-        __resolveModules(false); // <-- required in order to retrieve transient modules default settings...
+        if (singleton != null)
+            throw new IllegalStateException("Another application instance is already running");
 
         try {
-            log(LogType.INFO, "Loading settings...");
-            __loadSettings();
-        } catch (IOException ex) {
-            log(LogType.ERROR, "Error loading settings: %s", ex.getMessage());
-            throw new RuntimeException(ex);
+            String name = getName();
+
+            if (name != null)
+                name = name.trim();
+
+            if (name == null || name.isEmpty())
+                throw new IllegalStateException("Missing application name");
+
+            if (!name.matches(APP_NAME_PATTERN))
+                throw new IllegalArgumentException("Invalid application name: " + name);
+
+            String version = getVersion();
+
+            if (version != null)
+                version = version.trim();
+
+            if (version == null || version.isEmpty())
+                throw new IllegalStateException("Missing application version");
+
+            __beforeApplicationStart();
+
+            log(LogType.INFO, "Starting application: %s", name);
+
+            __resolveModules(false); // <-- required in order to retrieve transient modules default settings...
+
+            try {
+                log(LogType.INFO, "Loading settings...");
+                __loadSettings();
+            } catch (IOException ex) {
+                log(LogType.ERROR, "Error loading settings: %s", ex.getMessage());
+                throw new RuntimeException(ex);
+            }
+
+            // Starts all modules
+            __resolveModules(true);
+            running = true;
+            log(LogType.INFO, "Application is ready: %s", name);
+
+            afterApplicationStart();
+
+            singleton = this;
+
+            applicationSettings.clear(); // <-- Settings should not be kept in memory since it may contains sensitive-data
+        } catch (RuntimeException ex) {
+            singleton = null;
+            onStartError(ex);
+            throw ex;
         }
-
-        // Starts all modules
-        __resolveModules(true);
-        running = true;
-        log(LogType.INFO, "Application is ready: %s", name);
-
-        afterApplicationStart();
-
-        settings.clear(); // <-- Settings should not be kept in memory since it may contains sensitive-data
     }
 
     private void __beforeApplicationStart() {
         reset();
 
-        String logDirPath = new File(getDirectory(), getLogDirName()).getAbsolutePath();
+        String logDirPath = new File(getDirectory(), LOG_DIR).getAbsolutePath();
         File logDir;
         try {
             logDir = FileUtils.getOrCreateDirectory(logDirPath);
@@ -463,7 +461,7 @@ public abstract class AbstractApplication {
      * Stops this application.
      */
     public void stop() {
-        if (!isActive())
+        if (!isRunning())
             throw new RuntimeException("Application is not running");
 
         log(LogType.INFO, "Shutting shutdown application: %s", getName());
@@ -472,6 +470,7 @@ public abstract class AbstractApplication {
         __stopModules();
 
         afterApplicationStop();
+        singleton = null;
     }
 
     /**
@@ -489,5 +488,7 @@ public abstract class AbstractApplication {
      * Default implementation does nothing.
      */
     protected void afterApplicationStop() {}
+
+    protected void onStartError(RuntimeException ex) {}
 
 }

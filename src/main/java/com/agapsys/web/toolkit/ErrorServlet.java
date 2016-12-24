@@ -39,12 +39,12 @@ public class ErrorServlet extends HttpServlet {
     // </editor-fold>
 
     private <T extends Module> T getModule(Class<T> moduleClass) {
-        AbstractWebApplication webApp = AbstractWebApplication.getRunningInstance();
+        AbstractApplication app = AbstractApplication.getRunningInstance();
 
-        if (webApp == null)
+        if (app == null)
             return null;
 
-        return webApp.getModule(moduleClass);
+        return app.getModule(moduleClass);
     }
 
     @Override
@@ -56,10 +56,10 @@ public class ErrorServlet extends HttpServlet {
         if (t != null && exceptionReporterModule != null) {
             exceptionReporterModule.reportException(t, req);
         } else {
-            AbstractWebApplication webApp = AbstractWebApplication.getRunningInstance();
+            AbstractApplication app = AbstractApplication.getRunningInstance();
 
-            if (webApp != null)
-                webApp.log(LogType.WARNING, "There is no exception reporter module registered with the application");
+            if (app != null)
+                app.log(LogType.WARNING, "There is no exception reporter module registered with the application");
         }
     }
 

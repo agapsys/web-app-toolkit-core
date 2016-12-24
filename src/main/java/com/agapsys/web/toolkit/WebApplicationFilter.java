@@ -43,7 +43,7 @@ public class WebApplicationFilter implements Filter {
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
-        webApp = AbstractWebApplication.getRunningInstance();
+        webApp = (AbstractWebApplication) AbstractApplication.getRunningInstance();
         attributeService = webApp.getService(AttributeService.class);
     }
 

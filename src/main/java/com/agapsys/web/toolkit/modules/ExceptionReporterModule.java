@@ -17,18 +17,17 @@
 package com.agapsys.web.toolkit.modules;
 
 import com.agapsys.web.toolkit.AbstractApplication;
-import com.agapsys.web.toolkit.ApplicationSettings;
 import com.agapsys.web.toolkit.LogType;
 import com.agapsys.web.toolkit.WebApplicationFilter;
 import com.agapsys.web.toolkit.WebModule;
 import com.agapsys.web.toolkit.services.AttributeService;
 import com.agapsys.web.toolkit.utils.DateUtils;
 import com.agapsys.web.toolkit.utils.HttpUtils;
+import com.agapsys.web.toolkit.utils.Settings;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Properties;
 import javax.servlet.http.HttpServletRequest;
 
 /**
@@ -89,19 +88,22 @@ public class ExceptionReporterModule extends WebModule {
     }
 
     @Override
-    protected final String getSettingsGroupName() {
+    protected final String getSettingsSection() {
         return SETTINGS_GROUP_NAME;
     }
 
     @Override
-    protected Properties getDefaultProperties() {
-        Properties properties = super.getDefaultProperties();
+    protected Settings getDefaultSettings() {
+        Settings settings = super.getDefaultSettings();
 
-        properties.setProperty(KEY_NODE_NAME,                DEFAULT_NODE_NAME);
-        properties.setProperty(KEY_STACK_TRACE_HISTORY_SIZE, "" + DEFAULT_STACK_TRACE_HISTORY_SIZE);
-        properties.setProperty(KEY_MODULE_ENABLED,           "" + DEFAULT_MODULE_ENABLED);
+        if (settings == null)
+            settings = new Settings();
 
-        return properties;
+        settings.setProperty(KEY_NODE_NAME,                DEFAULT_NODE_NAME);
+        settings.setProperty(KEY_STACK_TRACE_HISTORY_SIZE, "" + DEFAULT_STACK_TRACE_HISTORY_SIZE);
+        settings.setProperty(KEY_MODULE_ENABLED,           "" + DEFAULT_MODULE_ENABLED);
+
+        return settings;
     }
 
     @Override
@@ -110,22 +112,22 @@ public class ExceptionReporterModule extends WebModule {
 
         reset();
 
-        Properties props = getProperties();
+        Settings settings = getSettings();
 
         attributeService = getService(AttributeService.class);
 
         String val;
 
         // isEnabled
-        val = ApplicationSettings.getMandatoryProperty(props, KEY_MODULE_ENABLED);
+        val = settings.getMandatoryProperty(KEY_MODULE_ENABLED);
         enabled = Boolean.parseBoolean(val);
 
         // nodeName
-        val = ApplicationSettings.getMandatoryProperty(props, KEY_NODE_NAME);
+        val = settings.getMandatoryProperty(KEY_NODE_NAME);
         nodeName = val;
 
         // stackTraceHistorySize
-        val = ApplicationSettings.getMandatoryProperty(props, KEY_STACK_TRACE_HISTORY_SIZE);
+        val = settings.getMandatoryProperty(KEY_STACK_TRACE_HISTORY_SIZE);
         stackTraceHistorySize = Integer.parseInt(val);
     }
 

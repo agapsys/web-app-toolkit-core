@@ -19,10 +19,10 @@ package com.agapsys.web.toolkit.modules;
 import com.agapsys.mail.Message;
 import com.agapsys.mail.MessageBuilder;
 import com.agapsys.web.toolkit.AbstractApplication;
-import com.agapsys.web.toolkit.ApplicationSettings;
 import com.agapsys.web.toolkit.Module;
+import com.agapsys.web.toolkit.utils.Settings;
 import java.util.Arrays;
-import java.util.Properties;
+import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.regex.Pattern;
 import javax.mail.internet.AddressException;
@@ -96,6 +96,8 @@ public class SmtpExceptionReporterModule extends ExceptionReporterModule {
     @Override
     public Set<Class<? extends Module>> getDependencies() {
         Set<Class<? extends Module>> dependencies = super.getDependencies();
+        if (dependencies == null)
+            dependencies = new LinkedHashSet<>();
 
         dependencies.addAll(Arrays.asList(DEPENDENCIES));
 
@@ -103,13 +105,16 @@ public class SmtpExceptionReporterModule extends ExceptionReporterModule {
     }
 
     @Override
-    public Properties getDefaultProperties() {
-        Properties properties = super.getDefaultProperties();
+    public Settings getDefaultSettings() {
+        Settings defaultSettings = super.getDefaultSettings();
 
-        properties.setProperty(KEY_SUBJECT,    DEFAULT_SUBJECT);
-        properties.setProperty(KEY_RECIPIENTS, DEFAULT_RECIPIENTS);
+        if (defaultSettings == null)
+            defaultSettings = new Settings();
 
-        return properties;
+        defaultSettings.setProperty(KEY_SUBJECT,    DEFAULT_SUBJECT);
+        defaultSettings.setProperty(KEY_RECIPIENTS, DEFAULT_RECIPIENTS);
+
+        return defaultSettings;
     }
 
     @Override
@@ -122,14 +127,14 @@ public class SmtpExceptionReporterModule extends ExceptionReporterModule {
 
         String val;
 
-        Properties props = getProperties();
+        Settings settings = getSettings();
 
         // Recipients
-        val = ApplicationSettings.getMandatoryProperty(props, KEY_RECIPIENTS);
+        val = settings.getMandatoryProperty(KEY_RECIPIENTS);
         recipients = getRecipientsFromString(val, RECIPIENT_DELIMITER);
 
         // Subject
-        val = ApplicationSettings.getMandatoryProperty(props, KEY_SUBJECT);
+        val = settings.getMandatoryProperty(KEY_SUBJECT);
         subject = val;
     }
 

@@ -17,11 +17,11 @@
 package com.agapsys.web.toolkit.modules;
 
 import com.agapsys.web.toolkit.AbstractApplication;
-import com.agapsys.web.toolkit.ApplicationSettings;
 import com.agapsys.web.toolkit.Module;
+import com.agapsys.web.toolkit.utils.Settings;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Properties;
+import java.util.Map.Entry;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.FlushModeType;
@@ -31,7 +31,7 @@ import javax.persistence.Persistence;
  * Represents a JPA persistence module.
  */
 public class PersistenceModule extends Module {
-    
+
     // <editor-fold desc="STATIC SCOPE">
     // =========================================================================
     public static final String SETTINGS_GROUP_NAME = PersistenceModule.class.getName();
@@ -80,7 +80,7 @@ public class PersistenceModule extends Module {
     }
 
     @Override
-    protected final String getSettingsGroupName() {
+    protected final String getSettingsSection() {
         return SETTINGS_GROUP_NAME;
     }
 
@@ -110,11 +110,16 @@ public class PersistenceModule extends Module {
      * @return additional properties to be used.
      */
     protected Map getAdditionalProperties(AbstractApplication app) {
-        Properties props = getProperties();
+        Settings settings = getSettings();
 
-        Map propertyMap = new LinkedHashMap(props);
+        Map<String, String> settingsMap = new LinkedHashMap<>();
+        for (Entry<String, String> entry : settings.entrySet()) {
+            settingsMap.put(entry.getKey(), entry.getValue());
+        }
 
-        String strJdbcPassword = ApplicationSettings.getProperty(props, KEY_JDBC_PASSWORD);
+        Map propertyMap = new LinkedHashMap(settingsMap);
+
+        String strJdbcPassword = settings.getProperty(KEY_JDBC_PASSWORD, null);
 
         if (strJdbcPassword == null) {
             jdbcPassword = null;

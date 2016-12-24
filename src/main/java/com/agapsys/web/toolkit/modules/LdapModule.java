@@ -17,14 +17,13 @@
 package com.agapsys.web.toolkit.modules;
 
 import com.agapsys.web.toolkit.AbstractApplication;
-import com.agapsys.web.toolkit.ApplicationSettings;
 import com.agapsys.web.toolkit.WebModule;
 import com.agapsys.web.toolkit.modules.LdapModule.LdapException.LdapExceptionType;
+import com.agapsys.web.toolkit.utils.Settings;
 import java.util.Collections;
 import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Properties;
 import javax.naming.AuthenticationException;
 import javax.naming.AuthenticationNotSupportedException;
 import javax.naming.CommunicationException;
@@ -39,7 +38,7 @@ import javax.naming.directory.SearchControls;
 import javax.naming.directory.SearchResult;
 
 public class LdapModule extends WebModule {
-    
+
     // <editor-fold desc="STATIC SCOPE">
     // =========================================================================
     public static class LdapException extends Exception {
@@ -162,21 +161,24 @@ public class LdapModule extends WebModule {
     }
 
     @Override
-    protected final String getSettingsGroupName() {
+    protected final String getSettingsSection() {
         return SETTINGS_GROUP_NAME;
     }
 
     @Override
-    public Properties getDefaultProperties() {
-        Properties defaultProperties = super.getDefaultProperties();
+    public Settings getDefaultSettings() {
+        Settings defaultSettings = super.getDefaultSettings();
 
-        defaultProperties.setProperty(KEY_LDAP_URL,             DEFAULT_LDAP_URL);
-        defaultProperties.setProperty(KEY_SEARCH_BASE_DN,       DEFAULT_SEARCH_BASE_DN);
-        defaultProperties.setProperty(KEY_SEARCH_PATTERN,       DEFAULT_SEARCH_PATTERN);
-        defaultProperties.setProperty(KEY_SEARCH_USER_DN,       DEFAULT_SEARCH_USER_DN);
-        defaultProperties.setProperty(KEY_SEARCH_USER_PASSWORD, DEFAULT_SEARCH_USER_PASSWORD);
+        if (defaultSettings == null)
+            defaultSettings = new Settings();
 
-        return defaultProperties;
+        defaultSettings.setProperty(KEY_LDAP_URL,             DEFAULT_LDAP_URL);
+        defaultSettings.setProperty(KEY_SEARCH_BASE_DN,       DEFAULT_SEARCH_BASE_DN);
+        defaultSettings.setProperty(KEY_SEARCH_PATTERN,       DEFAULT_SEARCH_PATTERN);
+        defaultSettings.setProperty(KEY_SEARCH_USER_DN,       DEFAULT_SEARCH_USER_DN);
+        defaultSettings.setProperty(KEY_SEARCH_USER_PASSWORD, DEFAULT_SEARCH_USER_PASSWORD);
+
+        return defaultSettings;
     }
 
     @Override
@@ -185,13 +187,13 @@ public class LdapModule extends WebModule {
 
         reset();
 
-        Properties props = getProperties();
+        Settings settings = getSettings();
 
-        ldapUrl            = ApplicationSettings.getMandatoryProperty(props, KEY_LDAP_URL);
-        searchBaseDn       = ApplicationSettings.getMandatoryProperty(props, KEY_SEARCH_BASE_DN);
-        searchPattern      = ApplicationSettings.getMandatoryProperty(props, KEY_SEARCH_PATTERN);
-        searchUserDn       = ApplicationSettings.getMandatoryProperty(props, KEY_SEARCH_USER_DN);
-        searchUserPassword = ApplicationSettings.getMandatoryProperty(props, KEY_SEARCH_USER_PASSWORD).toCharArray();
+        ldapUrl            = settings.getMandatoryProperty(KEY_LDAP_URL);
+        searchBaseDn       = settings.getMandatoryProperty(KEY_SEARCH_BASE_DN);
+        searchPattern      = settings.getMandatoryProperty(KEY_SEARCH_PATTERN);
+        searchUserDn       = settings.getMandatoryProperty(KEY_SEARCH_USER_DN);
+        searchUserPassword = settings.getMandatoryProperty(KEY_SEARCH_USER_PASSWORD).toCharArray();
     }
 
 

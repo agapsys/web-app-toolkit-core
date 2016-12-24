@@ -17,7 +17,7 @@
 package com.agapsys.web.toolkit;
 
 import com.agapsys.web.toolkit.utils.HttpUtils;
-import java.util.Properties;
+import com.agapsys.web.toolkit.utils.Settings;
 import java.util.regex.Pattern;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
@@ -41,11 +41,6 @@ public abstract class AbstractWebApplication extends AbstractApplication impleme
     public static final boolean DEFAULT_APP_DISABLED        = false;
     public static final String  DEFAULT_APP_ALLOWED_ORIGINS = "*";
     public static final String  ORIGIN_DELIMITER            = ",";
-
-    private static AbstractWebApplication singleton;
-    public static AbstractWebApplication getRunningInstance() {
-        return singleton;
-    }
     // -------------------------------------------------------------------------
     // =========================================================================
     // </editor-fold>
@@ -70,7 +65,7 @@ public abstract class AbstractWebApplication extends AbstractApplication impleme
      * @return a boolean indicating if application is disabled.
      */
     public boolean isDisabled() {
-        if (!isActive())
+        if (!isRunning())
             throw new RuntimeException("Application is not running");
 
         return disabled;
@@ -93,7 +88,7 @@ public abstract class AbstractWebApplication extends AbstractApplication impleme
      * @return boolean indicating if given request is allowed to proceed.
      */
     protected boolean isOriginAllowed(HttpServletRequest req) {
-        if (!isActive())
+        if (!isRunning())
             throw new RuntimeException("Application is not running");
 
         boolean isOriginAllowed = allowedOrigins.length == 1 && allowedOrigins[0].equals(DEFAULT_APP_ALLOWED_ORIGINS);
@@ -118,19 +113,22 @@ public abstract class AbstractWebApplication extends AbstractApplication impleme
     }
 
     @Override
-    protected Properties getDefaultProperties() {
-        Properties defaultProperties = super.getDefaultProperties();
+    protected Settings getDefaultSettings() {
+        Settings defaultSettings = super.getDefaultSettings();
 
-        defaultProperties.setProperty(KEY_APP_DISABLE,         "" + DEFAULT_APP_DISABLED);
-        defaultProperties.setProperty(KEY_APP_ALLOWED_ORIGINS, DEFAULT_APP_ALLOWED_ORIGINS);
+        if (defaultSettings == null)
+            defaultSettings = new Settings();
 
-        return defaultProperties;
+        defaultSettings.setProperty(KEY_APP_DISABLE,         "" + DEFAULT_APP_DISABLED);
+        defaultSettings.setProperty(KEY_APP_ALLOWED_ORIGINS, DEFAULT_APP_ALLOWED_ORIGINS);
+
+        return defaultSettings;
     }
 
     @Override
     protected void afterApplicationStart() {
-        disabled       = Boolean.parseBoolean(getProperties().getProperty(KEY_APP_DISABLE, "" + DEFAULT_APP_DISABLED));
-        allowedOrigins = getProperties().getProperty(KEY_APP_ALLOWED_ORIGINS, AbstractWebApplication.DEFAULT_APP_ALLOWED_ORIGINS).split(Pattern.quote(ORIGIN_DELIMITER));
+        disabled       = Boolean.parseBoolean(getSettings().getProperty(KEY_APP_DISABLE, "" + DEFAULT_APP_DISABLED));
+        allowedOrigins = getSettings().getProperty(KEY_APP_ALLOWED_ORIGINS, AbstractWebApplication.DEFAULT_APP_ALLOWED_ORIGINS).split(Pattern.quote(ORIGIN_DELIMITER));
 
         for (int i = 0; i < allowedOrigins.length; i++) {
             allowedOrigins[i] = allowedOrigins[i].trim();
@@ -154,14 +152,12 @@ public abstract class AbstractWebApplication extends AbstractApplication impleme
     @Override
     public final void contextInitialized(ServletContextEvent sce) {
         start();
-        singleton = this;
         onContextInitialized(sce);
     }
 
     @Override
     public final void contextDestroyed(ServletContextEvent sce) {
         stop();
-        singleton = null;
         onContextDestroyed(sce);
     }
 
