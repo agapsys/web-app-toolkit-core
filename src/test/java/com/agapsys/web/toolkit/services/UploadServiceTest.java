@@ -66,7 +66,7 @@ public class UploadServiceTest {
 
         @Override
         protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-            String request = req.getMethod() + req.getPathInfo();
+            String request = String.format("%s %s", req.getMethod(), req.getPathInfo());
 
             switch (request) {
                 case "GET /finish":

@@ -20,6 +20,7 @@ import com.agapsys.http.HttpGet;
 import com.agapsys.http.HttpResponse;
 import com.agapsys.sevlet.container.ServletContainer;
 import com.agapsys.sevlet.container.ServletContainerBuilder;
+import com.agapsys.web.toolkit.AbstractWebApplication;
 import com.agapsys.web.toolkit.MockedWebApplication;
 import com.agapsys.web.toolkit.WebApplicationFilter;
 import java.io.IOException;
@@ -34,7 +35,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 public class ApplicationDisableTest {
-    
+
     // <editor-fold desc="STATIC SCOPE">
     // =========================================================================
     @WebListener
@@ -64,6 +65,7 @@ public class ApplicationDisableTest {
     @After
     public void after() {
         sc.stopServer();
+        Assert.assertNull(AbstractWebApplication.getRunningInstance());
     }
 
     @Test

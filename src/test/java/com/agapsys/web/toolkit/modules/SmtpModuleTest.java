@@ -19,7 +19,6 @@ package com.agapsys.web.toolkit.modules;
 import com.agapsys.mail.Message;
 import com.agapsys.mail.MessageBuilder;
 import com.agapsys.web.toolkit.AbstractApplication;
-import com.agapsys.web.toolkit.AbstractWebApplication;
 import com.agapsys.web.toolkit.MockedWebApplication;
 import javax.mail.internet.AddressException;
 import org.junit.Assert;
@@ -49,7 +48,6 @@ public class SmtpModuleTest {
 
     private TestSmtpModule module;
     private final Message testMessage;
-    private final AbstractWebApplication app = new MockedWebApplication();
 
     public SmtpModuleTest() throws AddressException {
         this.testMessage = new MessageBuilder("sender@host.com", "recipient@host.com").build();
@@ -85,5 +83,6 @@ public class SmtpModuleTest {
         module.sendMessage(testMessage);
         Assert.assertTrue(module.methodCalled);
         app.stop();
+        Assert.assertNull(AbstractApplication.getRunningInstance());
     }
 }

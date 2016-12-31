@@ -17,7 +17,6 @@
 package com.agapsys.web.toolkit.modules;
 
 import com.agapsys.web.toolkit.AbstractApplication;
-import com.agapsys.web.toolkit.AbstractWebApplication;
 import com.agapsys.web.toolkit.MockedWebApplication;
 import javax.persistence.EntityManager;
 import org.junit.Assert;
@@ -51,7 +50,6 @@ public class PersistenceModuleTest {
     // =========================================================================
     // </editor-fold>
 
-    private final AbstractWebApplication app = new MockedWebApplication();
     private TestPersistenceModule module;
 
     @Before
@@ -83,5 +81,7 @@ public class PersistenceModuleTest {
         app.start();
         Assert.assertNull(module.getEntityManager());
         Assert.assertTrue(module.methodCalled);
+        app.stop();
+        Assert.assertNull(AbstractApplication.getRunningInstance());
     }
 }

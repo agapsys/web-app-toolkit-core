@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.agapsys.web.toolkit;
 
 import com.agapsys.web.toolkit.modules.LogModule;
 import com.agapsys.web.toolkit.modules.LogModule.ConsoleLogStream;
 import com.agapsys.web.toolkit.utils.FileUtils;
+import java.io.File;
 import java.io.IOException;
 import javax.servlet.annotation.WebListener;
 
@@ -33,6 +33,11 @@ public class MockedWebApplication extends AbstractWebApplication {
     @Override
     public String getVersion() {
         return "0.1.0";
+    }
+
+    @Override
+    protected File getParentDir() {
+        return FileUtils.DEFAULT_TEMPORARY_FOLDER;
     }
 
     @Override

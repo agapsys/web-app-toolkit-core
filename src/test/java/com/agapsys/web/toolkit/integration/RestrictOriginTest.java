@@ -20,6 +20,7 @@ import com.agapsys.http.HttpGet;
 import com.agapsys.http.HttpResponse;
 import com.agapsys.sevlet.container.ServletContainer;
 import com.agapsys.sevlet.container.ServletContainerBuilder;
+import com.agapsys.web.toolkit.AbstractApplication;
 import com.agapsys.web.toolkit.MockedWebApplication;
 import com.agapsys.web.toolkit.WebApplicationFilter;
 import java.io.IOException;
@@ -63,6 +64,7 @@ public class RestrictOriginTest {
     @After
     public void after() {
         sc.stopServer();
+        Assert.assertNull(AbstractApplication.getRunningInstance());
     }
 
     @Test

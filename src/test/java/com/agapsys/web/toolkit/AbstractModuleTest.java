@@ -73,5 +73,4 @@ public class AbstractModuleTest {
         Assert.assertTrue(module.isStopCalled);
         Assert.assertFalse(module.isActive());
     }
-
 }

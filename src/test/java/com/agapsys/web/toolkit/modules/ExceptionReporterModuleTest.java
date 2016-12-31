@@ -16,7 +16,7 @@
 
 package com.agapsys.web.toolkit.modules;
 
-import com.agapsys.web.toolkit.AbstractWebApplication;
+import com.agapsys.web.toolkit.AbstractApplication;
 import com.agapsys.web.toolkit.MockedWebApplication;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -421,7 +421,6 @@ public class ExceptionReporterModuleTest {
             throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
         }
     };
-    private final AbstractWebApplication app = new MockedWebApplication();
 
     private TestExceptionReporterModule module;
 
@@ -462,6 +461,8 @@ public class ExceptionReporterModuleTest {
         Throwable t = new Throwable();
         module.reportException(t, req);
         Assert.assertTrue(module.methodCalled);
+        app.stop();
+        Assert.assertNull(AbstractApplication.getRunningInstance());
     }
 
     @Test

@@ -115,7 +115,7 @@ public abstract class AbstractApplication {
      */
     public final File getDirectory() {
         if (appDirectory == null) {
-            String directoryPath = new File(FileUtils.USER_HOME, "." + getName()).getAbsolutePath();
+            String directoryPath = new File(getParentDir(), "." + getName()).getAbsolutePath();
 
             appDirectory = new File(directoryPath);
 
@@ -132,10 +132,18 @@ public abstract class AbstractApplication {
     }
 
     /**
+     * Returns the parent dir where application directory will be placed.
+     * @return the parent dir where application directory will be placed. Default implementation returns user's home dir.
+     */
+    protected File getParentDir() {
+        return FileUtils.USER_HOME;
+    }
+
+    /**
      * Register a service instance.
      *
      * Usually, services do not need to be registered, since they are
-     * automatically registered upon demand. Use this method to replace a
+     * automatically registered on demand. Use this method to replace a
      * service instance by a customized one.
      * @param service service instance to be registered.
      */
@@ -464,13 +472,19 @@ public abstract class AbstractApplication {
         if (!isRunning())
             throw new RuntimeException("Application is not running");
 
-        log(LogType.INFO, "Shutting shutdown application: %s", getName());
-        beforeApplicationStop();
+        try {
+            log(LogType.INFO, "Shutting shutdown application: %s", getName());
+            beforeApplicationStop();
 
-        __stopModules();
+            __stopModules();
 
-        afterApplicationStop();
-        singleton = null;
+            afterApplicationStop();
+            singleton = null;
+        } catch (RuntimeException ex) {
+            singleton = null;
+            onStopError(ex);
+            throw ex;
+        }
     }
 
     /**
@@ -489,6 +503,16 @@ public abstract class AbstractApplication {
      */
     protected void afterApplicationStop() {}
 
+    /**
+     * Called when there was an error while starting application.
+     * @param ex error
+     */
     protected void onStartError(RuntimeException ex) {}
+
+    /**
+     * Called when there was an error while stoping the application.
+     * @param ex error
+     */
+    protected void onStopError(RuntimeException ex) {}
 
 }
