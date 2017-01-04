@@ -32,10 +32,6 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- *
- * @author Leandro Oliveira (leandro@agapsys.com)
- */
 public class ApplicationSettings {
 
     // <editor-fold desc="STATIC SCOPE">

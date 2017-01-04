@@ -34,7 +34,6 @@ import org.apache.commons.fileupload.servlet.ServletFileUpload;
 
 /**
  * Upload service.
- * @author Leandro Oliveira (leandro@agapsys.com)
  */
 public class UploadService extends Service {
     // CLASS SCOPE =============================================================
