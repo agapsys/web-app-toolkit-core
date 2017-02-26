@@ -40,8 +40,8 @@ public abstract class AbstractApplication {
     // <editor-fold desc="STATIC SCOPE">
     // =========================================================================
     private static final String APP_NAME_PATTERN  = "^[a-zA-Z][a-zA-Z0-9\\-_]*$";
-    private static final String SETTINGS_FILENAME = "settings.ini";
-    private static final String LOG_DIR           = "log";
+    protected static final String SETTINGS_FILENAME = "settings.ini";
+    protected static final String LOG_DIR           = "log";
 
     private static AbstractApplication singleton = null;
     public static AbstractApplication getRunningInstance() {
