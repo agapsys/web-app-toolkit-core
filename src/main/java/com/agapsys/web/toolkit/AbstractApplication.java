@@ -367,8 +367,17 @@ public abstract class AbstractApplication {
             log(LogType.INFO, "Creating default settings file...");
             applicationSettings.store(settingsFile);
         }
+        
+        onSettingsLoaded();
     }
 
+    /** 
+     * Called after application settings were loaded.
+     * 
+     * Default implementation does nothing.
+     */
+    protected void onSettingsLoaded() {}
+    
     /**
      * Starts this application.
      */
