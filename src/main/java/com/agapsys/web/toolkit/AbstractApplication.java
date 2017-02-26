@@ -292,8 +292,10 @@ public abstract class AbstractApplication {
     /**
      * @return application global settings
      */
-    ApplicationSettings _getApplicationSettings() {
-        return applicationSettings;
+    public ApplicationSettings getApplicationSettings() {
+        synchronized(this) {
+            return applicationSettings;
+        }
     }
 
     /**
@@ -301,9 +303,9 @@ public abstract class AbstractApplication {
      *
      * @return the properties associated to this application.
      */
-    protected Settings getSettings() {
+    public Settings getRootSettings() {
         synchronized(this) {
-            return _getApplicationSettings().getSection(null);
+            return getApplicationSettings().getSection(null);
         }
     }
 

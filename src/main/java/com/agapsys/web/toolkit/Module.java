@@ -73,7 +73,7 @@ public abstract class Module extends Service {
     protected final Settings getSettings() {
         synchronized(this) {
             throwIfNotActive();
-            Settings settings = getApplication()._getApplicationSettings().getSection(getSettingsSection());
+            Settings settings = getApplication().getApplicationSettings().getSection(getSettingsSection());
             if (settings == null)
                 settings = new Settings();
 
