@@ -21,6 +21,7 @@ import com.agapsys.http.HttpResponse.StringResponse;
 import com.agapsys.http.MultipartRequest.MultipartPost;
 import com.agapsys.jee.TestingServletContainer;
 import com.agapsys.web.toolkit.Service;
+import com.agapsys.web.toolkit.services.UploadService.ReceivedFile;
 import com.agapsys.web.toolkit.utils.SingletonManager;
 import java.io.File;
 import java.io.FileInputStream;
@@ -57,11 +58,19 @@ public class UploadServiceTest {
     public static void afterClass() {
         System.out.println();
     }
+    
+    private static class TestingUploadService extends UploadService {
+
+        public TestingUploadService() {
+            onInit(null);
+        }
+        
+    }
 
     @WebServlet("/upload/*")
     public static class UploadServlet extends HttpServlet {
 
-        private final UploadService uploadService = SINGLETON_MANAGER.getInstance(UploadService.class, true);
+        private final UploadService uploadService = new TestingUploadService();
 
         @Override
         protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -69,7 +78,7 @@ public class UploadServiceTest {
 
             switch (request) {
                 case "GET /finish":
-                    finish(req);
+                    finish(req, resp);
                     break;
 
                 case "POST /upload":
@@ -78,15 +87,16 @@ public class UploadServiceTest {
             }
         }
 
-        private void finish(HttpServletRequest req) {
-            uploadService.clearSessionFile(req);
+        private void finish(HttpServletRequest req, HttpServletResponse resp) {
+            uploadService.clearSessionFiles(req, resp);
         }
 
         private void upload(HttpServletRequest request, HttpServletResponse response) throws IOException {
-            uploadService.receiveFiles(request, response, null);
-            List<File> sessionFiles = uploadService.getSessionFiles(request);
+            uploadService.receiveFiles(request, response, true, null);
+            List<ReceivedFile> sessionFiles = uploadService.getSessionFiles(request, response);
             if (!sessionFiles.isEmpty()) {
-                for (File file : sessionFiles) {
+                for (ReceivedFile recvFile : sessionFiles) {
+                    File file = recvFile.tmpFile;
                     response.getWriter().println(file.getAbsolutePath());
                 }
             }

@@ -16,6 +16,7 @@
 
 package com.agapsys.web.toolkit.services;
 
+import com.agapsys.web.toolkit.AbstractApplication;
 import com.agapsys.web.toolkit.Service;
 import com.agapsys.web.toolkit.utils.FileUtils;
 import java.io.File;
@@ -36,29 +37,56 @@ import org.apache.commons.fileupload.servlet.ServletFileUpload;
  * Upload service.
  */
 public class UploadService extends Service {
-    // CLASS SCOPE =============================================================
-    protected static final long DEFAULT_TOTAL_MAX_SIZE = -1; // No limit
-    protected static final long DEFAULT_MAX_FILE_SIZE  = -1; // No limit
+    
+    // <editor-fold desc="STATIC SCOPE" defaultstate="collapsed">
+    public static final long DEFAULT_TOTAL_MAX_SIZE    = -1;        // No limit
+    public static final long DEFAULT_MAX_FILE_SIZE     = -1;        // No limit
 
-    private static final String ATTR_SESSION_FILES = "com.agapsys.agrest.sessionFiles";
+    protected static final String ATTR_SESSION_FILES = "com.agapsys.agrest.sessionFiles";
 
     public static interface OnFormFieldListener {
         public void onFormField(String name, String value);
     }
-    // =========================================================================
+    
+    public static class ReceivedFile {
+        public final File tmpFile;
+        public final String filename;
+        
+        private ReceivedFile(File tmpFile, String filename) {
+            this.tmpFile = tmpFile;
+            this.filename = filename;
+        }
+    }
+    // </editor-fold>
+    
+    private ServletFileUpload uploadServlet;
+    
+    @Override
+    protected void onInit(AbstractApplication app) {
+        super.onInit(app);
+        
+        DiskFileItemFactory factory = new DiskFileItemFactory();
+        factory.setSizeThreshold(0); // <--All files will be written to disk
+        factory.setRepository(getTemporaryDirectory());
 
-    // INSTANCE SCOPE ==========================================================
+        uploadServlet = new ServletFileUpload(factory);
+        uploadServlet.setSizeMax(getTotalMaxSize());
+        uploadServlet.setFileSizeMax(getMaxFileSize());
+    }
+    
     /**
-     * Returns the directory used to store uploaded files
-     * @return the directory used to store uploaded files
-     * Default implementation returns {@linkplain FileUtils#DEFAULT_TEMPORARY_FOLDER}
+     * Returns the directory used to store uploaded files.
+     * 
+     * @return the directory used to store uploaded files.
+     * Default implementation returns {@linkplain FileUtils#DEFAULT_TEMPORARY_FOLDER}.
      */
-    protected File getOutputDirectory() {
+    protected File getTemporaryDirectory() {
         return FileUtils.DEFAULT_TEMPORARY_FOLDER;
     }
 
     /**
      * Returns the maximum size of an uploaded file.
+     * 
      * @return the maximum size of an upload file or -1 if there is no limit.
      * Default implementation returns {@link UploadService#DEFAULT_MAX_FILE_SIZE}
      */
@@ -66,9 +94,9 @@ public class UploadService extends Service {
         return DEFAULT_MAX_FILE_SIZE;
     }
 
-
     /**
      * Returns the maximum size of upload bundle (when multiple files are uploaded).
+     * 
      * @return the maximum size of upload bundle (when multiple files are uploaded) or -1 if there is no limit.
      * Default implementation returns {@link UploadService#DEFAULT_TOTAL_MAX_SIZE}
      */
@@ -77,7 +105,8 @@ public class UploadService extends Service {
     }
 
     /**
-     * Returns a coma-delimited list of accepted content-types
+     * Returns a coma-delimited list of accepted content-types.
+     * 
      * @return a coma-delimited list of accepted content-types or '*' for any content-type.
      * Default implementation returns '*'
      */
@@ -86,59 +115,25 @@ public class UploadService extends Service {
     }
 
     /**
-     * Returns the encoding used for form fields
+     * Returns the encoding used for form fields.
+     * 
      * @return the encoding used for form fields. Default implementation returns "utf-8".
      */
     protected String getFieldEncoding() {
         return "utf-8";
     }
 
+    
     /**
-     * @return a boolean indicating if session file list contains a file with given filename.
-     * @param req HTTP request
-     * @param filename filename to be searched.
-     */
-    private boolean sessionContainsFilename(HttpServletRequest req, String filename) {
-        for (File file : getSessionFiles(req)) {
-            if (file.getName().equals(filename)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * Process an uploaded file and returns a modified one
-     * @param req HTTP request
-     * @param filename the original filename in the client's file system.
-     * @param file temporary file
-     * @return processed file.
-     */
-    private File processFile(HttpServletRequest req, String filename, File file) {
-        String baseFilename = new File(filename).getName();
-        String sessionId = req.getSession().getId();
-
-        String tmpFilename = String.format("%s_%s", sessionId, baseFilename);
-        int counter = 1;
-        while (sessionContainsFilename(req, tmpFilename)) {
-            tmpFilename = String.format("%s_%s_%d", sessionId, baseFilename, counter);
-            counter++;
-        }
-
-        File newFile = new File(getOutputDirectory(), tmpFilename);
-        file.renameTo(newFile);
-        getSessionFiles(req).add(newFile);
-        return newFile;
-    }
-
-    /**
-     * Returns a list of files stored in session
-     * @param req HTTP request
+     * Instructs the service how to retrieve a list of received files associated with given request.
+     * 
+     * Default implementation uses container session to store this information.
+     * @param req HTTP request.
+     * @param resp HTTP response.
      * @return list of files stored in session. If there is no files, return an empty list.
      */
-    public List<File> getSessionFiles(HttpServletRequest req) {
-        List<File> sessionFiles = (List<File>) req.getSession().getAttribute(ATTR_SESSION_FILES);
+    protected List<ReceivedFile> getSessionFiles(HttpServletRequest req, HttpServletResponse resp) {
+        List<ReceivedFile> sessionFiles = (List<ReceivedFile>) req.getSession().getAttribute(ATTR_SESSION_FILES);
 
         if (sessionFiles == null) {
             sessionFiles = new LinkedList<>();
@@ -147,41 +142,61 @@ public class UploadService extends Service {
 
         return sessionFiles;
     }
-
+    
     /**
-     * Removes all files stored in session.
-     * @param req HTTP request
+     * Instructs the service how to keep session file information.
+     * 
+     * Default implementation uses container session mechanism to persist information.
+     * 
+     * @param req HTTP request.
+     * @param resp HTTP response.
+     * @param receivedFiles received file list to be persisted.
      */
-    public void clearSessionFile(HttpServletRequest req) {
-        List<File> sessionFiles = getSessionFiles(req);
-
-        while(!sessionFiles.isEmpty()) {
-            File sessionFile = sessionFiles.get(0);
-            sessionFiles.remove(0);
-            if (!sessionFile.delete()) throw new RuntimeException("Failiure removing session file: " + sessionFile.getAbsolutePath());
-        }
+    protected void persistSessionFiles(HttpServletRequest req, HttpServletResponse resp, List<ReceivedFile> receivedFiles) {
+        req.getSession().setAttribute(ATTR_SESSION_FILES, receivedFiles);
     }
 
     /**
-     * Process a request to receive files
-     * @param req HTTP request
-     * @param resp HTTP response
-     * @param onFormFieldListener listener called when a form field is received
-     * @throws IllegalArgumentException if given request if not multipart/form-data
+     * Instructs the server how to remove all received files associated with given request.
+     * @param req HTTP request.
+     * @param resp HTTP response.
      */
-    public void receiveFiles(HttpServletRequest req, HttpServletResponse resp, OnFormFieldListener onFormFieldListener) throws IllegalArgumentException {
-        DiskFileItemFactory factory = new DiskFileItemFactory();
-        factory.setSizeThreshold(0); // All files will be written to disk
-        factory.setRepository(getOutputDirectory());
+    protected void clearSessionFiles(HttpServletRequest req, HttpServletResponse resp) {
+        List<ReceivedFile> sessionFiles = getSessionFiles(req, resp);
 
-        ServletFileUpload upload = new ServletFileUpload(factory);
-        upload.setSizeMax(getTotalMaxSize());
-        upload.setFileSizeMax(getMaxFileSize());
+        while(!sessionFiles.isEmpty()) {
+            File sessionFile = sessionFiles.get(0).tmpFile;
+            
+            if (!sessionFile.delete()) 
+                throw new RuntimeException("Failiure removing session file: " + sessionFile.getAbsolutePath());
+            
+            sessionFiles.remove(0);
 
-        if (!ServletFileUpload.isMultipartContent(req)) throw new IllegalArgumentException("Request is not multipart/form-data");
+        }
+    }
+    
+    /**
+     * Process a request to receive files.
+     * 
+     * @param req HTTP request.
+     * @param resp HTTP response.
+     * @param persistReceivedFiles indicates if received files should be persisted.
+     * @param onFormFieldListener listener called when a form field is received.
+     * @throws IllegalArgumentException if given request if not multipart/form-data.
+     * @return a list of received file by given request.
+     */
+    public List<ReceivedFile> receiveFiles(HttpServletRequest req, HttpServletResponse resp, boolean persistReceivedFiles, OnFormFieldListener onFormFieldListener) throws IllegalArgumentException {
+        if (persistReceivedFiles && resp == null)
+            throw new IllegalArgumentException("In order to persist information, response cannot be null");
+        
+        if (!ServletFileUpload.isMultipartContent(req)) 
+            throw new IllegalArgumentException("Request is not multipart/form-data");
 
         try {
-            List<FileItem> fileItems = upload.parseRequest(req);
+            List<ReceivedFile> recvFiles = new LinkedList<>();
+            
+            List<FileItem> fileItems = uploadServlet.parseRequest(req);
+            
             for (FileItem fi : fileItems) {
                 if (fi.isFormField()) {
                     if (onFormFieldListener != null)
@@ -199,12 +214,23 @@ public class UploadService extends Service {
                         }
                     }
 
-                    if (!acceptRequest) throw new IllegalArgumentException("Unsupported content-type: " + fi.getContentType());
+                    if (!acceptRequest)
+                        throw new IllegalArgumentException("Unsupported content-type: " + fi.getContentType());
 
                     File tmpFile = ((DiskFileItem)fi).getStoreLocation();
-                    processFile(req, fi.getName(), tmpFile);
+                    String filename = fi.getName();
+                    ReceivedFile recvFile = new ReceivedFile(tmpFile, filename);
+                    recvFiles.add(recvFile);
                 }
             }
+            
+            if (persistReceivedFiles) {
+                List<ReceivedFile> sessionRecvFiles = getSessionFiles(req, resp);
+                sessionRecvFiles.addAll(recvFiles);
+                persistSessionFiles(req, resp, sessionRecvFiles);
+            }
+            
+            return recvFiles;
 
         } catch(FileUploadException ex) {
             if (ex instanceof FileUploadBase.SizeLimitExceededException)
@@ -218,12 +244,24 @@ public class UploadService extends Service {
 
     /**
      * Process a request to receive files.
+     * 
      * This is a convenience method for receiveFiles(req, resp, null).
-     * @param req HTTP request
-     * @param resp HTTP response
-     * @throws IllegalArgumentException if given request if not multipart/form-data
+     * 
+     * @param req HTTP request.
+     * @param resp HTTP response.
+     * @throws IllegalArgumentException if given request if not multipart/form-data.
+     * @return a list of received file by given request.
      */
-    public void receiveFiles(HttpServletRequest req, HttpServletResponse resp) throws IllegalArgumentException {
-        receiveFiles(req, resp, null);
+    public final List<ReceivedFile> receiveFiles(HttpServletRequest req, HttpServletResponse resp, boolean persistReceivedFiles) throws IllegalArgumentException {
+        return receiveFiles(req, resp, persistReceivedFiles, null);
     }
+    
+    public final List<ReceivedFile> receiveFiles(HttpServletRequest req) {
+        return receiveFiles(req, null, false);
+    }
+    
+    public final List<ReceivedFile> receiveFiles(HttpServletRequest req, OnFormFieldListener listener) {
+        return receiveFiles(req);
+    }
+
 }
