@@ -132,7 +132,7 @@ public class UploadService extends Service {
      * @param resp HTTP response.
      * @return list of files stored in session. If there is no files, return an empty list.
      */
-    protected List<ReceivedFile> getSessionFiles(HttpServletRequest req, HttpServletResponse resp) {
+    public List<ReceivedFile> getSessionFiles(HttpServletRequest req, HttpServletResponse resp) {
         List<ReceivedFile> sessionFiles = (List<ReceivedFile>) req.getSession().getAttribute(ATTR_SESSION_FILES);
 
         if (sessionFiles == null) {
@@ -152,7 +152,7 @@ public class UploadService extends Service {
      * @param resp HTTP response.
      * @param receivedFiles received file list to be persisted.
      */
-    protected void persistSessionFiles(HttpServletRequest req, HttpServletResponse resp, List<ReceivedFile> receivedFiles) {
+    public void persistSessionFiles(HttpServletRequest req, HttpServletResponse resp, List<ReceivedFile> receivedFiles) {
         req.getSession().setAttribute(ATTR_SESSION_FILES, receivedFiles);
     }
 
@@ -161,7 +161,7 @@ public class UploadService extends Service {
      * @param req HTTP request.
      * @param resp HTTP response.
      */
-    protected void clearSessionFiles(HttpServletRequest req, HttpServletResponse resp) {
+    public void clearSessionFiles(HttpServletRequest req, HttpServletResponse resp) {
         List<ReceivedFile> sessionFiles = getSessionFiles(req, resp);
 
         while(!sessionFiles.isEmpty()) {
