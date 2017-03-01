@@ -256,6 +256,10 @@ public class UploadService extends Service {
         return receiveFiles(req, resp, persistReceivedFiles, null);
     }
     
+    public final List<ReceivedFile> receiveFiles(HttpServletRequest req, HttpServletResponse resp) {
+        return receiveFiles(req, resp, true, null);
+    }
+    
     public final List<ReceivedFile> receiveFiles(HttpServletRequest req) {
         return receiveFiles(req, null, false);
     }
