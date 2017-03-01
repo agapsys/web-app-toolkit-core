@@ -127,6 +127,9 @@ public abstract class AbstractApplication {
                 }
             }
         }
+        
+        if (!appDirectory.canWrite())
+            throw new RuntimeException("Cannot write into application directory: " + appDirectory.getAbsolutePath());
 
         return appDirectory;
     }
