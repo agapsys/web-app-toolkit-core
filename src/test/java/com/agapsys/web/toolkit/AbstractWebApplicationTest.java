@@ -224,7 +224,7 @@ public class AbstractWebApplicationTest  {
         Assert.assertFalse(webApp.isOnPersistenceModuleStopCalled());
         Assert.assertFalse(webApp.isOnExceptionReporterModuleStopCalled());
         Assert.assertFalse(webApp.isOnSmtpModuleStopCalled());
-        Assert.assertFalse(!webApp.isRunning());
+        Assert.assertFalse(webApp.isRunning());
         Assert.assertTrue(webApp.isAfterApplicationStopCalled());
         Assert.assertNull(AbstractWebApplication.getRunningInstance());
     }
