@@ -16,7 +16,6 @@
 
 package com.agapsys.web.toolkit.services;
 
-import com.agapsys.web.toolkit.AbstractApplication;
 import com.agapsys.web.toolkit.Service;
 import com.agapsys.web.toolkit.utils.FileUtils;
 import java.io.File;
@@ -61,17 +60,16 @@ public class UploadService extends Service {
     
     private ServletFileUpload uploadServlet;
     
-    @Override
-    protected void onInit(AbstractApplication app) {
-        super.onInit(app);
-        
-        DiskFileItemFactory factory = new DiskFileItemFactory();
-        factory.setSizeThreshold(0); // <--All files will be written to disk
-        factory.setRepository(getTemporaryDirectory());
+    private synchronized void __int() {
+        if (uploadServlet == null) {
+            DiskFileItemFactory factory = new DiskFileItemFactory();
+            factory.setSizeThreshold(0); // <--All files will be written to disk
+            factory.setRepository(getTemporaryDirectory());
 
-        uploadServlet = new ServletFileUpload(factory);
-        uploadServlet.setSizeMax(getTotalMaxSize());
-        uploadServlet.setFileSizeMax(getMaxFileSize());
+            uploadServlet = new ServletFileUpload(factory);
+            uploadServlet.setSizeMax(getTotalMaxSize());
+            uploadServlet.setFileSizeMax(getMaxFileSize());
+        }
     }
     
     /**
@@ -133,6 +131,8 @@ public class UploadService extends Service {
      * @return list of files stored in session. If there is no files, return an empty list.
      */
     public List<ReceivedFile> getSessionFiles(HttpServletRequest req, HttpServletResponse resp) {
+        __int();
+        
         List<ReceivedFile> sessionFiles = (List<ReceivedFile>) req.getSession().getAttribute(ATTR_SESSION_FILES);
 
         if (sessionFiles == null) {
@@ -153,6 +153,8 @@ public class UploadService extends Service {
      * @param receivedFiles received file list to be persisted.
      */
     public void persistSessionFiles(HttpServletRequest req, HttpServletResponse resp, List<ReceivedFile> receivedFiles) {
+        __int();
+        
         req.getSession().setAttribute(ATTR_SESSION_FILES, receivedFiles);
     }
 
@@ -162,6 +164,8 @@ public class UploadService extends Service {
      * @param resp HTTP response.
      */
     public void clearSessionFiles(HttpServletRequest req, HttpServletResponse resp) {
+        __int();
+        
         List<ReceivedFile> sessionFiles = getSessionFiles(req, resp);
 
         while(!sessionFiles.isEmpty()) {
@@ -186,6 +190,8 @@ public class UploadService extends Service {
      * @return a list of received file by given request.
      */
     public List<ReceivedFile> receiveFiles(HttpServletRequest req, HttpServletResponse resp, boolean persistReceivedFiles, OnFormFieldListener onFormFieldListener) throws IllegalArgumentException {
+        __int();
+        
         if (persistReceivedFiles && resp == null)
             throw new IllegalArgumentException("In order to persist information, response cannot be null");
         
@@ -205,7 +211,7 @@ public class UploadService extends Service {
                     boolean acceptRequest = getAllowedContentTypes().equals("*");
 
                     if (!acceptRequest) {
-                        String[] acceptedContentTypes = getAllowedContentTypes().split(Pattern.quote("."));
+                        String[] acceptedContentTypes = getAllowedContentTypes().split(Pattern.quote(","));
                         for (String acceptedContentType : acceptedContentTypes) {
                             if (fi.getContentType().equals(acceptedContentType.trim())) {
                                 acceptRequest = true;

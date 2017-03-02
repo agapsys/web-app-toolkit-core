@@ -494,8 +494,10 @@ public abstract class AbstractApplication {
 
             afterApplicationStop();
             singleton = null;
+            running = false;
         } catch (RuntimeException ex) {
             singleton = null;
+            running = false;
             onStopError(ex);
             throw ex;
         }
