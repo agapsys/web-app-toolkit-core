@@ -127,8 +127,10 @@ public abstract class AbstractWebApplication extends AbstractApplication impleme
 
     @Override
     protected void afterApplicationStart() {
-        disabled       = Boolean.parseBoolean(getRootSettings().getProperty(KEY_APP_DISABLE, "" + DEFAULT_APP_DISABLED));
-        allowedOrigins = getRootSettings().getProperty(KEY_APP_ALLOWED_ORIGINS, AbstractWebApplication.DEFAULT_APP_ALLOWED_ORIGINS).split(Pattern.quote(ORIGIN_DELIMITER));
+        Settings rootSettings = getApplicationSettings().getSection(null);
+        
+        disabled       = Boolean.parseBoolean(rootSettings.getProperty(KEY_APP_DISABLE, "" + DEFAULT_APP_DISABLED));
+        allowedOrigins = rootSettings.getProperty(KEY_APP_ALLOWED_ORIGINS, AbstractWebApplication.DEFAULT_APP_ALLOWED_ORIGINS).split(Pattern.quote(ORIGIN_DELIMITER));
 
         for (int i = 0; i < allowedOrigins.length; i++) {
             allowedOrigins[i] = allowedOrigins[i].trim();

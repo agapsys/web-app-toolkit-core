@@ -345,17 +345,6 @@ public abstract class AbstractApplication {
     }
 
     /**
-     * Returns the properties associated to this application.
-     *
-     * @return the properties associated to this application.
-     */
-    public Settings getRootSettings() {
-        synchronized(this) {
-            return getApplicationSettings().getSection(null);
-        }
-    }
-
-    /**
      * Returns application default settings.
      *
      * @return application sections properties. Default implementation returns null.
@@ -372,15 +361,10 @@ public abstract class AbstractApplication {
         return settings;
     }
 
-    /**
-     * Load application settings.
-     *
-     * @throws IOException if there is an error reading settings file.
-     */
-    private void __loadSettings() throws IOException {
-        File settingsFile = new File(getDirectory(), SETTINGS_FILENAME);
+    private ApplicationSettings __loadSettings(File settingsFile, boolean writeIfNotExist) throws IOException {
+        ApplicationSettings applicationSettings = settingsFile.exists() ? ApplicationSettings.load(settingsFile) : new ApplicationSettings();
+        
         ApplicationSettings mDefaultApplicationSettings = new ApplicationSettings();
-
 
         // Consolidate default settings (APPLICATION)...
         Settings mDefaultSettings = __getDefaultSettings();
@@ -397,28 +381,35 @@ public abstract class AbstractApplication {
                 mDefaultApplicationSettings.setProperty(section, entry.getKey(), entry.getValue());
             }
         }
-
-        if (settingsFile.exists()) {
-            applicationSettings = applicationSettings.load(settingsFile);
-        } else {
-            applicationSettings = new ApplicationSettings();
-        }
+        
 
         for(Entry<String, Settings> entry : mDefaultApplicationSettings.entrySet()) {
             for (Entry<String, String> sectionEntry : entry.getValue().entrySet()) {
                 applicationSettings.setPropertyIfAbsent(entry.getKey(), sectionEntry.getKey(), sectionEntry.getValue());
             }
         }
-
-        if (!settingsFile.exists()) {
+        
+        if (!settingsFile.exists() && writeIfNotExist) {
             // Write properties to disk if file doesn't exist...
             log(LogType.INFO, "Creating default settings file...");
             applicationSettings.store(settingsFile);
         }
         
+        return applicationSettings;
+    }
+    
+    private void __loadSettings() throws IOException {
+        if (applicationSettings != null) {
+            applicationSettings.clear();
+            applicationSettings = null;
+        }
+        
+        File settingsFile = new File(getDirectory(), SETTINGS_FILENAME);
+        applicationSettings = __loadSettings(settingsFile, true);
+        
         onSettingsLoaded();
     }
-
+    
     /** 
      * Called after application settings were loaded.
      * 
@@ -478,8 +469,6 @@ public abstract class AbstractApplication {
             afterApplicationStart();
 
             singleton = this;
-
-            applicationSettings.clear(); // <-- Settings should not be kept in memory since it may contains sensitive-data
         } catch (RuntimeException ex) {
             singleton = null;
             onStartError(ex);
@@ -573,5 +562,13 @@ public abstract class AbstractApplication {
      * @param ex error
      */
     protected void onStopError(RuntimeException ex) {}
+    
+    /**
+     * Restarts this application;
+     */
+    public void restart() {
+        stop();
+        start();
+    }
 
 }
