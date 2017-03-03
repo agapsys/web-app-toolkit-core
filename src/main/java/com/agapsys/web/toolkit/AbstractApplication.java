@@ -149,9 +149,24 @@ public abstract class AbstractApplication {
      * automatically registered on demand. Use this method to replace a
      * service instance by a customized one.
      * @param service service instance to be registered.
+     * @param overrideClassHierarchy defines if class hierarchy should be overriden.
+     */
+    public final void registerService(Service service, boolean overrideClassHierarchy) {
+        serviceManager.registerInstance(service, overrideClassHierarchy);
+    }
+    
+    /**
+     * Register a service instance.
+     *
+     * This is a convenience method for registerService(service, true).
+     * 
+     * Usually, services do not need to be registered, since they are
+     * automatically registered on demand. Use this method to replace a
+     * service instance by a customized one.
+     * @param service service instance to be registered.
      */
     public final void registerService(Service service) {
-        serviceManager.registerInstance(service);
+        registerService(service, true);
     }
 
     /**
@@ -164,7 +179,7 @@ public abstract class AbstractApplication {
      * @return service instance.
      */
     public final <S extends Service> S getService(Class<S> serviceClass) {
-        S service = serviceManager.getInstance(serviceClass, true);
+        S service = serviceManager.getInstance(serviceClass, true, false);
         if (!service.isActive())
             service._init(this);
 
@@ -176,27 +191,55 @@ public abstract class AbstractApplication {
      *
      * @param <M> module type.
      * @param moduleClass module class to be registered.
+     * @param overrideClassHierarchy defines if class hierarchy shall be overriden.
+     * Given class must be a concrete class and must have an accessible default
+     * constructor.
+     * @return registered instance
+     */
+    public final <M extends Module> M registerModule(Class<M> moduleClass, boolean overrideClassHierarchy) {
+        if (isRunning())
+            throw new RuntimeException("Cannot register a module with a running application");
+        
+        return moduleManager.registerClass(moduleClass, overrideClassHierarchy);
+    }
+    
+    /**
+     * Registers a module to be initialized with the application.
+     * 
+     * This is a convenience method for registerModule(moduleClass, true).
+     *
+     * @param <M> module type.
+     * @param moduleClass module class to be registered.
      * Given class must be a concrete class and must have an accessible default
      * constructor.
      * @return registered instance
      */
     public final <M extends Module> M registerModule(Class<M> moduleClass) {
-        if (isRunning())
-            throw new RuntimeException("Cannot register a module with a running application");
-
-        return moduleManager.registerClass(moduleClass);
+        return registerModule(moduleClass, true);
     }
 
     /**
      * Registers a module to be initialized with the application.
      *
      * @param moduleInstance associated module instance.
+     * @param overrideClassHierarchy defines if class hierarchy shall be overriden.
      */
-    public final void registerModule(Module moduleInstance) {
+    public final void registerModule(Module moduleInstance, boolean overrideClassHierarchy) {
         if (isRunning())
             throw new RuntimeException("Cannot register a module with a running application");
 
-        moduleManager.registerInstance(moduleInstance);
+        moduleManager.registerInstance(moduleInstance, overrideClassHierarchy);
+    }
+    
+    /**
+     * Registers a module to be initialized with the application.
+     * 
+     * This is a convenience method for registerModule(moduleInstance, true).
+     *
+     * @param moduleInstance associated module instance.
+     */
+    public final void registerModule(Module moduleInstance) {
+        registerModule(moduleInstance, true);
     }
 
     /**
