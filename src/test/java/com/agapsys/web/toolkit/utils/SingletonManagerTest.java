@@ -149,4 +149,26 @@ public class SingletonManagerTest {
 
         Assert.assertSame(ssc, sm.getInstance(SubSubClass.class));
     }
+    
+    @Test
+    public void skipHierarcyOverride() {
+        SingletonManager<BaseClass> sm = new SingletonManager<>(BaseClass.class);
+        SubClass scInstance = new SubClass();
+        
+        BaseClass bcInstance = sm.getInstance(BaseClass.class);
+
+        // Skiping class hierarchy override...
+        sm.registerInstance(scInstance, false);
+        
+        Assert.assertSame(bcInstance, sm.getInstance(BaseClass.class));
+        Assert.assertNotSame(bcInstance, sm.getInstance(SubClass.class));
+
+        Assert.assertNotSame(scInstance, sm.getInstance(BaseClass.class));
+        Assert.assertSame(scInstance, sm.getInstance(SubClass.class));
+        
+        // Overriding class hierarchy...
+        sm.registerInstance(scInstance, true);
+        Assert.assertSame(scInstance, sm.getInstance(BaseClass.class));
+        Assert.assertSame(scInstance, sm.getInstance(SubClass.class));
+    }
 }

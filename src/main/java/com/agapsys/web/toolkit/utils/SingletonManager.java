@@ -112,8 +112,9 @@ public class SingletonManager<T> {
      * Registers an instance.
      *
      * @param instance instance to be managed.
+     * @param overrideClassHierarchy defines class hierachy should be overriden.
      */
-    public void registerInstance(T instance) {
+    public void registerInstance(T instance, boolean overrideClassHierarchy) {
         synchronized (instanceMap) {
 
             if (instance == null)
@@ -121,6 +122,9 @@ public class SingletonManager<T> {
 
             instanceMap.put((Class<? extends T>) instance.getClass(), instance);
             instanceSet.add(instance);
+            
+            if (!overrideClassHierarchy)
+                return;
 
             Class<?> tmpClass = instance.getClass();
             while(true) {
@@ -141,23 +145,48 @@ public class SingletonManager<T> {
     }
 
     /**
+     * Registers an instance.
+     * 
+     * this is a convenience method for registerInstance(instance, true).
+     * 
+     * @param instance instance to be managed.
+     */
+    public final void registerInstance(T instance) {
+        registerInstance(instance, true);
+    }
+    
+    /**
      * Registers an instance using given class default constructor.
      *
      * @param <I> instance class.
      * @param instanceClass class used to instantiate an object using its default constructor.
+     * @param overrideClassHierarchy defines class hierachy should be overriden.
      * @return created instance.
      */
-    public final <I extends T> I registerClass(Class<I> instanceClass) {
+    public <I extends T> I registerClass(Class<I> instanceClass, boolean overrideClassHierarchy) {
         synchronized(instanceMap) {
             if (instanceClass == null)
                 throw new IllegalArgumentException("Class cannot be null");
 
             I instance = getDefaultObjInstance(instanceClass);
-            registerInstance(instance);
+            registerInstance(instance, overrideClassHierarchy);
             return instance;
         }
     }
 
+    /**
+     * Registers an instance using given class default constructor.
+     * 
+     * This is a convenience method for registerClass(instanceClass, true).
+     *
+     * @param <I> instance class.
+     * @param instanceClass class used to instantiate an object using its default constructor.
+     * @return created instance.
+     */    
+    public final <I extends T> I registerClass(Class<I> instanceClass) {
+        return registerClass(instanceClass, true);
+    }
+    
     /**
      * Returns an instance singleton.
      *
@@ -166,24 +195,43 @@ public class SingletonManager<T> {
      * @param autoRegistration defines if an instance shall be created and
      * automatically registered if required. Passing false, implies returning
      * null if there is no associated instance.
+     * @param overrideClassHierarchy defines class hierachy should be overriden.
      * @return instance singleton.
      */
-    public <I extends T> I getInstance(Class<I> instanceClass, boolean autoRegistration) {
+    public <I extends T> I getInstance(Class<I> instanceClass, boolean autoRegistration, boolean overrideClassHierarchy) {
         synchronized(instanceMap) {
             if (instanceClass == null)
                 throw new IllegalArgumentException("Instance class cannot be null");
 
             I instance = (I) instanceMap.get(instanceClass);
             if (instance == null && autoRegistration) {
-                instance = registerClass(instanceClass);
+                instance = registerClass(instanceClass, overrideClassHierarchy);
             }
 
             return instance;
         }
     }
+    
+    /**
+     * Returns an instance singleton.
+     * 
+     * This is a convenience method for getInstance(instanceClass, autoRegistration, true).
+     *
+     * @param <I> instance type
+     * @param instanceClass instance class
+     * @param autoRegistration defines if an instance shall be created and
+     * automatically registered if required. Passing false, implies returning
+     * null if there is no associated instance.
+     * @return instance singleton.
+     */
+    public final <I extends T> I getInstance(Class<I> instanceClass, boolean autoRegistration) {
+        return getInstance(instanceClass, autoRegistration, true);
+    }
 
     /**
      * Returns an instance singleton.
+     * 
+     * This is a convenience method for getInstance(instanceClass, false).
      * @param <I> instance type
      * @param instanceClass instance class
      * @return instance singleton. If there is no associated instance, returns null.
