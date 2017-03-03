@@ -195,7 +195,7 @@ public class SingletonManager<T> {
      * @param autoRegistration defines if an instance shall be created and
      * automatically registered if required. Passing false, implies returning
      * null if there is no associated instance.
-     * @param overrideClassHierarchy defines class hierachy should be overriden.
+     * @param overrideClassHierarchy defines class hierachy should be overriden. If autoRegistration is false and a instance is not registered, this argument will be ignored.
      * @return instance singleton.
      */
     public <I extends T> I getInstance(Class<I> instanceClass, boolean autoRegistration, boolean overrideClassHierarchy) {
