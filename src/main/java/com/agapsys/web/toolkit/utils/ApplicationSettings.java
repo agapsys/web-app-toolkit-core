@@ -192,14 +192,23 @@ public class ApplicationSettings {
             throw new IOException("File already exists: " + outputFile.getAbsolutePath());
 
         int i = 0;
+        
         try (FileOutputStream fos = new FileOutputStream(outputFile)) {
+            
+            // Root section must be stored first
+            Settings rootSettings = sectionMap.get(null);
+            if (rootSettings != null) {
+                rootSettings._store(fos);
+                i++;
+            }
+            
             for (Map.Entry<String, Settings> entry : sectionMap.entrySet()) {
                 String sectionName = entry.getKey();
+                
+                if (sectionName == null)
+                    continue;
 
-                if (sectionName != null) {
-                    fos.write(String.format("%s[%s]\n", (i == 0 ? "" : "\n"), sectionName).getBytes("utf-8"));
-                }
-
+                fos.write(String.format("%s[%s]\n", (i == 0 ? "" : "\n"), sectionName).getBytes("utf-8"));
                 Settings mSettings = entry.getValue();
                 mSettings._store(fos);
                 i++;
