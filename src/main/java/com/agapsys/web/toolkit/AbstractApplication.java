@@ -567,6 +567,8 @@ public abstract class AbstractApplication {
      * Restarts this application;
      */
     public void restart() {
+        log(LogType.INFO, "Restarting application: %s", getName());
+
         stop();
         start();
     }
