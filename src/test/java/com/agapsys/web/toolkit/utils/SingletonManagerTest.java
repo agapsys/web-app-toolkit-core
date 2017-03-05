@@ -139,15 +139,17 @@ public class SingletonManagerTest {
 
         SubSubClass ssc = new SubSubClass();
         sm.registerInstance(ssc);
-
+        
+        Assert.assertSame(ssc, sm.getInstance(BaseClass.class));
+        Assert.assertSame(ssc, sm.getInstance(SubClass.class));
+        Assert.assertSame(ssc, sm.getInstance(SubSubClass.class));
+        
         SubClass sc = new SubClass();
-        sm.registerInstance(sc);
+        sm.registerInstance(sc); // <-- hierarchy will be overridden
 
         Assert.assertSame(sc, sm.getInstance(BaseClass.class));
         Assert.assertSame(sc, sm.getInstance(SubClass.class));
-        Assert.assertNotSame(sc, sm.getInstance(SubSubClass.class));
-
-        Assert.assertSame(ssc, sm.getInstance(SubSubClass.class));
+        Assert.assertNull(sm.getInstance(SubSubClass.class));
     }
     
     @Test

@@ -108,6 +108,44 @@ public class SingletonManager<T> {
         }
     }
 
+    private Class<?> __getFirstConcreteSuperClass(Class<?> clazz) {
+        Class<?> firstConcreteSuperClass = clazz;
+        
+        while(true) {
+            Class<?> superClass = firstConcreteSuperClass.getSuperclass();
+
+            int modifiers = superClass.getModifiers();
+            boolean isConcreteClass = !Modifier.isAbstract(modifiers) && !Modifier.isInterface(modifiers);
+
+            if (isConcreteClass && thisClass.isAssignableFrom(superClass)) {
+                firstConcreteSuperClass = (Class<?>) superClass;
+            } else {
+                break;
+            }
+        }
+        
+        return firstConcreteSuperClass;
+    }
+    
+    private void __clearChildren(Class<?> parentClass) {
+        Set<Class<? extends T>> classDeletionSet = new LinkedHashSet<>();
+        
+        for (Map.Entry<Class<? extends T>, T> entry : instanceMap.entrySet()) {
+            Class<? extends T> tmpClass = entry.getKey();
+            T instance = entry.getValue();
+            
+            if (__getFirstConcreteSuperClass(tmpClass) == parentClass) {
+                classDeletionSet.add(tmpClass);
+                instanceSet.remove(instance);
+            }
+        }
+        
+        for (Class<? extends T> tmpClass : classDeletionSet) {
+            instanceMap.remove(tmpClass);
+        }
+        
+    }
+    
     /**
      * Registers an instance.
      *
@@ -119,6 +157,9 @@ public class SingletonManager<T> {
 
             if (instance == null)
                 throw new IllegalArgumentException("Instance cannot be null");
+            
+            Class<?> firstConcreteSuperClass = __getFirstConcreteSuperClass(instance.getClass());
+            __clearChildren(firstConcreteSuperClass);
 
             instanceMap.put((Class<? extends T>) instance.getClass(), instance);
             instanceSet.add(instance);
