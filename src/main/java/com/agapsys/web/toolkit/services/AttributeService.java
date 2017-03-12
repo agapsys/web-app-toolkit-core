@@ -25,14 +25,14 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class AttributeService extends Service {
     
-    public static interface DestroyListener {
+    public static interface DestroyListener<T> {
         
         /**
          * Called just before given object is being destroyed.
          * 
-         * @param obj object being destroyed.
+         * @param t object being destroyed.
          */
-        public void onDestroy(Object obj);
+        public void onDestroy(T t);
     }
     
     private static class Attribute {
@@ -80,7 +80,7 @@ public class AttributeService extends Service {
     public final void setAttribute(String name, Object attribute) {
         setAttribute(name, attribute, null);
     }
-    public void setAttribute(String name, Object attribute, DestroyListener destroyListener) {
+    public <T> void setAttribute(String name, T attribute, DestroyListener<T> destroyListener) {
         if (name == null || name.trim().isEmpty())
             throw new IllegalArgumentException("Null/Empty name");
         
