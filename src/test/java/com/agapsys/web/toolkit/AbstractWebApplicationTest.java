@@ -155,7 +155,7 @@ public class AbstractWebApplicationTest  {
         }
 
         @Override
-        public String getName() {
+        public String getRootName() {
             return APP_NAME;
         }
 

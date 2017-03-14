@@ -47,6 +47,7 @@ public abstract class AbstractWebApplication extends AbstractApplication impleme
 
     private boolean  disabled;
     private String[] allowedOrigins;
+    private String contextPath;
 
     public AbstractWebApplication() {
         super();
@@ -59,6 +60,17 @@ public abstract class AbstractWebApplication extends AbstractApplication impleme
         allowedOrigins = new String[] {DEFAULT_APP_ALLOWED_ORIGINS};
     }
 
+    @Override
+    public final String getName() {
+        if (contextPath == null || contextPath.equals("/") || contextPath.isEmpty()) {
+            return getRootName();
+        } else {
+            return contextPath.substring(1);
+        }
+    }
+    
+    public abstract String getRootName();
+    
     /**
      * Returns a boolean indicating if application is disabled.
      *
@@ -153,6 +165,8 @@ public abstract class AbstractWebApplication extends AbstractApplication impleme
 
     @Override
     public final void contextInitialized(ServletContextEvent sce) {
+        this.contextPath = sce == null ? null : sce.getServletContext().getContextPath();
+        
         start();
         onContextInitialized(sce);
     }
