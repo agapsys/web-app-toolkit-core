@@ -62,10 +62,12 @@ public abstract class AbstractWebApplication extends AbstractApplication impleme
 
     @Override
     public final String getName() {
+        String rootName = getRootName();
+        
         if (contextPath == null || contextPath.equals("/") || contextPath.isEmpty()) {
-            return getRootName();
+            return rootName;
         } else {
-            return contextPath.substring(1);
+            return rootName + "-" + contextPath.substring(1);
         }
     }
     
