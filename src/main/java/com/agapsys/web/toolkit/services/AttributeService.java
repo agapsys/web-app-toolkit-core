@@ -108,10 +108,13 @@ public class AttributeService extends Service {
 
     public final void destroyAttributes() {
         Map<String, Attribute> attributeMap = threadMap.get(Thread.currentThread());
-        for (Map.Entry<String, Attribute> entry : attributeMap.entrySet()) {
-            __destroyAttribute(entry.getValue());
+
+        if (attributeMap != null) {
+            for (Map.Entry<String, Attribute> entry : attributeMap.entrySet()) {
+                __destroyAttribute(entry.getValue());
+            }
+            attributeMap.clear();
         }
-        attributeMap.clear();
         threadMap.remove(Thread.currentThread());
     }
 }
