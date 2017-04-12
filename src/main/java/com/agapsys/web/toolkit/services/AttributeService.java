@@ -24,42 +24,42 @@ import java.util.concurrent.ConcurrentHashMap;
  * Global attribute service for thread-safe access.
  */
 public class AttributeService extends Service {
-    
+
     public static interface DestroyListener<T> {
-        
+
         /**
          * Called just before given object is being destroyed.
-         * 
+         *
          * @param t object being destroyed.
          */
         public void onDestroy(T t);
     }
-    
+
     private static class Attribute {
         private final Object obj;
         private final DestroyListener destroyListener;
-        
+
         public Attribute(Object obj) {
             this(obj, null);
         }
-        
+
         public Attribute(Object obj, DestroyListener destroyListener) {
             this.obj = obj;
             this.destroyListener = destroyListener;
         }
-        
+
         public final Object getObject() {
             return obj;
         }
-        
+
         public final DestroyListener getDestroyListener() {
             return destroyListener;
         }
     }
-    
+
     private final Map<Thread, Map<String, Attribute>> threadMap = new ConcurrentHashMap<>();
 
-    private Map<String, Attribute> getAttributeMap() {
+    private Map<String, Attribute> __getAttributeMap() {
         Thread currentThread = Thread.currentThread();
         Map<String, Attribute> attributeMap = threadMap.get(currentThread);
         if (attributeMap == null) {
@@ -70,23 +70,23 @@ public class AttributeService extends Service {
         return attributeMap;
     }
 
-    public Object getAttribute(String name) {
+    public final Object getAttribute(String name) {
         if (name == null || name.trim().isEmpty())
             throw new IllegalArgumentException("Null/Empty name");
 
-        Attribute attribute = getAttributeMap().get(name);
+        Attribute attribute = __getAttributeMap().get(name);
         return attribute != null ? attribute.getObject() : null;
     }
     public final void setAttribute(String name, Object attribute) {
         setAttribute(name, attribute, null);
     }
-    public <T> void setAttribute(String name, T attribute, DestroyListener<T> destroyListener) {
+    public final <T> void setAttribute(String name, T attribute, DestroyListener<T> destroyListener) {
         if (name == null || name.trim().isEmpty())
             throw new IllegalArgumentException("Null/Empty name");
-        
+
         Attribute mAttribute = new Attribute(attribute, destroyListener);
 
-        getAttributeMap().put(name, mAttribute);
+        __getAttributeMap().put(name, mAttribute);
     }
 
     private void __destroyAttribute(Attribute attribute) {
@@ -94,8 +94,8 @@ public class AttributeService extends Service {
             attribute.destroyListener.onDestroy(attribute.obj);
         }
     }
-    
-    public void destroyAttribute(String name) {
+
+    public final void destroyAttribute(String name) {
         if (name == null || name.trim().isEmpty())
             throw new IllegalArgumentException("Null/Empty name");
 
@@ -106,7 +106,7 @@ public class AttributeService extends Service {
         }
     }
 
-    public void destroyAttributes() {
+    public final void destroyAttributes() {
         Map<String, Attribute> attributeMap = threadMap.get(Thread.currentThread());
         for (Map.Entry<String, Attribute> entry : attributeMap.entrySet()) {
             __destroyAttribute(entry.getValue());

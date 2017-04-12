@@ -16,21 +16,22 @@
 
 package com.agapsys.web.toolkit;
 
-import com.agapsys.web.toolkit.modules.ExceptionReporterModule;
-import com.agapsys.web.toolkit.modules.LogModule;
-import com.agapsys.web.toolkit.modules.LogModule.DailyLogFileStream;
-import com.agapsys.web.toolkit.utils.ApplicationSettings;
+import com.agapsys.web.toolkit.services.LogService;
 import com.agapsys.web.toolkit.utils.FileUtils;
 import com.agapsys.web.toolkit.utils.FileUtils.AccessError;
-import com.agapsys.web.toolkit.utils.Settings;
 import com.agapsys.web.toolkit.utils.SingletonManager;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.LinkedHashSet;
+import java.math.BigDecimal;
+import java.util.Collections;
+import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map.Entry;
-import java.util.Set;
+import java.util.Map;
+import java.util.Properties;
 
 /**
  * Represents an application.
@@ -39,9 +40,134 @@ public abstract class AbstractApplication {
 
     // <editor-fold desc="STATIC SCOPE">
     // =========================================================================
-    private static final String APP_NAME_PATTERN  = "^[a-zA-Z][a-zA-Z0-9\\-_]*$";
-    protected static final String SETTINGS_FILENAME = "settings.ini";
-    protected static final String LOG_DIR           = "log";
+    private static interface StringConverter<T> {
+        public T fromString(String str);
+
+        public String toString(T t);
+    }
+
+    private static final Map<Class, StringConverter> STRING_CONVERTER_MAP;
+
+    static {
+        Map<Class, StringConverter> stringConverterMap = new LinkedHashMap<>();
+        STRING_CONVERTER_MAP = Collections.unmodifiableMap(stringConverterMap);
+
+        stringConverterMap.put(String.class, new StringConverter<String>() {
+            @Override
+            public String fromString(String str) {
+                return str;
+            }
+
+            @Override
+            public String toString(String str) {
+                return str;
+            }
+        });
+        stringConverterMap.put(Byte.class, new StringConverter<Byte>() {
+            @Override
+            public Byte fromString(String str) {
+                return Byte.parseByte(str);
+            }
+
+            @Override
+            public String toString(Byte b) {
+                return Byte.toString(b);
+            }
+
+        });
+        stringConverterMap.put(Short.class, new StringConverter<Short>() {
+            @Override
+            public Short fromString(String str) {
+                return Short.parseShort(str);
+            }
+
+            @Override
+            public String toString(Short s) {
+                return Short.toString(s);
+            }
+        });
+        stringConverterMap.put(Integer.class, new StringConverter<Integer>() {
+            @Override
+            public Integer fromString(String str) {
+                return Integer.parseInt(str);
+            }
+
+            @Override
+            public String toString(Integer i) {
+                return Integer.toString(i);
+            }
+        });
+        stringConverterMap.put(Long.class, new StringConverter<Long>() {
+            @Override
+            public Long fromString(String str) {
+                return Long.parseLong(str);
+            }
+
+            @Override
+            public String toString(Long l) {
+                return Long.toString(l);
+            }
+        });
+        stringConverterMap.put(Float.class, new StringConverter<Float>() {
+            @Override
+            public Float fromString(String str) {
+                return Float.parseFloat(str);
+            }
+
+            @Override
+            public String toString(Float f) {
+                return Float.toString(f);
+            }
+        });
+        stringConverterMap.put(Double.class, new StringConverter<Double>() {
+            @Override
+            public Double fromString(String str) {
+                return Double.parseDouble(str);
+            }
+
+            @Override
+            public String toString(Double d) {
+                return Double.toString(d);
+            }
+        });
+        stringConverterMap.put(BigDecimal.class, new StringConverter<BigDecimal>() {
+            @Override
+            public BigDecimal fromString(String str) {
+                return new BigDecimal(str);
+            }
+
+            @Override
+            public String toString(BigDecimal bd) {
+                return bd.toPlainString();
+            }
+        });
+        stringConverterMap.put(Date.class, new StringConverter<Date>() {
+            @Override
+            public Date fromString(String str) {
+                return new Date(Long.parseLong(str));
+            }
+
+            @Override
+            public String toString(Date d) {
+                return Long.toString(d.getTime());
+            }
+        });
+        stringConverterMap.put(Boolean.class, new StringConverter<Boolean>() {
+            @Override
+            public Boolean fromString(String str) {
+                return Boolean.parseBoolean(str);
+            }
+
+            @Override
+            public String toString(Boolean t) {
+                return Boolean.toString(t);
+            }
+        });
+    }
+
+    private static final String   APP_NAME_PATTERN    = "^[a-zA-Z][a-zA-Z0-9\\-_]*$";
+    protected static final String PROPERTIES_FILENAME = "application.properties";
+    protected static final String LOG_DIR             = "log";
 
     private static AbstractApplication singleton = null;
     public static AbstractApplication getRunningInstance() {
@@ -50,39 +176,113 @@ public abstract class AbstractApplication {
     // =========================================================================
     // </editor-fold>
 
-    private final SingletonManager<Module>  moduleManager      = new SingletonManager<>(Module.class);
-    private final SingletonManager<Service> serviceManager     = new SingletonManager<>(Service.class);
-    private final List<Module>              initializedModules = new LinkedList<>();
+    private final SingletonManager<Service>       serviceManager              = new SingletonManager<>(Service.class);
+    private final List<Service>                   initializedServiceList      = new LinkedList<>();
+    private final List<Class<? extends Service>>  serviceCircularRefCheckList = new LinkedList<>();
+    private final Properties                      properties                  = new Properties();
 
-    private File                appDirectory;
-    private boolean             running;
-    private ApplicationSettings applicationSettings;
+    private File             appDirectory;
+    private volatile boolean running;
 
-
-    public AbstractApplication() {
-        reset();
-    }
-
-    /** Resets application state. */
-    private void reset() {
-        moduleManager.clear();
+    /** Resets instance. */
+    private synchronized void __reset() {
+        properties.clear();
         serviceManager.clear();
-        initializedModules.clear();
+        initializedServiceList.clear();
+        serviceCircularRefCheckList.clear();
 
         appDirectory = null;
         running      = false;
     }
 
+    /** Returns the circular reference path ending in given class. */
+    private synchronized String __getCicularReferencePath(Class<? extends Service> clazz) {
+        StringBuilder sb = new StringBuilder();
+
+        int i = 0;
+        for (Class<? extends Service> serviceClass : serviceCircularRefCheckList) {
+            if (i > 0)
+                sb.append(" --> ");
+
+            sb.append(serviceClass.getName());
+
+            i++;
+        }
+
+        sb.append(" --> ").append(clazz.getName());
+        return sb.toString();
+    }
+
+    /** Stops initialized services in appropriate sequence. */
+    private synchronized  void __stopServices() {
+        for (int i = initializedServiceList.size() - 1; i >= 0; i--) {
+            Service service = initializedServiceList.get(i);
+            service._stop();
+        }
+    }
+
+    /** Always returns a non-null instance. */
+    private synchronized Properties __getDefaultProperties() {
+        Properties mProperties = getDefaultSettings();
+
+        if (mProperties == null)
+            mProperties = new Properties();
+
+        return mProperties;
+    }
+
+    private synchronized void __loadProperties(boolean createFile) throws IOException {
+        properties.clear();
+
+        File propertiesFile = new File(getDirectory(), PROPERTIES_FILENAME);
+
+        // Loads properties from file...
+        if (propertiesFile.exists()) {
+            try (FileInputStream fis = new FileInputStream(propertiesFile)) {
+                properties.load(fis);
+            }
+        }
+
+        // Applies default properties...
+        for (Map.Entry<Object, Object> entry : __getDefaultProperties().entrySet()) {
+            String key = (String) entry.getKey();
+            String value = (String) entry.getValue();
+
+            if (!properties.containsKey(key))
+                properties.setProperty(key, value);
+        }
+
+        if (!propertiesFile.exists() && !properties.isEmpty() && createFile)
+            saveProperties();
+
+        onSettingsLoaded();
+    }
+
+    public AbstractApplication() {
+        __reset();
+    }
+
     /**
      * Logs application messages.
      *
-     * Default implementation just prints to console.
+     * If a log service is not registered, nothing happens.
+     * @param timestamp log message timestamp.
      * @param logType log message type.
      * @param message message to be logged.
-     * @param args message parameters (see {@linkplain String#format(String, Object...)}).
+     * @param msgArgs message parameters (see {@linkplain String#format(String, Object...)}).
      */
-    public final void log(LogType logType, String message, Object...args) {
-        getModule(LogModule.class).log(logType, message, args);
+    public final void log(Date timestamp, LogType logType, String message, Object...msgArgs) {
+        synchronized (this) {
+            LogService logService = getService(LogService.class, false);
+
+            if (logService != null)
+                logService.log(timestamp, logType, message, msgArgs);
+        }
+    }
+
+    /** Convenience method for log(new Date(), logType, message, msgArgs). */
+    public final void log(LogType logType, String message, Object...msgArgs) {
+        log(new Date(), logType, message, msgArgs);
     }
 
     /**
@@ -114,20 +314,22 @@ public abstract class AbstractApplication {
      * @return the directory where application stores resources.
      */
     public final File getDirectory() {
-        if (appDirectory == null) {
-            String directoryPath = new File(getParentDir(), "." + getName()).getAbsolutePath();
+        synchronized(this) {
+            if (appDirectory == null) {
+                String directoryPath = new File(getParentDir(), "." + getName()).getAbsolutePath();
 
-            appDirectory = new File(directoryPath);
+                appDirectory = new File(directoryPath);
 
-            if (!appDirectory.exists()) {
-                try {
-                    appDirectory = FileUtils.getOrCreateDirectory(directoryPath);
-                } catch (AccessError ex) {
-                    throw new RuntimeException(ex);
+                if (!appDirectory.exists()) {
+                    try {
+                        appDirectory = FileUtils.getOrCreateDirectory(directoryPath);
+                    } catch (AccessError ex) {
+                        throw new RuntimeException(ex);
+                    }
                 }
             }
         }
-        
+
         if (!appDirectory.canWrite())
             throw new RuntimeException("Cannot write into application directory: " + appDirectory.getAbsolutePath());
 
@@ -135,8 +337,10 @@ public abstract class AbstractApplication {
     }
 
     /**
-     * Returns the parent dir where application directory will be placed.
-     * @return the parent dir where application directory will be placed. Default implementation returns user's home dir.
+     * Returns the parent directory where application directory will be placed.
+     *
+     * @return the parent directory where application directory will be placed.
+     * Default implementation returns user's home directory.
      */
     protected File getParentDir() {
         return FileUtils.USER_HOME;
@@ -148,23 +352,20 @@ public abstract class AbstractApplication {
      * Usually, services do not need to be registered, since they are
      * automatically registered on demand. Use this method to replace a
      * service instance by a customized one.
+     *
      * @param service service instance to be registered.
-     * @param overrideClassHierarchy defines if class hierarchy should be overriden.
+     * @param overrideClassHierarchy defines if class hierarchy should be overridden.
      */
     public final void registerService(Service service, boolean overrideClassHierarchy) {
-        serviceManager.registerInstance(service, overrideClassHierarchy);
+        synchronized(this) {
+            if (isRunning())
+                throw new RuntimeException("Cannot register a service with a running application");
+
+            serviceManager.registerInstance(service, overrideClassHierarchy);
+        }
     }
-    
-    /**
-     * Register a service instance.
-     *
-     * This is a convenience method for registerService(service, true).
-     * 
-     * Usually, services do not need to be registered, since they are
-     * automatically registered on demand. Use this method to replace a
-     * service instance by a customized one.
-     * @param service service instance to be registered.
-     */
+
+    /** This is a convenience method for registerService(service, true). */
     public final void registerService(Service service) {
         registerService(service, true);
     }
@@ -173,404 +374,289 @@ public abstract class AbstractApplication {
      * Returns a service instance.
      *
      * @param <S> Service type.
-     * @param serviceClass expected service class.
-     * Service class must be a concrete class. If an instance is not already
-     * registered, service class must have an accessible default constructor.
+     * @param serviceClass expected service class. Service class must be a concrete class.
+     * @param autoRegistration defines if service instance should be registered. An attempt to get a service which is not registered will return null.
      * @return service instance.
      */
-    public final <S extends Service> S getService(Class<S> serviceClass) {
-        S service = serviceManager.getInstance(serviceClass, true, false);
-        if (!service.isActive())
-            service._init(this);
-
-        return service;
-    }
-
-    /**
-     * Registers a module to be initialized with the application.
-     *
-     * @param <M> module type.
-     * @param moduleClass module class to be registered.
-     * @param overrideClassHierarchy defines if class hierarchy shall be overriden.
-     * Given class must be a concrete class and must have an accessible default
-     * constructor.
-     * @return registered instance
-     */
-    public final <M extends Module> M registerModule(Class<M> moduleClass, boolean overrideClassHierarchy) {
-        if (isRunning())
-            throw new RuntimeException("Cannot register a module with a running application");
-        
-        return moduleManager.registerClass(moduleClass, overrideClassHierarchy);
-    }
-    
-    /**
-     * Registers a module to be initialized with the application.
-     * 
-     * This is a convenience method for registerModule(moduleClass, true).
-     *
-     * @param <M> module type.
-     * @param moduleClass module class to be registered.
-     * Given class must be a concrete class and must have an accessible default
-     * constructor.
-     * @return registered instance
-     */
-    public final <M extends Module> M registerModule(Class<M> moduleClass) {
-        return registerModule(moduleClass, true);
-    }
-
-    /**
-     * Registers a module to be initialized with the application.
-     *
-     * @param moduleInstance associated module instance.
-     * @param overrideClassHierarchy defines if class hierarchy shall be overriden.
-     */
-    public final void registerModule(Module moduleInstance, boolean overrideClassHierarchy) {
-        if (isRunning())
-            throw new RuntimeException("Cannot register a module with a running application");
-
-        moduleManager.registerInstance(moduleInstance, overrideClassHierarchy);
-    }
-    
-    /**
-     * Registers a module to be initialized with the application.
-     * 
-     * This is a convenience method for registerModule(moduleInstance, true).
-     *
-     * @param moduleInstance associated module instance.
-     */
-    public final void registerModule(Module moduleInstance) {
-        registerModule(moduleInstance, true);
-    }
-
-    /**
-     * Returns a module instance registered with this application.
-     *
-     * @param <M> module type.
-     * @param moduleClass module class.
-     * @return module instance or null if a module is not registered.
-     */
-    public final <M extends Module> M getModule(Class<M> moduleClass) {
-        return moduleManager.getInstance(moduleClass);
-    }
-
-    /**
-     * Resolves a module.
-     *
-     * @param moduleClass module class to be resolved.
-     * @param callerModules recursive caller list. Used to detect cyclic dependencies.
-     * @param transientModules used to store transient dependencies which are not registered by application.
-     * @param init defines if given module shall be initialized.
-     */
-    private <M extends Module> void __resolveModule(Class<M> moduleClass, List<Class<? extends Module>> callerModules, boolean init) {
-        if (callerModules == null)
-            callerModules = new LinkedList<>();
-
-        M moduleInstance = getModule(moduleClass);
-
-        if (moduleInstance == null)
-            moduleInstance = registerModule(moduleClass);
-
-        if (!moduleInstance.isActive()) {
-            if (callerModules.contains(moduleClass))
-                throw new RuntimeException("Cyclic dependency on module: " + moduleClass);
-
-            callerModules.add(moduleClass);
-
-            Set<Class<? extends Module>> dependencies = moduleInstance._getDependencies();
-
-            for (Class<? extends Module> dep : dependencies) {
-                __resolveModule(dep, callerModules, init);
-            }
-
-            if (init) {
-                try {
-                    log(LogType.INFO, "Initializing module: %s", moduleInstance.getClass().getName());
-                    moduleInstance._init(this);
-                } catch (Throwable t) {
-                    log(LogType.ERROR, "Error initializing module: %s (%s)\n----\n%s----", moduleInstance.getClass().getName(), t.getMessage(), ExceptionReporterModule.getStackTrace(t));
-
-                    if (t instanceof RuntimeException)
-                        throw (RuntimeException) t;
-
-                    throw new RuntimeException(t);
-                }
-
-                if (!(moduleInstance instanceof LogModule)) // <-- Log module is registered automatically via _beforeApplicationStart()
-                    initializedModules.add(moduleInstance);
-            }
-        }
-    }
-
-    /**
-     * Resolves all modules registered with the application.
-     *
-     * @param init defines if modules should be initialized (pass false to register transient modules).
-     */
-    private void __resolveModules(boolean init) {
-        if (!moduleManager.isEmpty() && init)
-            log(LogType.INFO, "Starting modules...");
-
-        Set<Class<? extends Module>> declaredClasses = new LinkedHashSet<>(); // <-- required to avoid concurrent modification: moduleManager may be modified on resolveModule()
-        for (Class<? extends Module> moduleClass : moduleManager.getClasses()) {
-            declaredClasses.add(moduleClass);
-        }
-
-        for (Class<? extends Module> moduleClass : declaredClasses) {
-            __resolveModule(moduleClass, null, init);
-        }
-    }
-
-    /**
-     * Shutdown initialized modules in appropriate sequence.
-     */
-    private void __stopModules() {
-        if (initializedModules.size() > 0)
-            log(LogType.INFO, "Stopping modules...");
-
-        for (int i = initializedModules.size() - 1; i >= 0; i--) {
-            Module module = initializedModules.get(i);
-
-            log(LogType.INFO, "Shutting down module: %s", module.getClass().getName());
-            module._stop();
-        }
-    }
-
-    /**
-     * @return application global settings
-     */
-    public ApplicationSettings getApplicationSettings() {
+    public final <S extends Service> S getService(Class<S> serviceClass, boolean autoRegistration) {
         synchronized(this) {
-            return applicationSettings;
+            if (!isRunning())
+                throw new RuntimeException("Application is not running");
+
+            S service = serviceManager.getInstance(serviceClass, autoRegistration, false);
+
+            if (service != null && !service.isRunning()) {
+                if (serviceCircularRefCheckList.contains(serviceClass))
+                    throw new RuntimeException("Circular service reference: " + __getCicularReferencePath(serviceClass));
+
+                serviceCircularRefCheckList.add(serviceClass);
+                service._start(this);
+                initializedServiceList.add(service);
+                serviceCircularRefCheckList.remove(serviceClass);
+            }
+
+            return service;
+        }
+    }
+
+    /** This is a convenience method for getService(serviceClass, true). */
+    public final <S extends Service> S getService(Class<S> serviceClass) {
+        return getService(serviceClass, true);
+    }
+
+    /**
+     * Return an application property
+     * @param <T> returned type
+     * @param targetClass expected returned type class
+     * @param key property key
+     * @param defaultValue property default value.
+     * @return property value.
+     */
+    public final <T> T getProperty(Class<T> targetClass, String key, T defaultValue) {
+        synchronized(this) {
+            if (!isRunning())
+                throw new RuntimeException("Application is not running");
+
+            StringConverter<T> converter = STRING_CONVERTER_MAP.get(targetClass);
+            if (converter == null)
+                throw new UnsupportedOperationException("No converter for " + targetClass.getName());
+
+            String strVal = properties.getProperty(key, converter.toString(defaultValue));
+            return converter.fromString(strVal);
+        }
+    }
+
+    public final String getProperty(String key, String defaultValue) {
+        return getProperty(String.class, key, defaultValue);
+    }
+
+    public final <T> T getMandatoryProperty(Class<T> targetClass, String key) {
+        synchronized(this) {
+            T value = getProperty(targetClass, key, null);
+
+            if (value == null || ((value instanceof String) && ((String)value).trim().isEmpty()))
+                throw new IllegalArgumentException("No such property: " + key);
+
+            return value;
+        }
+    }
+
+    public final String getMandatoryProperty(String key) {
+        return getMandatoryProperty(String.class, key);
+    }
+
+    /**
+     * Sets an application property.
+     *
+     * @param key property key.
+     * @param value property value.
+     * @param overrideExisting defines if existing properties should be overridden.
+     */
+    public final void setProperty(String key, String value, boolean overrideExisting) {
+        synchronized(this) {
+            if (!isRunning())
+                throw new RuntimeException("Application is not running");
+
+            if (overrideExisting || !properties.containsKey(key)) {
+                properties.setProperty(key, value);
+            }
+        }
+    }
+
+    /** Convenience method for setProperty(key, value, true). */
+    public final void setProperty(String key, String value) {
+        setProperty(key, value, true);
+    }
+
+    /** Convenience method for setProperty(key, value, false). */
+    public final void setPropertyIfAbsent(String key, String value) {
+        setProperty(key, value, false);
+    }
+
+    /**
+     * Loads properties from application properties file.
+     *
+     * If properties files does not exists, only default properties are loaded.
+     *
+     * @throws IOException if an error happened during process.
+     */
+    public final void loadProperties() throws IOException {
+        __loadProperties(false);
+    }
+
+    /**
+     * Saves current application properties into properties file.
+     *
+     * @throws IOException If an error happened during the process.
+     */
+    public final void saveProperties() throws IOException {
+        synchronized(this) {
+            File propertiesFile = new File(getDirectory(), PROPERTIES_FILENAME);
+
+            try (FileOutputStream fos = new FileOutputStream(propertiesFile)) {
+                properties.store(fos, getName());
+            }
         }
     }
 
     /**
-     * Returns application default settings.
+     * Returns application default properties.
      *
-     * @return application sections properties. Default implementation returns null.
+     * @return application default properties. Default implementation returns null.
      */
-    protected Settings getDefaultSettings() {
+    protected Properties getDefaultSettings() {
         return null;
     }
 
-    private Settings __getDefaultSettings() {
-        Settings settings = getDefaultSettings();
-        if (settings == null)
-            return new Settings();
-
-        return settings;
-    }
-
-    private ApplicationSettings __loadSettings(File settingsFile, boolean writeIfNotExist) throws IOException {
-        ApplicationSettings applicationSettings = settingsFile.exists() ? ApplicationSettings.load(settingsFile) : new ApplicationSettings();
-        
-        ApplicationSettings mDefaultApplicationSettings = new ApplicationSettings();
-
-        // Consolidate default settings (APPLICATION)...
-        Settings mDefaultSettings = __getDefaultSettings();
-        for (Entry<String, String> entry : mDefaultSettings.entrySet()) {
-            mDefaultApplicationSettings.setProperty(entry.getKey(), entry.getValue());
-        }
-
-        // Consolidate default settings (MODULES)...
-        for (Module module : moduleManager.getInstances()) {
-            String section = module._getSettingsSection();
-            Settings defaults = module._getDefaultSettings();
-
-            for (Entry<String, String> entry : defaults.entrySet()) {
-                mDefaultApplicationSettings.setProperty(section, entry.getKey(), entry.getValue());
-            }
-        }
-        
-
-        for(Entry<String, Settings> entry : mDefaultApplicationSettings.entrySet()) {
-            for (Entry<String, String> sectionEntry : entry.getValue().entrySet()) {
-                applicationSettings.setPropertyIfAbsent(entry.getKey(), sectionEntry.getKey(), sectionEntry.getValue());
-            }
-        }
-        
-        if (!settingsFile.exists() && writeIfNotExist) {
-            // Write properties to disk if file doesn't exist...
-            log(LogType.INFO, "Creating default settings file...");
-            applicationSettings.store(settingsFile);
-        }
-        
-        return applicationSettings;
-    }
-    
-    private void __loadSettings() throws IOException {
-        if (applicationSettings != null) {
-            applicationSettings.clear();
-            applicationSettings = null;
-        }
-        
-        File settingsFile = new File(getDirectory(), SETTINGS_FILENAME);
-        applicationSettings = __loadSettings(settingsFile, true);
-        
-        onSettingsLoaded();
-    }
-    
-    /** 
+    /**
      * Called after application settings were loaded.
-     * 
+     *
      * Default implementation does nothing.
      */
     protected void onSettingsLoaded() {}
-    
-    /**
-     * Starts this application.
-     */
+
+    /** Starts this application. */
     public void start() {
-        if (isRunning())
-            throw new RuntimeException("Application is already running");
+        synchronized(this) {
+            if (isRunning())
+                throw new RuntimeException("Application is already running");
 
-        if (singleton != null)
-            throw new IllegalStateException("Another application instance is already running");
-
-        try {
-            String name = getName();
-
-            if (name != null)
-                name = name.trim();
-
-            if (name == null || name.isEmpty())
-                throw new IllegalStateException("Missing application name");
-
-            if (!name.matches(APP_NAME_PATTERN))
-                throw new IllegalArgumentException("Invalid application name: " + name);
-
-            String version = getVersion();
-
-            if (version != null)
-                version = version.trim();
-
-            if (version == null || version.isEmpty())
-                throw new IllegalStateException("Missing application version");
-
-            __beforeApplicationStart();
-
-            log(LogType.INFO, "Starting application: %s", name);
-
-            __resolveModules(false); // <-- required in order to retrieve transient modules default settings...
+            if (singleton != null)
+                throw new IllegalStateException(String.format("Another application instance is already running (class: %s, name: %s)", singleton.getClass().getName(), singleton.getName()));
 
             try {
-                log(LogType.INFO, "Loading settings...");
-                __loadSettings();
-            } catch (IOException ex) {
-                log(LogType.ERROR, "Error loading settings: %s", ex.getMessage());
-                throw new RuntimeException(ex);
+                String name = getName();
+
+                if (name != null)
+                    name = name.trim();
+
+                if (name == null || name.isEmpty())
+                    throw new IllegalStateException("Missing application name");
+
+                if (!name.matches(APP_NAME_PATTERN))
+                    throw new IllegalArgumentException("Invalid application name: " + name);
+
+                String version = getVersion();
+
+                if (version != null)
+                    version = version.trim();
+
+                if (version == null || version.isEmpty())
+                    throw new IllegalStateException("Missing application version");
+
+                __reset();
+
+                __loadProperties(true);
+
+                beforeStart();
+
+                running = true; // <-- from this point, services can be started.
+                singleton = this;
+                log(LogType.INFO, "Starting application (%s - v. %s)", name, version);
+                onStart();
+                log(LogType.INFO, "Application is ready: (%s - v. %s)", name, version);
+            } catch (Throwable ex) {
+                singleton = null;
+                running = true;
+
+                onStartError(ex);
+
+                if (ex instanceof RuntimeException) {
+                    throw (RuntimeException) ex;
+                } else {
+                    throw new RuntimeException(ex);
+                }
             }
-
-            // Starts all modules
-            __resolveModules(true);
-            running = true;
-            log(LogType.INFO, "Application is ready: %s", name);
-
-            afterApplicationStart();
-
-            singleton = this;
-        } catch (RuntimeException ex) {
-            singleton = null;
-            onStartError(ex);
-            throw ex;
         }
-    }
-
-    private void __beforeApplicationStart() {
-        reset();
-
-        String logDirPath = new File(getDirectory(), LOG_DIR).getAbsolutePath();
-        File logDir;
-        try {
-            logDir = FileUtils.getOrCreateDirectory(logDirPath);
-        } catch (AccessError ex) {
-            throw new RuntimeException(ex);
-        }
-
-        LogModule logModule = new LogModule(new DailyLogFileStream(logDir));
-
-        registerModule(logModule);
-        initializedModules.add(logModule); // <-- forces the log module to be the last stopped module.
-
-        beforeApplicationStart();
     }
 
     /**
      * Called before application is initialized.
      *
      * Default implementation does nothing.
-     * This is the place to register modules and/or services with the application.
+     * This is the place to register services with the application.
      */
-    protected void beforeApplicationStart() {}
+    protected void beforeStart() {}
 
     /**
-     * Called after application is initialized.
+     * Called during application start.
      *
-     * During this phase all modules associated with this application are running.
+     * During this phase the service management is available.
      * Default implementation does nothing.
      */
-    protected void afterApplicationStart() {}
+    protected void onStart() {}
 
-    /**
-     * Stops this application.
-     */
+    /** Stops this application. */
     public void stop() {
-        if (!isRunning())
-            throw new RuntimeException("Application is not running");
+        synchronized(this) {
+            if (!isRunning())
+                throw new RuntimeException("Application is not running");
 
-        try {
-            log(LogType.INFO, "Shutting shutdown application: %s", getName());
-            beforeApplicationStop();
-
-            __stopModules();
-
-            afterApplicationStop();
-            singleton = null;
-            running = false;
-        } catch (RuntimeException ex) {
-            singleton = null;
-            running = false;
-            onStopError(ex);
-            throw ex;
+            try {
+                log(LogType.INFO, "Stopping aplication (%s - v. %s)", getName(), getVersion());
+                beforeStop();
+                onStop();
+                __stopServices();
+                singleton = null;
+                running = false;
+                afterStop();
+            } catch (Throwable ex) {
+                singleton = null;
+                running = false;
+                onStopError(ex);
+                throw ex;
+            }
         }
     }
 
     /**
-     * Called before application shutdown.
+     * Called before application stop.
      *
-     * During this phase all modules are accessible.
      * Default implementation does nothing.
      */
-    protected void beforeApplicationStop() {}
+    protected void beforeStop() {}
+
+    /**
+     * Called during application stop.
+     *
+     * Default implementation does nothing.
+     */
+    protected void onStop() {}
 
     /**
      * Called after application is stopped.
      *
-     * During this phase there is no active modules associated with this application.
+     * During this phase, settings and services are unavailable.
      * Default implementation does nothing.
      */
-    protected void afterApplicationStop() {}
+    protected void afterStop() {}
 
     /**
      * Called when there was an error while starting application.
+     * Default implementation does nothing.
+     * After this callback is invoked, given exception is thrown.
+     *
      * @param ex error
      */
-    protected void onStartError(RuntimeException ex) {}
+    protected void onStartError(Throwable ex) {}
 
     /**
-     * Called when there was an error while stoping the application.
+     * Called when there was an error while stopping the application.
+     * Default implementation does nothing.
+     * After this callback is invoked, given exception is thrown.
+     *
      * @param ex error
      */
-    protected void onStopError(RuntimeException ex) {}
-    
-    /**
-     * Restarts this application;
-     */
+    protected void onStopError(Throwable ex) {}
+
+    /** Restarts this application. */
     public void restart() {
-        log(LogType.INFO, "Restarting application: %s", getName());
+        synchronized(this) {
+            log(LogType.INFO, "Restarting application: %s", getName());
 
-        stop();
-        start();
+            stop();
+            start();
+        }
     }
 
 }

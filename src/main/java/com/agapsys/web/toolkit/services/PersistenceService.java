@@ -14,14 +14,15 @@
  * limitations under the License.
  */
 
-package com.agapsys.web.toolkit.modules;
+package com.agapsys.web.toolkit.services;
 
-import com.agapsys.web.toolkit.AbstractApplication;
-import com.agapsys.web.toolkit.Module;
-import com.agapsys.web.toolkit.utils.Settings;
+import com.agapsys.web.toolkit.Service;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Map.Entry;
+import java.util.Properties;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.FlushModeType;
@@ -30,11 +31,11 @@ import javax.persistence.Persistence;
 /**
  * Represents a JPA persistence module.
  */
-public class PersistenceModule extends Module {
+public class PersistenceService extends Service {
 
     // <editor-fold desc="STATIC SCOPE">
     // =========================================================================
-    public static final String SETTINGS_GROUP_NAME = PersistenceModule.class.getName();
+    public static final String PROPERTIES_FILE = "persistence.properties";
 
     public static final String KEY_JDBC_PASSWORD = "javax.persistence.jdbc.password";
 
@@ -47,50 +48,42 @@ public class PersistenceModule extends Module {
     // </editor-fold>
 
     private final String persistenceUnitName;
+
     private final EmFactory defaultFactory = new EmFactory() {
+
         @Override
         public EntityManager getInstance() {
             EntityManager em = emf.createEntityManager();
             em.setFlushMode(FlushModeType.COMMIT);
             return em;
         }
+
     };
 
     private EntityManagerFactory emf = null;
-    private char[] jdbcPassword = null;
     private EmFactory emFactory = null;
 
     /**
-     * Default constructor. Default persistence name equals to {@linkplain PersistenceModule#DEFAULT_PERSISTENCE_UNIT_NAME}.
+     * Default constructor.
+     *
+     * Default persistence name equals to {@linkplain PersistenceModule#DEFAULT_PERSISTENCE_UNIT_NAME}.
      */
-    public PersistenceModule() {
+    public PersistenceService() {
         this(DEFAULT_PERSISTENCE_UNIT_NAME);
     }
 
     /**
-     * Constructor. Allows a custom persistence unit name.
+     * Constructor.
+     *
+     * Allows a custom persistence unit name.
      *
      * @param persistenceUnitName persistence unit name used by this module.
      */
-    public PersistenceModule(String persistenceUnitName) {
+    public PersistenceService(String persistenceUnitName) {
         if (persistenceUnitName == null || persistenceUnitName.trim().isEmpty())
             throw new IllegalArgumentException("Null/Empty name");
 
         this.persistenceUnitName = persistenceUnitName;
-    }
-
-    @Override
-    protected final String getSettingsSection() {
-        return SETTINGS_GROUP_NAME;
-    }
-
-    /**
-     * Returns JDBC password.
-     *
-     * @return JDBC password.
-     */
-    protected char[] getJdbcPassword() {
-        return jdbcPassword;
     }
 
     /**
@@ -98,43 +91,43 @@ public class PersistenceModule extends Module {
      *
      * @return the name of persistence unit associated with this instance.
      */
-    protected String getPersistenceUnitName() {
+    public final String getPersistenceUnitName() {
         return persistenceUnitName;
     }
 
-    /**
-     * Returns additional properties to be used when creating the internal
-     * entity manager factory.
-     *
-     * @param app associated application.
-     * @return additional properties to be used.
-     */
-    protected Map getAdditionalProperties(AbstractApplication app) {
-        Settings settings = getSettings();
-
-        Map<String, String> settingsMap = new LinkedHashMap<>();
-        for (Entry<String, String> entry : settings.entrySet()) {
-            settingsMap.put(entry.getKey(), entry.getValue());
-        }
-
-        Map propertyMap = new LinkedHashMap(settingsMap);
-
-        String strJdbcPassword = settings.getProperty(KEY_JDBC_PASSWORD, null);
-
-        if (strJdbcPassword == null) {
-            jdbcPassword = null;
-        } else {
-            jdbcPassword = strJdbcPassword.toCharArray();
-            propertyMap.put(KEY_JDBC_PASSWORD, new String(jdbcPassword));
-        }
-
-        return propertyMap;
+    protected File getPropertiesFile() {
+        return new File(getApplication().getDirectory(), PROPERTIES_FILE);
     }
 
     @Override
-    protected void onInit(AbstractApplication app) {
-        super.onInit(app);
-        emf = Persistence.createEntityManagerFactory(getPersistenceUnitName(), getAdditionalProperties(app));
+    protected void onStart() {
+        super.onStart();
+
+        Properties properties = new Properties();
+        File propertiesFile = getPropertiesFile();
+
+        if (propertiesFile.exists()) {
+            try (FileInputStream fis = new FileInputStream(propertiesFile)) {
+                properties.load(fis);
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
+            }
+        }
+
+        Map additionalProperties = new LinkedHashMap();
+
+        for (Map.Entry entry : properties.entrySet()) {
+            String key = (String) entry.getKey();
+            Object value = entry.getValue();
+
+            if (key.equals(KEY_JDBC_PASSWORD)) {
+                value = ((String) value).toCharArray();
+            }
+
+            additionalProperties.put(key, value);
+        }
+
+        emf = Persistence.createEntityManagerFactory(getPersistenceUnitName(), additionalProperties);
     }
 
     @Override
@@ -164,6 +157,14 @@ public class PersistenceModule extends Module {
         }
     }
 
+    /** This method exists just for testing purposes. */
+    EntityManager _getEntityManager() {
+         if (!isRunning())
+            throw new IllegalStateException("Service is not active");
+
+        return __getEmFactory().getInstance();
+     }
+
     /**
      * Returns an entity manager to be used by application.
      *
@@ -171,10 +172,7 @@ public class PersistenceModule extends Module {
      */
     public final EntityManager getEntityManager() {
         synchronized(this) {
-            if (!isActive())
-                throw new IllegalStateException("Module is not active");
-
-            return __getEmFactory().getInstance();
+            return _getEntityManager();
         }
     }
 

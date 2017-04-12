@@ -58,13 +58,13 @@ public class UploadServiceTest {
     public static void afterClass() {
         System.out.println();
     }
-    
+
     private static class TestingUploadService extends UploadService {
 
         public TestingUploadService() {
-            onInit(null);
+            onStart();
         }
-        
+
     }
 
     @WebServlet("/upload/*")

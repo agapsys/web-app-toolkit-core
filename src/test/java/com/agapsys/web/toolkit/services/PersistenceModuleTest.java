@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package com.agapsys.web.toolkit.modules;
+package com.agapsys.web.toolkit.services;
 
 import com.agapsys.web.toolkit.AbstractApplication;
 import com.agapsys.web.toolkit.MockedWebApplication;
+import com.agapsys.web.toolkit.services.PersistenceService;
 import javax.persistence.EntityManager;
 import org.junit.Assert;
 import org.junit.Before;
@@ -27,11 +28,11 @@ public class PersistenceModuleTest {
 
     // <editor-fold desc="STATIC SCOPE">
     // =========================================================================
-    private static class TestPersistenceModule extends PersistenceModule {
+    private static class TestPersistenceService extends PersistenceService {
         private boolean methodCalled = false;
 
         @Override
-        protected void onInit(AbstractApplication app) {} // <-- does not init entity manager factory
+        protected void onStart() {} // <-- does not init entity manager factory
 
         @Override
         protected EmFactory getEmFactory() {
@@ -50,37 +51,37 @@ public class PersistenceModuleTest {
     // =========================================================================
     // </editor-fold>
 
-    private TestPersistenceModule module;
+    private TestPersistenceService service;
 
     @Before
     public void before() {
-        module = new TestPersistenceModule();
+        service = new TestPersistenceService();
     }
 
     @Test
     public void sanityCheck() {
-        Assert.assertFalse(module.methodCalled);
-        Assert.assertFalse(module.isActive());
+        Assert.assertFalse(service.methodCalled);
+        Assert.assertFalse(service.isRunning());
     }
 
     @Test(expected = IllegalStateException.class)
     public void testGetEntityManagerWhileNotRunning() {
-        module.getEntityManager();
+        service.getEntityManager();
     }
 
     @Test
     public void testGetEntityManagerWhileRunning() {
         MockedWebApplication app = new MockedWebApplication() {
             @Override
-            protected void beforeApplicationStart() {
-                super.beforeApplicationStart();
+            protected void beforeStart() {
+                super.beforeStart();
 
-                registerModule(module);
+                registerService(service);
             }
         };
         app.start();
-        Assert.assertNull(module.getEntityManager());
-        Assert.assertTrue(module.methodCalled);
+        Assert.assertNull(app.getService(PersistenceService.class).getEntityManager());
+        Assert.assertTrue(service.methodCalled);
         app.stop();
         Assert.assertNull(AbstractApplication.getRunningInstance());
     }

@@ -20,65 +20,66 @@ package com.agapsys.web.toolkit;
 public abstract class Service {
 
     private AbstractApplication app;
+    private boolean running = false;
 
-    final void throwIfNotActive() {
-        if (!isActive())
-            throw new RuntimeException("Instance is not active");
+    final void __throwIfNotRunning() {
+        if (!isRunning())
+            throw new RuntimeException("Service is not running");
     }
 
     /**
-     * Returns a boolean indicating if this instance was initialized.
+     * Returns a boolean indicating if this instance is running.
      *
-     * @return a boolean indicating if this instance was initialized.
+     * @return a boolean indicating if this instance is running.
      */
-    public final boolean isActive() {
+    public final boolean isRunning() {
         synchronized(this) {
-            return app != null;
+            return running;
         }
     }
 
     /**
-     * Initializes this instance.
+     * Starts this service instance.
      *
      * @param app associated application.
      */
-    final void _init(AbstractApplication app) {
+    final void _start(AbstractApplication app) {
         synchronized(this) {
-            if (isActive())
-                throw new IllegalStateException("Instance was already initialized");
+            if (isRunning())
+                throw new IllegalStateException("Instance is already running");
 
             if (app == null)
-                throw new IllegalArgumentException("Application cannot be null");
+                throw new IllegalArgumentException("Missing application");
 
             this.app = app;
-            onInit(app);
+            onStart();
+            this.running = true;
+            app.log(LogType.INFO, "Started service: %s", this.getClass().getName());
+
         }
     }
 
     /**
-     * Called upon instance initialization. Default implementation does nothing.
-     *
-     * @param app associated application.
+     * Called upon service start. Default implementation does nothing.
      */
-    protected void onInit(AbstractApplication app) {}
+    protected void onStart() {}
 
     /**
-     * Stops the instance.
+     * Stops this service instance.
      */
     final void _stop() {
         synchronized(this) {
-            throwIfNotActive();
+            __throwIfNotRunning();
 
             onStop();
-
+            getApplication().log(LogType.INFO, "Stopped service: %s", this.getClass().getName());
+            this.running = false;
             this.app = null;
         }
     }
 
     /**
-     * Actual instance shutdown code.
-     *
-     * Default implementation does nothing.
+     * Called during service stop. Default implementation does nothing.
      */
     protected void onStop() {}
 
@@ -94,33 +95,34 @@ public abstract class Service {
     }
 
     /**
-     * Returns a module registered in the same application as this instance is registered with.
-     *
-     * @param <M> Module type.
-     * @param moduleClass module class.
-     * @return module instance or null if given module class was not registered with associated application..
+     * Restarts this service.
      */
-    public final <M extends Module> M getModule(Class<M> moduleClass) {
+    public final void restart() {
         synchronized(this) {
-            throwIfNotActive();
-
-            return app.getModule(moduleClass);
+            AbstractApplication mApp = getApplication();
+            _stop();
+            _start(mApp);
         }
     }
 
     /**
-     * Returns a service instance.
+     * Returns a service instance using the same application this service is
+     * registered with.
      *
      * @param <S> Service type.
      * @param serviceClass service class.
+     * @param autoRegistration defines if service should be auto-registered.
      * @return service instance.
      */
-    public final <S extends Service> S getService(Class<S> serviceClass) {
+    public final <S extends Service> S getService(Class<S> serviceClass, boolean autoRegistration) {
         synchronized(this) {
-            throwIfNotActive();
-
-            return app.getService(serviceClass);
+            return app.getService(serviceClass, autoRegistration);
         }
+    }
+
+    /** Convenience method for getService(serviceClass, true). */
+    public final <S extends Service> S getService(Class<S> serviceClass) {
+        return getService(serviceClass, true);
     }
 
 }

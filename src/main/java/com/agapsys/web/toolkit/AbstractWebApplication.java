@@ -16,49 +16,15 @@
 
 package com.agapsys.web.toolkit;
 
-import com.agapsys.web.toolkit.utils.HttpUtils;
-import com.agapsys.web.toolkit.utils.Settings;
-import java.util.regex.Pattern;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 /**
  * Represents a web application.
  */
 public abstract class AbstractWebApplication extends AbstractApplication implements ServletContextListener {
 
-    // <editor-fold desc="STATIC SCOPE">
-    // =========================================================================
-    // Global settings ---------------------------------------------------------
-    /** Defines if application is disabled. When an application is disabled, all requests are ignored and a {@linkplain HttpServletResponse#SC_SERVICE_UNAVAILABLE} is sent to the client. */
-    public static final String KEY_APP_DISABLE = "com.agapsys.webtoolkit.appDisable";
-
-    /** Defines a comma-delimited list of allowed origins for this application or '*' for any origin. If an origin is not accepted a {@linkplain HttpServletResponse#SC_FORBIDDEN} is sent to the client. */
-    public static final String KEY_APP_ALLOWED_ORIGINS = "com.agapsys.webtoolkit.allowedOrigins";
-
-    public static final boolean DEFAULT_APP_DISABLED        = false;
-    public static final String  DEFAULT_APP_ALLOWED_ORIGINS = "*";
-    public static final String  ORIGIN_DELIMITER            = ",";
-    // -------------------------------------------------------------------------
-    // =========================================================================
-    // </editor-fold>
-
-    private boolean  disabled;
-    private String[] allowedOrigins;
     private String contextPath;
-
-    public AbstractWebApplication() {
-        super();
-        reset();
-    }
-
-    /** Resets application state. */
-    private void reset() {
-        disabled       = DEFAULT_APP_DISABLED;
-        allowedOrigins = new String[] {DEFAULT_APP_ALLOWED_ORIGINS};
-    }
 
     @Override
     public final String getName() {
@@ -71,85 +37,12 @@ public abstract class AbstractWebApplication extends AbstractApplication impleme
         }
     }
     
+    /**
+     * Returns the name of the application when used in root context.
+     * 
+     * @return the name of the application when used in root context.
+     */
     public abstract String getRootName();
-    
-    /**
-     * Returns a boolean indicating if application is disabled.
-     *
-     * @return a boolean indicating if application is disabled.
-     */
-    public boolean isDisabled() {
-        if (!isRunning())
-            throw new RuntimeException("Application is not running");
-
-        return disabled;
-    }
-
-    /**
-     * Returns a boolean indicating if given request is allowed to proceed.
-     *
-     * @param req HTTP request.
-     * @return boolean indicating if given request is allowed to proceed.
-     */
-    final boolean _isOriginAllowed(HttpServletRequest req) {
-        return isOriginAllowed(req);
-    }
-
-    /**
-     * Returns a boolean indicating if given request is allowed to proceed.
-     *
-     * @param req HTTP request.
-     * @return boolean indicating if given request is allowed to proceed.
-     */
-    protected boolean isOriginAllowed(HttpServletRequest req) {
-        if (!isRunning())
-            throw new RuntimeException("Application is not running");
-
-        boolean isOriginAllowed = allowedOrigins.length == 1 && allowedOrigins[0].equals(DEFAULT_APP_ALLOWED_ORIGINS);
-
-        if (isOriginAllowed)
-            return true;
-
-        String originIp = HttpUtils.getOriginIp(req);
-
-        for (String allowedOrigin : allowedOrigins) {
-            if (allowedOrigin.equals(originIp))
-                return true;
-        }
-
-        return false;
-    }
-
-    @Override
-    protected void beforeApplicationStart() {
-        reset();
-        super.beforeApplicationStart();
-    }
-
-    @Override
-    protected Settings getDefaultSettings() {
-        Settings defaultSettings = super.getDefaultSettings();
-
-        if (defaultSettings == null)
-            defaultSettings = new Settings();
-
-        defaultSettings.setProperty(KEY_APP_DISABLE,         "" + DEFAULT_APP_DISABLED);
-        defaultSettings.setProperty(KEY_APP_ALLOWED_ORIGINS, DEFAULT_APP_ALLOWED_ORIGINS);
-
-        return defaultSettings;
-    }
-
-    @Override
-    protected void afterApplicationStart() {
-        Settings rootSettings = getApplicationSettings().getSection(null);
-        
-        disabled       = Boolean.parseBoolean(rootSettings.getProperty(KEY_APP_DISABLE, "" + DEFAULT_APP_DISABLED));
-        allowedOrigins = rootSettings.getProperty(KEY_APP_ALLOWED_ORIGINS, AbstractWebApplication.DEFAULT_APP_ALLOWED_ORIGINS).split(Pattern.quote(ORIGIN_DELIMITER));
-
-        for (int i = 0; i < allowedOrigins.length; i++) {
-            allowedOrigins[i] = allowedOrigins[i].trim();
-        }
-    }
 
     /**
      * Called during context initialization.

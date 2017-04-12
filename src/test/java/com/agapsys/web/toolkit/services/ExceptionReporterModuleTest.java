@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.agapsys.web.toolkit.modules;
+package com.agapsys.web.toolkit.services;
 
 import com.agapsys.web.toolkit.AbstractApplication;
 import com.agapsys.web.toolkit.MockedWebApplication;
@@ -48,26 +48,26 @@ public class ExceptionReporterModuleTest {
 
     // <editor-fold desc="STATIC SCOPE">
     // =========================================================================
-    private static class TestExceptionReporterModule extends ExceptionReporterModule {
+    private static class TestExceptionReporterModule extends ExceptionReporterService {
         private boolean methodCalled = false;
 
         @Override
-        protected void onExceptionReport(Throwable t, HttpServletRequest req) {
+        void _reportException(Throwable exception, HttpServletRequest req) {
             methodCalled = true;
         }
     }
 
     private static final int STACK_TRACE_HISTORY_SIZE = 2;
 
-    private static class TestModule extends ExceptionReporterModule {
+    private static class TestService extends ExceptionReporterService {
 
         @Override
-        public int getStacktraceHistorySize() {
+        int _getStackTraceHistorySize() {
             return STACK_TRACE_HISTORY_SIZE;
         }
 
         @Override
-        public boolean skipErrorReport(Throwable t) {
+        protected boolean skipErrorReport(Throwable t) {
             return super.skipErrorReport(t);
         }
     }
@@ -422,52 +422,52 @@ public class ExceptionReporterModuleTest {
         }
     };
 
-    private TestExceptionReporterModule module;
+    private TestExceptionReporterModule service;
 
     @Before
     public void before() {
-        module = new TestExceptionReporterModule();
+        service = new TestExceptionReporterModule();
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void nullThrowable() {
-        module.reportException(null, req);
+        service.reportException(null, req);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void nullRequest() {
         Throwable t = new Throwable();
-        module.reportException(t, null);
+        service.reportException(t, null);
     }
 
     @Test(expected = IllegalStateException.class)
     public void reportWhileNotRunning() {
         Throwable t = new Throwable();
-        Assert.assertFalse(module.isActive());
-        module.reportException(t, req);
+        Assert.assertFalse(service.isRunning());
+        service.reportException(t, req);
     }
 
     @Test
     public void reportWhileRunning() {
         MockedWebApplication app = new MockedWebApplication() {
             @Override
-            protected void beforeApplicationStart() {
-                super.beforeApplicationStart();
+            protected void beforeStart() {
+                super.beforeStart();
 
-                registerModule(module);
+                registerService(service);
             }
         };
         app.start();
         Throwable t = new Throwable();
-        module.reportException(t, req);
-        Assert.assertTrue(module.methodCalled);
+        app.getService(ExceptionReporterService.class).reportException(t, req);
+        Assert.assertTrue(service.methodCalled);
         app.stop();
         Assert.assertNull(AbstractApplication.getRunningInstance());
     }
 
     @Test
     public void skipReportTest() {
-        TestModule module = new TestModule();
+        TestService module = new TestService();
 
         RuntimeException re1 = new RuntimeException();
         RuntimeException re2 = new RuntimeException();

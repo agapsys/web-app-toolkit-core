@@ -20,16 +20,16 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-public class AbstractModuleTest {
+public class ServiceTest {
 
     // <editor-fold desc="STATIC SCOPE" defaultstate="collapsed">
     // =========================================================================
-    private static class TestModule extends Module {
+    private static class TestService extends Service {
         private boolean isStartCalled = false;
         private boolean isStopCalled = false;
 
         @Override
-        protected void onInit(AbstractApplication app) {
+        protected void onStart() {
             isStartCalled = true;
         }
 
@@ -37,40 +37,37 @@ public class AbstractModuleTest {
         protected void onStop() {
             isStopCalled = true;
         }
-
-        @Override
-        protected String getSettingsSection() {
-            return "";
-        }
     }
     // =========================================================================
     // </editor-fold>
 
     private final AbstractWebApplication app = new MockedWebApplication();
-    private TestModule module = null;
+    private TestService service = null;
 
     @Before
     public void before() {
-        module = new TestModule();
+        service = new TestService();
     }
 
     @Test
     public void testDefaults() {
-        Assert.assertFalse(module.isStartCalled);
-        Assert.assertFalse(module.isStopCalled);
+        Assert.assertFalse(service.isStartCalled);
+        Assert.assertFalse(service.isStopCalled);
     }
 
     @Test
     public void testRunning() {
-        Assert.assertFalse(module.isActive());
+        Assert.assertFalse(service.isRunning());
 
-        module._init(app);
-        Assert.assertTrue(module.isStartCalled);
-        Assert.assertFalse(module.isStopCalled);
-        Assert.assertTrue(module.isStartCalled);
+        app.start();
+        
+        service._start(app);
+        Assert.assertTrue(service.isStartCalled);
+        Assert.assertFalse(service.isStopCalled);
+        Assert.assertTrue(service.isStartCalled);
 
-        module._stop();
-        Assert.assertTrue(module.isStopCalled);
-        Assert.assertFalse(module.isActive());
+        service._stop();
+        Assert.assertTrue(service.isStopCalled);
+        Assert.assertFalse(service.isRunning());
     }
 }

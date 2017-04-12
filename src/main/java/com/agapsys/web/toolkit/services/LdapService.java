@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-package com.agapsys.web.toolkit.modules;
+package com.agapsys.web.toolkit.services;
 
 import com.agapsys.web.toolkit.AbstractApplication;
-import com.agapsys.web.toolkit.WebModule;
-import com.agapsys.web.toolkit.modules.LdapModule.LdapException.LdapExceptionType;
-import com.agapsys.web.toolkit.utils.Settings;
+import com.agapsys.web.toolkit.services.LdapService.LdapException.LdapExceptionType;
+import com.agapsys.web.toolkit.Service;
 import java.util.Collections;
 import java.util.Hashtable;
 import java.util.LinkedList;
@@ -37,11 +36,12 @@ import javax.naming.directory.InitialDirContext;
 import javax.naming.directory.SearchControls;
 import javax.naming.directory.SearchResult;
 
-public class LdapModule extends WebModule {
+public class LdapService extends Service {
 
     // <editor-fold desc="STATIC SCOPE">
     // =========================================================================
     public static class LdapException extends Exception {
+        
         // CLASS SCOPE =========================================================
         public static enum LdapExceptionType {
             INVALID_CREDENTIALS,
@@ -126,13 +126,13 @@ public class LdapModule extends WebModule {
         }
     }
 
-    public static final String SETTINGS_GROUP_NAME = LdapModule.class.getName();
+    private static final String PROPERTY_PREFIX = LdapService.class.getName();
 
-    public static final String KEY_LDAP_URL             = SETTINGS_GROUP_NAME + ".url";
-    public static final String KEY_SEARCH_BASE_DN       = SETTINGS_GROUP_NAME + ".baseDn";
-    public static final String KEY_SEARCH_PATTERN       = SETTINGS_GROUP_NAME + ".searchPattern";
-    public static final String KEY_SEARCH_USER_DN       = SETTINGS_GROUP_NAME + ".searchUserDn";
-    public static final String KEY_SEARCH_USER_PASSWORD = SETTINGS_GROUP_NAME + ".searchUserPassword";
+    public static final String KEY_LDAP_URL             = PROPERTY_PREFIX + ".url";
+    public static final String KEY_SEARCH_BASE_DN       = PROPERTY_PREFIX + ".baseDn";
+    public static final String KEY_SEARCH_PATTERN       = PROPERTY_PREFIX + ".searchPattern";
+    public static final String KEY_SEARCH_USER_DN       = PROPERTY_PREFIX + ".searchUserDn";
+    public static final String KEY_SEARCH_USER_PASSWORD = PROPERTY_PREFIX + ".searchUserPassword";
 
     private static final String DEFAULT_LDAP_URL             = "ldaps://ldap.server:9876";
     private static final String DEFAULT_SEARCH_BASE_DN       = "ou=users,dc=ldap,dc=server";
@@ -148,11 +148,11 @@ public class LdapModule extends WebModule {
     private String searchUserDn;
     private char[] searchUserPassword;
 
-    public LdapModule() {
-        reset();
+    public LdapService() {
+        __reset();
     }
 
-    private void reset() {
+    private void __reset() {
         ldapUrl            = null;
         searchBaseDn       = null;
         searchPattern      = null;
@@ -161,55 +161,33 @@ public class LdapModule extends WebModule {
     }
 
     @Override
-    protected final String getSettingsSection() {
-        return SETTINGS_GROUP_NAME;
+    protected void onStart() {
+        super.onStart();
+
+        __reset();
+        
+        AbstractApplication app = getApplication();
+
+        ldapUrl            = app.getProperty(KEY_LDAP_URL,        DEFAULT_LDAP_URL);
+        searchBaseDn       = app.getProperty(KEY_SEARCH_BASE_DN,  DEFAULT_SEARCH_BASE_DN);
+        searchPattern      = app.getProperty(KEY_SEARCH_PATTERN,  DEFAULT_SEARCH_PATTERN);
+        searchUserDn       = app.getProperty(KEY_SEARCH_USER_DN,  DEFAULT_SEARCH_USER_DN);
+        searchUserPassword = app.getProperty(KEY_SEARCH_USER_PASSWORD, DEFAULT_SEARCH_USER_PASSWORD).toCharArray();
     }
 
-    @Override
-    public Settings getDefaultSettings() {
-        Settings defaultSettings = super.getDefaultSettings();
-
-        if (defaultSettings == null)
-            defaultSettings = new Settings();
-
-        defaultSettings.setProperty(KEY_LDAP_URL,             DEFAULT_LDAP_URL);
-        defaultSettings.setProperty(KEY_SEARCH_BASE_DN,       DEFAULT_SEARCH_BASE_DN);
-        defaultSettings.setProperty(KEY_SEARCH_PATTERN,       DEFAULT_SEARCH_PATTERN);
-        defaultSettings.setProperty(KEY_SEARCH_USER_DN,       DEFAULT_SEARCH_USER_DN);
-        defaultSettings.setProperty(KEY_SEARCH_USER_PASSWORD, DEFAULT_SEARCH_USER_PASSWORD);
-
-        return defaultSettings;
-    }
-
-    @Override
-    protected void onInit(AbstractApplication webApp) {
-        super.onInit(webApp);
-
-        reset();
-
-        Settings settings = getSettings();
-
-        ldapUrl            = settings.getMandatoryProperty(KEY_LDAP_URL);
-        searchBaseDn       = settings.getMandatoryProperty(KEY_SEARCH_BASE_DN);
-        searchPattern      = settings.getMandatoryProperty(KEY_SEARCH_PATTERN);
-        searchUserDn       = settings.getMandatoryProperty(KEY_SEARCH_USER_DN);
-        searchUserPassword = settings.getMandatoryProperty(KEY_SEARCH_USER_PASSWORD).toCharArray();
-    }
-
-
-    protected String getLdapUrl() {
+    public final String getLdapUrl() {
         return ldapUrl;
     }
 
-    protected String getSearchBaseDn() {
+    public final String getSearchBaseDn() {
         return searchBaseDn;
     }
 
-    protected String getSearchPattern() {
+    public final String getSearchPattern() {
         return searchPattern;
     }
 
-    protected String getSearchUserDn() {
+    public final String getSearchUserDn() {
         return searchUserDn;
     }
 
@@ -263,7 +241,7 @@ public class LdapModule extends WebModule {
         }
     }
 
-    private LdapUser _getUser(String userId, char[] password) throws LdapException, NamingException {
+    private LdapUser __getUser(String userId, char[] password) throws LdapException, NamingException {
         DirContext ctx;
         SearchResult searchResult;
         String userDn = null;
@@ -298,13 +276,21 @@ public class LdapModule extends WebModule {
         }
     }
 
-    public final LdapUser getUser(String userId, char[] password) throws LdapException {
-        if (!isActive()) throw new RuntimeException("Module is not active");
+    /** This method exists just for testing purposes. */
+    LdapUser _getUser(String userId, char[] password) throws LdapException {
+        if (!isRunning())
+            throw new RuntimeException("Service is not active");
 
         try {
-            return _getUser(userId, password);
+            return __getUser(userId, password);
         } catch (NamingException ex) {
             throw new LdapException(LdapExceptionType.NAMING_ERROR, ex);
+        }
+    }
+    
+    public final LdapUser getUser(String userId, char[] password) throws LdapException {
+        synchronized(this) {
+            return _getUser(userId, password);
         }
     }
 

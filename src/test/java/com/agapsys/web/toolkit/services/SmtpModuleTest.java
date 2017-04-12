@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package com.agapsys.web.toolkit.modules;
+package com.agapsys.web.toolkit.services;
 
 import com.agapsys.mail.Message;
 import com.agapsys.mail.MessageBuilder;
 import com.agapsys.web.toolkit.AbstractApplication;
 import com.agapsys.web.toolkit.MockedWebApplication;
+import javax.mail.MessagingException;
 import javax.mail.internet.AddressException;
 import org.junit.Assert;
 import org.junit.Before;
@@ -29,16 +30,16 @@ public class SmtpModuleTest {
 
     // <editor-fold desc="STATIC SCOPE" defaultstate="collapsed">
     // =========================================================================
-    private static class TestSmtpModule extends SmtpModule {
+    private static class TestSmtpService extends SmtpService {
         private boolean methodCalled = false;
 
         @Override
-        protected void onSendMessage(Message message) {
+        protected void _sendMessage(Message message) {
             methodCalled = true;
         }
 
         @Override
-        protected void onInit(AbstractApplication app) {} // <-- does not load implementation logic
+        protected void onStart() {} // <-- does not load implementation logic
 
         @Override
         protected void onStop() {}
@@ -46,7 +47,7 @@ public class SmtpModuleTest {
     // =========================================================================
     // </editor-fold>
 
-    private TestSmtpModule module;
+    private TestSmtpService service;
     private final Message testMessage;
 
     public SmtpModuleTest() throws AddressException {
@@ -55,33 +56,33 @@ public class SmtpModuleTest {
 
     @Before
     public void before() {
-        module = new TestSmtpModule();
+        service = new TestSmtpService();
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void sendNullMessage() {
-        module.sendMessage(null);
+    public void sendNullMessage() throws MessagingException {
+        service.sendMessage(null);
     }
 
     @Test(expected = IllegalStateException.class)
-    public void sendMessageWhileNotRunning() {
-        Assert.assertFalse(module.isActive());
-        module.sendMessage(testMessage);
+    public void sendMessageWhileNotRunning() throws MessagingException {
+        Assert.assertFalse(service.isRunning());
+        service.sendMessage(testMessage);
     }
 
     @Test
-    public void sendMessageWhileRunning() {
+    public void sendMessageWhileRunning() throws MessagingException {
         MockedWebApplication app = new MockedWebApplication() {
             @Override
-            protected void beforeApplicationStart() {
-                super.beforeApplicationStart();
+            protected void beforeStart() {
+                super.beforeStart();
 
-                registerModule(module);
+                registerService(service);
             }
         };
         app.start();
-        module.sendMessage(testMessage);
-        Assert.assertTrue(module.methodCalled);
+        app.getService(SmtpService.class).sendMessage(testMessage);
+        Assert.assertTrue(service.methodCalled);
         app.stop();
         Assert.assertNull(AbstractApplication.getRunningInstance());
     }
