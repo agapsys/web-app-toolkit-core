@@ -16,16 +16,13 @@
 
 package com.agapsys.web.toolkit;
 
+import java.util.NoSuchElementException;
+
 /** Basic service implementation. */
 public abstract class Service {
 
     private AbstractApplication app;
     private boolean running = false;
-
-    final void __throwIfNotRunning() {
-        if (!isRunning())
-            throw new RuntimeException("Service is not running");
-    }
 
     /**
      * Returns a boolean indicating if this instance is running.
@@ -45,17 +42,19 @@ public abstract class Service {
      */
     final void _start(AbstractApplication app) {
         synchronized(this) {
-            if (isRunning())
-                throw new IllegalStateException("Instance is already running");
+            try {
+                if (app == null)
+                    throw new IllegalArgumentException("Missing application");
 
-            if (app == null)
-                throw new IllegalArgumentException("Missing application");
-
-            this.app = app;
-            onStart();
-            this.running = true;
-            app.log(LogType.INFO, "Started service: %s", this.getClass().getName());
-
+                this.app = app;
+                onStart();
+                this.running = true;
+                app.log(LogType.INFO, "Started service: %s", this.getClass().getName());
+            } catch (RuntimeException ex) {
+                this.app = null;
+                this.running = false;
+                throw ex;
+            }
         }
     }
 
@@ -69,12 +68,16 @@ public abstract class Service {
      */
     final void _stop() {
         synchronized(this) {
-            __throwIfNotRunning();
+            if (!isRunning())
+                return;
 
-            onStop();
-            getApplication().log(LogType.INFO, "Stopped service: %s", this.getClass().getName());
-            this.running = false;
-            this.app = null;
+            try {
+                onStop();
+                getApplication().log(LogType.INFO, "Stopped service: %s", this.getClass().getName());
+            } finally {
+                this.running = false;
+                this.app = null;
+            }
         }
     }
 
@@ -105,23 +108,24 @@ public abstract class Service {
         }
     }
 
-    /**
-     * Returns a service instance using the same application this service is
-     * registered with.
-     *
-     * @param <S> Service type.
-     * @param serviceClass service class.
-     * @param autoRegistration defines if service should be auto-registered.
-     * @return service instance.
-     */
-    public final <S extends Service> S getService(Class<S> serviceClass, boolean autoRegistration) {
-        synchronized(this) {
-            return app.getService(serviceClass, autoRegistration);
-        }
+    /** See {@linkplain AbstractApplication#getService(java.lang.Class, boolean)}. */
+    public <S extends Service> S getService(Class<S> serviceClass, boolean autoRegistration) {
+        if (app == null)
+            throw new IllegalStateException("Service is not associated with an application");
+        
+        return app.getService(serviceClass, autoRegistration);
     }
 
-    /** Convenience method for getService(serviceClass, true). */
-    public final <S extends Service> S getService(Class<S> serviceClass) {
+    public final <S extends Service> S getRegisteredService(Class<S> serviceClass) throws NoSuchElementException {
+        S service = getService(serviceClass, false);
+        
+        if (service == null)
+            throw new NoSuchElementException(serviceClass.getName());
+        
+        return service;
+    }
+    
+    public final <S extends Service> S getOnDemandService(Class<S> serviceClass) {
         return getService(serviceClass, true);
     }
 

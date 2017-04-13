@@ -199,37 +199,37 @@ public final class LogService extends Service {
     }
 
     public final Set<Logger> getLoggers() {
-        synchronized(loggers) {
+        synchronized(this) {
             return roLoggers;
         }
     }
 
-    public final void clearLoggers() {
-        synchronized(loggers) {
+    public void clearLoggers() {
+        synchronized(this) {
             if (isRunning())
-                throw new RuntimeException("Cannot remove a logger from a running service");
+                throw new IllegalStateException("Cannot remove a logger from a running service");
             
             loggers.clear();
         }
     }
 
-    public final void addLogger(Logger logger) {
-        synchronized(loggers) {
+    public void addLogger(Logger logger) {
+        synchronized(this) {
             if (logger == null)
                 throw new IllegalArgumentException("Logger cannot be null");
             
             if (isRunning())
-                throw new RuntimeException("Cannot add a logger to a running service");
+                throw new IllegalStateException("Cannot add a logger to a running service");
 
             if (!loggers.contains(logger))
                 loggers.add(logger);
         }
     }
 
-    public final void removeLogger(Logger logger) {
-        synchronized(loggers) {
+    public void removeLogger(Logger logger) {
+        synchronized(this) {
             if (isRunning())
-                throw new RuntimeException("Cannot remove a logger from a running service");
+                throw new IllegalStateException("Cannot remove a logger from a running service");
             
             loggers.remove(logger);
         }
@@ -239,8 +239,10 @@ public final class LogService extends Service {
     protected void onStart() {
         super.onStart();
 
-        for (Logger logger : getLoggers()) {
-            logger.start(getApplication());
+        synchronized(this) {
+            for (Logger logger : getLoggers()) {
+                logger.start(getApplication());
+            }
         }
     }
 
@@ -248,21 +250,14 @@ public final class LogService extends Service {
     protected void onStop() {
         super.onStop();
 
-        for (Logger logger : getLoggers()) {
-            logger.stop();
+        synchronized(this) {
+            for (Logger logger : getLoggers()) {
+                logger.stop();
+            }
         }
 
     }
     
-    /** This method exists just for testing purposes. */
-    void _log(Date timestamp, LogType logType, String message, Object...msgArgs) {
-        message = msgArgs.length > 0 ? String.format(message, msgArgs) : message;
-
-        for (Logger logger : getLoggers()) {
-            logger.log(timestamp, logType, message);
-        }
-    }
-
     /** Convenience method for log(new Date(), logType, message, msgArgs). */
     public final void log(LogType logType, String message, Object...msgArgs) {
         log(new Date(), logType, message, msgArgs);
@@ -276,9 +271,13 @@ public final class LogService extends Service {
      * @param message message to be logged.
      * @param msgArgs message arguments (see {@linkplain String#format(String, Object...)}).
      */
-    public final void log(Date timestamp, LogType logType, String message, Object...msgArgs) {
-        synchronized(loggers) {
-            _log(timestamp, logType, message, msgArgs);
+    public void log(Date timestamp, LogType logType, String message, Object...msgArgs) {
+        synchronized(this) {
+            message = msgArgs.length > 0 ? String.format(message, msgArgs) : message;
+
+            for (Logger logger : getLoggers()) {
+                logger.log(timestamp, logType, message);
+            }
         }
     }
 

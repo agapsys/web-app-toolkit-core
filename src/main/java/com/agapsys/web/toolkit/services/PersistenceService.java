@@ -29,7 +29,7 @@ import javax.persistence.FlushModeType;
 import javax.persistence.Persistence;
 
 /**
- * Represents a JPA persistence module.
+ * Represents a JPA persistence service.
  */
 public class PersistenceService extends Service {
 
@@ -66,7 +66,7 @@ public class PersistenceService extends Service {
     /**
      * Default constructor.
      *
-     * Default persistence name equals to {@linkplain PersistenceModule#DEFAULT_PERSISTENCE_UNIT_NAME}.
+     * Default persistence name equals to {@linkplain PersistenceService#DEFAULT_PERSISTENCE_UNIT_NAME}.
      */
     public PersistenceService() {
         this(DEFAULT_PERSISTENCE_UNIT_NAME);
@@ -77,7 +77,7 @@ public class PersistenceService extends Service {
      *
      * Allows a custom persistence unit name.
      *
-     * @param persistenceUnitName persistence unit name used by this module.
+     * @param persistenceUnitName persistence unit name used by this service.
      */
     public PersistenceService(String persistenceUnitName) {
         if (persistenceUnitName == null || persistenceUnitName.trim().isEmpty())
@@ -98,50 +98,76 @@ public class PersistenceService extends Service {
     protected File getPropertiesFile() {
         return new File(getApplication().getDirectory(), PROPERTIES_FILE);
     }
+    
+    /** 
+     * Returns default entity manager factory properties.
+     * 
+     * @return Default entity manager factory properties. Default implementation returns null.
+     */
+    protected Properties getDefaultEmfProperties() {
+        return null;
+    }
 
     @Override
     protected void onStart() {
         super.onStart();
 
-        Properties properties = new Properties();
-        File propertiesFile = getPropertiesFile();
+        synchronized(this) {
+            Properties properties = new Properties();
+            File propertiesFile = getPropertiesFile();
 
-        if (propertiesFile.exists()) {
-            try (FileInputStream fis = new FileInputStream(propertiesFile)) {
-                properties.load(fis);
-            } catch (IOException ex) {
-                throw new RuntimeException(ex);
-            }
-        }
-
-        Map additionalProperties = new LinkedHashMap();
-
-        for (Map.Entry entry : properties.entrySet()) {
-            String key = (String) entry.getKey();
-            Object value = entry.getValue();
-
-            if (key.equals(KEY_JDBC_PASSWORD)) {
-                value = ((String) value).toCharArray();
+            if (propertiesFile.exists()) {
+                try (FileInputStream fis = new FileInputStream(propertiesFile)) {
+                    properties.load(fis);
+                } catch (IOException ex) {
+                    throw new RuntimeException(ex);
+                }
             }
 
-            additionalProperties.put(key, value);
-        }
+            Properties defaultEmfProperties = getDefaultEmfProperties();
+            if (defaultEmfProperties == null)
+                defaultEmfProperties = new Properties();
 
-        emf = Persistence.createEntityManagerFactory(getPersistenceUnitName(), additionalProperties);
+            for (Map.Entry entry : defaultEmfProperties.entrySet()) {
+                String key = (String) entry.getKey();
+                String value = (String) entry.getValue();
+
+                if (!properties.containsKey(key)) {
+                    properties.setProperty(key, value);
+                }
+            }
+
+            Map emfProperties = new LinkedHashMap();
+
+            for (Map.Entry entry : properties.entrySet()) {
+                String key = (String) entry.getKey();
+                Object value = entry.getValue();
+
+                if (key.equals(KEY_JDBC_PASSWORD)) {
+                    value = ((String) value).toCharArray();
+                }
+
+                emfProperties.put(key, value);
+            }
+
+            emf = Persistence.createEntityManagerFactory(getPersistenceUnitName(), emfProperties);
+        }
     }
 
     @Override
     protected void onStop() {
         super.onStop();
 
-        emf.close();
-        emf = null;
+        synchronized(this) {
+            emf.close();
+            emf = null;
+        }
     }
 
     /**
-     * Returns the EmFactory instance to be used by this module.
+     * Returns the EmFactory instance to be used by this service.
      *
-     * @return EmFactory instance associated with this module instance.
+     * @return EmFactory instance associated with this service instance.
      */
     protected EmFactory getEmFactory() {
         return defaultFactory;
@@ -157,14 +183,6 @@ public class PersistenceService extends Service {
         }
     }
 
-    /** This method exists just for testing purposes. */
-    EntityManager _getEntityManager() {
-         if (!isRunning())
-            throw new IllegalStateException("Service is not active");
-
-        return __getEmFactory().getInstance();
-     }
-
     /**
      * Returns an entity manager to be used by application.
      *
@@ -172,7 +190,10 @@ public class PersistenceService extends Service {
      */
     public final EntityManager getEntityManager() {
         synchronized(this) {
-            return _getEntityManager();
+            if (!isRunning())
+                throw new IllegalStateException("Service is not running");
+
+            return __getEmFactory().getInstance();
         }
     }
 

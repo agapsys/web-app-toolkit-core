@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.agapsys.web.toolkit.services;
 
 import com.agapsys.web.toolkit.AbstractApplication;
@@ -44,15 +43,17 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-public class ExceptionReporterModuleTest {
+public class ExceptionReporterServiceTest {
 
     // <editor-fold desc="STATIC SCOPE">
     // =========================================================================
-    private static class TestExceptionReporterModule extends ExceptionReporterService {
+    private static class TestExceptionReporterService extends ExceptionReporterService {
+
         private boolean methodCalled = false;
 
         @Override
-        void _reportException(Throwable exception, HttpServletRequest req) {
+        public void reportException(Throwable exception, HttpServletRequest req) {
+            super.reportException(exception, req);
             methodCalled = true;
         }
     }
@@ -62,7 +63,7 @@ public class ExceptionReporterModuleTest {
     private static class TestService extends ExceptionReporterService {
 
         @Override
-        int _getStackTraceHistorySize() {
+        public int getStackTraceHistorySize() {
             return STACK_TRACE_HISTORY_SIZE;
         }
 
@@ -422,11 +423,11 @@ public class ExceptionReporterModuleTest {
         }
     };
 
-    private TestExceptionReporterModule service;
+    private TestExceptionReporterService service;
 
     @Before
     public void before() {
-        service = new TestExceptionReporterModule();
+        service = new TestExceptionReporterService();
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -459,7 +460,7 @@ public class ExceptionReporterModuleTest {
         };
         app.start();
         Throwable t = new Throwable();
-        app.getService(ExceptionReporterService.class).reportException(t, req);
+        app.getServiceOnDemand(ExceptionReporterService.class).reportException(t, req);
         Assert.assertTrue(service.methodCalled);
         app.stop();
         Assert.assertNull(AbstractApplication.getRunningInstance());
@@ -467,27 +468,27 @@ public class ExceptionReporterModuleTest {
 
     @Test
     public void skipReportTest() {
-        TestService module = new TestService();
+        TestService service = new TestService();
 
         RuntimeException re1 = new RuntimeException();
         RuntimeException re2 = new RuntimeException();
         RuntimeException re3 = new RuntimeException();
 
-        Assert.assertFalse(module.skipErrorReport(re1)); // history: re1
-        Assert.assertFalse(module.skipErrorReport(re2)); // history: re1, re2
+        Assert.assertFalse(service.skipErrorReport(re1)); // history: re1
+        Assert.assertFalse(service.skipErrorReport(re2)); // history: re1, re2
 
-        Assert.assertTrue(module.skipErrorReport(re1));
-        Assert.assertTrue(module.skipErrorReport(re2));
+        Assert.assertTrue(service.skipErrorReport(re1));
+        Assert.assertTrue(service.skipErrorReport(re2));
 
-        Assert.assertFalse(module.skipErrorReport(re3)); // history: re2, re3
+        Assert.assertFalse(service.skipErrorReport(re3)); // history: re2, re3
 
-        Assert.assertTrue(module.skipErrorReport(re2));
-        Assert.assertTrue(module.skipErrorReport(re3));
+        Assert.assertTrue(service.skipErrorReport(re2));
+        Assert.assertTrue(service.skipErrorReport(re3));
 
-        Assert.assertFalse(module.skipErrorReport(re1)); // history: re3, re1
-        Assert.assertFalse(module.skipErrorReport(re2)); // history: re1, re2
+        Assert.assertFalse(service.skipErrorReport(re1)); // history: re3, re1
+        Assert.assertFalse(service.skipErrorReport(re2)); // history: re1, re2
 
-        Assert.assertTrue(module.skipErrorReport(re1));
-        Assert.assertTrue(module.skipErrorReport(re2));
+        Assert.assertTrue(service.skipErrorReport(re1));
+        Assert.assertTrue(service.skipErrorReport(re2));
     }
 }

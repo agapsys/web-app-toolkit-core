@@ -96,7 +96,7 @@ public class ExceptionReporterService extends Service {
 
         @Override
         public void reportException(Throwable ex, HttpServletRequest req, String nodeName) {
-            LogService logService = getApplication().getService(LogService.class);
+            LogService logService = getApplication().getRegisteredService(LogService.class);
             logService.log(LogType.ERROR, getReportMessage(ex, req, nodeName));
         }
 
@@ -115,11 +115,11 @@ public class ExceptionReporterService extends Service {
 
         private static InternetAddress[] __getRecipientsFromString(String recipients, String delimiter) {
             if (recipients == null || recipients.trim().isEmpty()) {
-                throw new RuntimeException("Null/empty recipients");
+                throw new IllegalArgumentException("Null/empty recipients");
             }
 
             if (delimiter == null || delimiter.trim().isEmpty()) {
-                throw new RuntimeException("Null/empty delimiter");
+                throw new IllegalArgumentException("Null/empty delimiter");
             }
 
             String[] recipientArray = recipients.split(Pattern.quote(delimiter));
@@ -129,7 +129,7 @@ public class ExceptionReporterService extends Service {
                 try {
                     result[i] = new InternetAddress(recipientArray[i].trim());
                 } catch (AddressException ex) {
-                    throw new RuntimeException("Invalid address: " + recipientArray[i].trim(), ex);
+                    throw new IllegalArgumentException("Invalid address: " + recipientArray[i].trim(), ex);
                 }
             }
 
@@ -164,6 +164,7 @@ public class ExceptionReporterService extends Service {
         @Override
         protected void onStart() {
             super.onStart();
+            
             AbstractApplication app = getApplication();
             msgSubject = app.getProperty(KEY_MSG_SUBJECT, DEFAULT_MSG_SUBJECT);
             recipients = __getRecipientsFromString(app.getProperty(KEY_MSG_RECIPIENTS, DEFAULT_MSG_RECIPIENTS), ",");
@@ -179,7 +180,7 @@ public class ExceptionReporterService extends Service {
 
         @Override
         public void reportException(Throwable ex, HttpServletRequest req, String nodeName) {
-            SmtpService smtpService = getApplication().getService(SmtpService.class);
+            SmtpService smtpService = getApplication().getRegisteredService(SmtpService.class);
 
             Message message = new MessageBuilder(smtpService.getSender(), getRecipients())
                 .setText(getReportMessage(ex, req, nodeName)).build();
@@ -195,11 +196,11 @@ public class ExceptionReporterService extends Service {
 
     public static final String PROPERTY_PREFIX = ExceptionReporterService.class.getName();
 
-    public static final String KEY_MODULE_ENABLED = PROPERTY_PREFIX + ".enabled";
+    public static final String KEY_SERVICE_ENABLED = PROPERTY_PREFIX + ".enabled";
     public static final String KEY_NODE_NAME = PROPERTY_PREFIX + ".nodeName";
     public static final String KEY_STACK_TRACE_HISTORY_SIZE = PROPERTY_PREFIX + ".stackTraceHistorySize";
 
-    public static final boolean DEFAULT_MODULE_ENABLED = true;
+    public static final boolean DEFAULT_SERVICE_ENABLED = true;
     public static final String DEFAULT_NODE_NAME = "node-01";
     public static final int DEFAULT_STACK_TRACE_HISTORY_SIZE = 5;
 
@@ -217,7 +218,7 @@ public class ExceptionReporterService extends Service {
     }
     // =========================================================================
     // </editor-fold>
-    // -------------------------------------------------------------------------
+    
     private final List<String> stackTraceHistory = new LinkedList<>();
 
     private final Set<ExceptionReporter> reporters = new LinkedHashSet<>();
@@ -225,8 +226,7 @@ public class ExceptionReporterService extends Service {
 
     private String nodeName = DEFAULT_NODE_NAME;
     private int stackTraceHistorySize = DEFAULT_STACK_TRACE_HISTORY_SIZE;
-    private boolean enabled = DEFAULT_MODULE_ENABLED;
-    // -------------------------------------------------------------------------
+    private boolean enabled = DEFAULT_SERVICE_ENABLED;
 
     public ExceptionReporterService(ExceptionReporter... reporters) {
         __reset();
@@ -241,37 +241,36 @@ public class ExceptionReporterService extends Service {
     private void __reset() {
         nodeName = DEFAULT_NODE_NAME;
         stackTraceHistorySize = DEFAULT_STACK_TRACE_HISTORY_SIZE;
-        enabled = DEFAULT_MODULE_ENABLED;
+        enabled = DEFAULT_SERVICE_ENABLED;
 
         reporters.clear();
         stackTraceHistory.clear();
     }
 
     public final Set<ExceptionReporter> getReporters() {
-        synchronized (reporters) {
+        synchronized (this) {
             return roReporters;
         }
     }
 
-    public final void clearReporters() {
-        synchronized (reporters) {
-            if (isRunning()) {
-                throw new RuntimeException("Cannot remove a reporter from a running service");
-            }
+    public void clearReporters() {
+        synchronized (this) {
+            if (isRunning())
+                throw new IllegalStateException("Cannot remove a reporter from a running service");
+            
+            // Reporters don't need to be stopped since service is not running.
 
             reporters.clear();
         }
     }
 
-    public final void addReporter(ExceptionReporter reporter) {
-        synchronized (reporters) {
-            if (reporter == null) {
+    public void addReporter(ExceptionReporter reporter) {
+        synchronized (this) {
+            if (reporter == null)
                 throw new IllegalArgumentException("Reporter cannot be null");
-            }
 
-            if (isRunning()) {
-                throw new RuntimeException("Cannot add a reporter to a running service");
-            }
+            if (isRunning())
+                throw new IllegalStateException("Cannot add a reporter to a running service");
 
             if (!reporters.contains(reporter)) {
                 reporters.add(reporter);
@@ -279,11 +278,10 @@ public class ExceptionReporterService extends Service {
         }
     }
 
-    public final void removeReporter(ExceptionReporter reporter) {
-        synchronized (reporters) {
-            if (isRunning()) {
-                throw new RuntimeException("Cannot remove a reporter from a running service");
-            }
+    public void removeReporter(ExceptionReporter reporter) {
+        synchronized (this) {
+            if (isRunning())
+                throw new IllegalStateException("Cannot remove a reporter from a running service");
 
             reporters.remove(reporter);
         }
@@ -292,17 +290,19 @@ public class ExceptionReporterService extends Service {
     @Override
     protected void onStart() {
         super.onStart();
+        
+        synchronized(this) {
+            __reset();
 
-        __reset();
+            AbstractApplication app = getApplication();
 
-        AbstractApplication app = getApplication();
+            enabled = app.getProperty(Boolean.class, KEY_SERVICE_ENABLED, DEFAULT_SERVICE_ENABLED);
+            nodeName = app.getProperty(KEY_NODE_NAME, DEFAULT_NODE_NAME);
+            stackTraceHistorySize = app.getProperty(Integer.class, KEY_STACK_TRACE_HISTORY_SIZE, DEFAULT_STACK_TRACE_HISTORY_SIZE);
 
-        enabled = app.getProperty(Boolean.class, KEY_MODULE_ENABLED, DEFAULT_MODULE_ENABLED);
-        nodeName = app.getProperty(KEY_NODE_NAME, DEFAULT_NODE_NAME);
-        stackTraceHistorySize = app.getProperty(Integer.class, KEY_STACK_TRACE_HISTORY_SIZE, DEFAULT_STACK_TRACE_HISTORY_SIZE);
-
-        for (ExceptionReporter reporter : getReporters()) {
-            reporter.start(app);
+            for (ExceptionReporter reporter : getReporters()) {
+                reporter.start(app);
+            }
         }
     }
 
@@ -310,14 +310,11 @@ public class ExceptionReporterService extends Service {
     protected void onStop() {
         super.onStop();
 
-        for (ExceptionReporter reporter : getReporters()) {
-            reporter.stop();
+        synchronized(this) {
+            for (ExceptionReporter reporter : getReporters()) {
+                reporter.stop();
+            }
         }
-    }
-
-    /** This method exists only for testing purposes. */
-    int _getStackTraceHistorySize() {
-        return stackTraceHistorySize;
     }
 
     /**
@@ -325,8 +322,10 @@ public class ExceptionReporterService extends Service {
      *
      * @return stack trace history size defined in application settings.
      */
-    public final int getStacktraceHistorySize() {
-        return _getStackTraceHistorySize();
+    public int getStackTraceHistorySize() {
+        synchronized(this) {
+            return stackTraceHistorySize;
+        }
     }
 
     /**
@@ -334,8 +333,10 @@ public class ExceptionReporterService extends Service {
      *
      * @return the node name defined in application settings.
      */
-    public final String getNodeName() {
-        return nodeName;
+    public String getNodeName() {
+        synchronized(this) {
+            return nodeName;
+        }
     }
 
     /**
@@ -345,7 +346,9 @@ public class ExceptionReporterService extends Service {
      * is defined in application settings).
      */
     public final boolean isServiceEnabled() {
-        return enabled;
+        synchronized(this) {
+            return enabled;
+        }
     }
 
     /**
@@ -361,22 +364,11 @@ public class ExceptionReporterService extends Service {
         if (stackTraceHistory.contains(stackTrace)) {
             return true;
         } else {
-            if (stackTraceHistory.size() == getStacktraceHistorySize()) {
+            if (stackTraceHistory.size() == getStackTraceHistorySize()) {
                 stackTraceHistory.remove(0); // Remove oldest
             }
             stackTraceHistory.add(stackTrace);
             return false;
-        }
-    }
-
-    /** This method exists just for testing purposes. */
-    void _reportException(Throwable exception, HttpServletRequest req) {
-        if (!skipErrorReport(exception)) {
-            for (ExceptionReporter reporter : getReporters()) {
-                reporter.reportException(exception, req, getNodeName());
-            }
-        } else {
-            getApplication().log(LogType.ERROR, "Application error (already reported): %s", exception.getMessage());
         }
     }
 
@@ -386,7 +378,7 @@ public class ExceptionReporterService extends Service {
      * @param exception exception to be reported.
      * @param req HTTP request which thrown the exception.
      */
-    public final void reportException(Throwable exception, HttpServletRequest req) {
+    public void reportException(Throwable exception, HttpServletRequest req) {
         synchronized (this) {
             if (exception == null)
                 throw new IllegalArgumentException("null throwable");
@@ -398,8 +390,14 @@ public class ExceptionReporterService extends Service {
                 throw new IllegalStateException("Service is not running");
 
              if (isServiceEnabled()) {
-                _reportException(exception, req);
-             }
+                if (!skipErrorReport(exception)) {
+                    for (ExceptionReporter reporter : getReporters()) {
+                        reporter.reportException(exception, req, getNodeName());
+                    }
+                } else {
+                    getApplication().log(LogType.ERROR, "Application error (already reported): %s", exception.getMessage());
+                }
+            }
         }
     }
 

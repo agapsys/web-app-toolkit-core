@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Agapsys Tecnologia Ltda-ME.
+ * Copyright 2017 Agapsys Tecnologia Ltda-ME.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.agapsys.web.toolkit;
 
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
 /**
- * Represents a web application.
+ * Represents a web application
  */
 public abstract class AbstractWebApplication extends AbstractApplication implements ServletContextListener {
 
@@ -34,7 +33,7 @@ public abstract class AbstractWebApplication extends AbstractApplication impleme
             return rootName;
         } else {
             return rootName + "-" + contextPath.substring(1);
-        }
+}
     }
     
     /**

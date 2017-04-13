@@ -248,10 +248,10 @@ public class AbstractWebApplicationTest  {
         WebApplicationBase webApp = new WebApplicationWithPersistence();
         webApp.start();
         Assert.assertFalse(webApp.isOnPersistenceServiceStartCalled());
-        webApp.getService(PersistenceService.class); // <-- Forces service initialization
+        webApp.getServiceOnDemand(PersistenceService.class); // <-- Forces service initialization
         Assert.assertTrue(webApp.isOnPersistenceServiceStartCalled());
 
-        PersistenceService persistenceService = (PersistenceService) webApp.getService(CustomPersistenceService.class);
+        PersistenceService persistenceService = (PersistenceService) webApp.getServiceOnDemand(CustomPersistenceService.class);
         Assert.assertNotNull(persistenceService.getEntityManager());
 
         webApp.stop();
@@ -262,7 +262,7 @@ public class AbstractWebApplicationTest  {
         WebApplicationBase webApp = new WebApplicationWithErrorReport();
         webApp.start();
         Assert.assertFalse(webApp.isOnExceptionReporterServiceStartCalled());
-        webApp.getService(ExceptionReporterService.class); // <-- Forces service initialization
+        webApp.getServiceOnDemand(ExceptionReporterService.class); // <-- Forces service initialization
         Assert.assertTrue(webApp.isOnExceptionReporterServiceStartCalled());
 
         webApp.stop();
@@ -274,7 +274,7 @@ public class AbstractWebApplicationTest  {
         WebApplicationBase webApp = new WebApplicationWithSmtpSender();
         webApp.start();
         Assert.assertFalse(webApp.isOnSmtpServiceStartCalled());
-        webApp.getService(SmtpService.class); // <-- Forces service initialization
+        webApp.getServiceOnDemand(SmtpService.class); // <-- Forces service initialization
         Assert.assertTrue(webApp.isOnSmtpServiceStartCalled());
 
         webApp.stop();
@@ -290,9 +290,9 @@ public class AbstractWebApplicationTest  {
         Assert.assertFalse(webApp.isOnSmtpServiceStartCalled());
         Assert.assertFalse(webApp.isOnExceptionReporterServiceStartCalled());
 
-        webApp.getService(PersistenceService.class);       // <-- Forces service initialization
-        webApp.getService(ExceptionReporterService.class); // <-- Forces service initialization
-        webApp.getService(SmtpService.class);              // <-- Forces service initialization
+        webApp.getServiceOnDemand(PersistenceService.class);       // <-- Forces service initialization
+        webApp.getServiceOnDemand(ExceptionReporterService.class); // <-- Forces service initialization
+        webApp.getServiceOnDemand(SmtpService.class);              // <-- Forces service initialization
 
         Assert.assertTrue(webApp.isOnPersistenceServiceStartCalled());
         Assert.assertTrue(webApp.isOnSmtpServiceStartCalled());

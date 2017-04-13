@@ -36,7 +36,7 @@ public class AttributeServiceFilter implements Filter {
         AbstractApplication app = (AbstractWebApplication) AbstractApplication.getRunningInstance();
         
         if (app != null) {
-            attributeService = app.getService(AttributeService.class);
+            attributeService = app.getService(AttributeService.class, false);
         }
     }
 

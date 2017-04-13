@@ -91,27 +91,29 @@ public class SmtpService extends Service {
     protected void onStart() {
         super.onStart();
 
-        __reset();
+        synchronized(this) {
+            __reset();
 
-        AbstractApplication app = getApplication();
+            AbstractApplication app = getApplication();
 
-        server       = app.getProperty(KEY_SERVER,    DEFAULT_SERVER);
-        authEnabled  = app.getProperty(Boolean.class, KEY_AUTH_ENABLED, DEFAULT_AUTH_ENABLED);
-        username     = app.getProperty(KEY_USERNAME,  DEFAULT_USERNAME);
-        port         = app.getProperty(Integer.class, KEY_PORT, DEFAULT_PORT);
+            server       = app.getProperty(KEY_SERVER,    DEFAULT_SERVER);
+            authEnabled  = app.getProperty(Boolean.class, KEY_AUTH_ENABLED, DEFAULT_AUTH_ENABLED);
+            username     = app.getProperty(KEY_USERNAME,  DEFAULT_USERNAME);
+            port         = app.getProperty(Integer.class, KEY_PORT, DEFAULT_PORT);
 
-        securityType = SecurityType.valueOf(app.getProperty(KEY_SECURITY_TYPE, DEFAULT_SECURITY_TYPE.name()));
+            securityType = SecurityType.valueOf(app.getProperty(KEY_SECURITY_TYPE, DEFAULT_SECURITY_TYPE.name()));
 
-        SmtpSettings smtpSettings = new SmtpSettings();
-        smtpSettings.setServer(server);
-        smtpSettings.setAuthenticationEnabled(authEnabled);
-        smtpSettings.setUsername(username);
-        smtpSettings.setSecurityType(securityType);
-        smtpSettings.setPassword(app.getProperty(KEY_PASSWORD, DEFAULT_PASSWORD));
-        smtpSettings.setPort(port);
+            SmtpSettings smtpSettings = new SmtpSettings();
+            smtpSettings.setServer(server);
+            smtpSettings.setAuthenticationEnabled(authEnabled);
+            smtpSettings.setUsername(username);
+            smtpSettings.setSecurityType(securityType);
+            smtpSettings.setPassword(app.getProperty(KEY_PASSWORD, DEFAULT_PASSWORD));
+            smtpSettings.setPort(port);
 
-        smtpSender = new SmtpSender(smtpSettings);
-        sender = __getSenderFromString(app.getProperty(KEY_SENDER, DEFAULT_SENDER));
+            smtpSender = new SmtpSender(smtpSettings);
+            sender = __getSenderFromString(app.getProperty(KEY_SENDER, DEFAULT_SENDER));
+        }
     }
 
     /**
@@ -120,42 +122,39 @@ public class SmtpService extends Service {
      * @return sender address.
      */
     public InternetAddress getSender() {
-        return sender;
+        synchronized(this) {
+            return sender;
+        }
     }
 
     public String getServer() {
-        return server;
+        synchronized(this) {
+            return server;
+        }
     }
 
     public boolean isAuthEnabled() {
-        return authEnabled;
+        synchronized(this) {
+            return authEnabled;
+        }
     }
 
     public String getUsername() {
-        return username;
+        synchronized(this) {
+            return username;
+        }
     }
 
     public SecurityType getSecurityType() {
-        return securityType;
+        synchronized(this) {
+            return securityType;
+        }
     }
 
     public int getPort() {
-        return port;
-    }
-
-    /** This method exists just for testing purposes. */
-    void _sendMessage(Message message) throws MessagingException {
-
-        // Forces sender address if message's address not equals to application default sender.
-        if (!message.getSenderAddress().equals(getSender())) {
-            message = new MessageBuilder(getSender(), message.getRecipients().toArray(new InternetAddress[message.getRecipients().size()]))
-                .setCharset(message.getCharset())
-                .setMimeSubtype(message.getMimeSubtype())
-                .setSubject(message.getSubject())
-                .setText(message.getText()).build();
+        synchronized(this) {
+            return port;
         }
-
-        smtpSender.sendMessage(message);
     }
 
     /**
@@ -164,7 +163,7 @@ public class SmtpService extends Service {
      * @param message message to be sent.
      * @throws MessagingException if an error happened during the process
      */
-    public final void sendMessage(Message message) throws MessagingException {
+    public void sendMessage(Message message) throws MessagingException {
         synchronized(this) {
             if (message == null)
                 throw new IllegalArgumentException("null message");
@@ -172,7 +171,16 @@ public class SmtpService extends Service {
             if (!isRunning())
                 throw new IllegalStateException("Service is not running");
 
-            _sendMessage(message);
+            // Forces sender address if message's address not equals to application default sender.
+            if (!message.getSenderAddress().equals(getSender())) {
+                message = new MessageBuilder(getSender(), message.getRecipients().toArray(new InternetAddress[message.getRecipients().size()]))
+                    .setCharset(message.getCharset())
+                    .setMimeSubtype(message.getMimeSubtype())
+                    .setSubject(message.getSubject())
+                    .setText(message.getText()).build();
+            }
+
+            smtpSender.sendMessage(message);
         }
     }
 }

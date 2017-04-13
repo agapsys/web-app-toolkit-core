@@ -69,5 +69,7 @@ public class ServiceTest {
         service._stop();
         Assert.assertTrue(service.isStopCalled);
         Assert.assertFalse(service.isRunning());
+        
+        app.stop();
     }
 }

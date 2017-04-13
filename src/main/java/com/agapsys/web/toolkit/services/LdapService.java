@@ -164,38 +164,50 @@ public class LdapService extends Service {
     protected void onStart() {
         super.onStart();
 
-        __reset();
-        
-        AbstractApplication app = getApplication();
+        synchronized(this) {
+            __reset();
 
-        ldapUrl            = app.getProperty(KEY_LDAP_URL,        DEFAULT_LDAP_URL);
-        searchBaseDn       = app.getProperty(KEY_SEARCH_BASE_DN,  DEFAULT_SEARCH_BASE_DN);
-        searchPattern      = app.getProperty(KEY_SEARCH_PATTERN,  DEFAULT_SEARCH_PATTERN);
-        searchUserDn       = app.getProperty(KEY_SEARCH_USER_DN,  DEFAULT_SEARCH_USER_DN);
-        searchUserPassword = app.getProperty(KEY_SEARCH_USER_PASSWORD, DEFAULT_SEARCH_USER_PASSWORD).toCharArray();
+            AbstractApplication app = getApplication();
+
+            ldapUrl            = app.getProperty(KEY_LDAP_URL,        DEFAULT_LDAP_URL);
+            searchBaseDn       = app.getProperty(KEY_SEARCH_BASE_DN,  DEFAULT_SEARCH_BASE_DN);
+            searchPattern      = app.getProperty(KEY_SEARCH_PATTERN,  DEFAULT_SEARCH_PATTERN);
+            searchUserDn       = app.getProperty(KEY_SEARCH_USER_DN,  DEFAULT_SEARCH_USER_DN);
+            searchUserPassword = app.getProperty(KEY_SEARCH_USER_PASSWORD, DEFAULT_SEARCH_USER_PASSWORD).toCharArray();
+        }
     }
 
-    public final String getLdapUrl() {
-        return ldapUrl;
+    public String getLdapUrl() {
+        synchronized(this) {
+            return ldapUrl;
+        }
     }
 
-    public final String getSearchBaseDn() {
-        return searchBaseDn;
+    public String getSearchBaseDn() {
+        synchronized (this) {
+            return searchBaseDn;
+        }
     }
 
-    public final String getSearchPattern() {
-        return searchPattern;
+    public String getSearchPattern() {
+        synchronized(this) {
+            return searchPattern;
+        }
     }
 
-    public final String getSearchUserDn() {
-        return searchUserDn;
+    public String getSearchUserDn() {
+        synchronized(this) {
+            return searchUserDn;
+        }
     }
 
     protected char[] getSearchUserPassword() {
-        return searchUserPassword;
+        synchronized(this) {
+            return searchUserPassword;
+        }
     }
 
-    private DirContext getContext(String url, String userDn, char[] password) throws LdapException {
+    private DirContext __getContext(String url, String userDn, char[] password) throws LdapException {
         Hashtable<String, Object> properties = new Hashtable<>();
 
         properties.put(Context.PROVIDER_URL,            url);
@@ -219,7 +231,7 @@ public class LdapService extends Service {
         }
     }
 
-    private SearchResult searchUser(DirContext ctx, String searchBase, String searchPattern, String userId) throws LdapException {
+    private SearchResult __searchUser(DirContext ctx, String searchBase, String searchPattern, String userId) throws LdapException {
         try {
             SearchControls constraints = new SearchControls();
             constraints.setSearchScope(SearchControls.SUBTREE_SCOPE);
@@ -246,8 +258,8 @@ public class LdapService extends Service {
         SearchResult searchResult;
         String userDn = null;
 
-        ctx = getContext(getLdapUrl(), getSearchUserDn(), getSearchUserPassword());
-        searchResult = searchUser(ctx, getSearchBaseDn(), getSearchPattern(), userId);
+        ctx = __getContext(getLdapUrl(), getSearchUserDn(), getSearchUserPassword());
+        searchResult = __searchUser(ctx, getSearchBaseDn(), getSearchPattern(), userId);
 
         boolean found;
         if (searchResult != null) {
@@ -263,7 +275,7 @@ public class LdapService extends Service {
         if (found) {
             // Once a user is found, try to authenticate it
             try {
-                ctx = getContext(getLdapUrl(), userDn, password);
+                ctx = __getContext(getLdapUrl(), userDn, password);
                 return new LdapUser(userDn, ctx.getAttributes(userDn));
             } catch (LdapException ex) {
                 if (ex.getExceptionType() == LdapExceptionType.INVALID_CREDENTIALS) return null;
@@ -276,21 +288,16 @@ public class LdapService extends Service {
         }
     }
 
-    /** This method exists just for testing purposes. */
-    LdapUser _getUser(String userId, char[] password) throws LdapException {
-        if (!isRunning())
-            throw new RuntimeException("Service is not active");
-
-        try {
-            return __getUser(userId, password);
-        } catch (NamingException ex) {
-            throw new LdapException(LdapExceptionType.NAMING_ERROR, ex);
-        }
-    }
-    
-    public final LdapUser getUser(String userId, char[] password) throws LdapException {
+    public LdapUser getUser(String userId, char[] password) throws LdapException {
         synchronized(this) {
-            return _getUser(userId, password);
+            if (!isRunning())
+                throw new IllegalStateException("Service is not running");
+
+            try {
+                return __getUser(userId, password);
+            } catch (NamingException ex) {
+                throw new LdapException(LdapExceptionType.NAMING_ERROR, ex);
+            }
         }
     }
 

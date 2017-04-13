@@ -16,62 +16,69 @@
 
 package com.agapsys.web.toolkit.services;
 
+import com.agapsys.mail.Message;
+import com.agapsys.mail.MessageBuilder;
 import com.agapsys.web.toolkit.AbstractApplication;
 import com.agapsys.web.toolkit.MockedWebApplication;
-import com.agapsys.web.toolkit.services.PersistenceService;
-import javax.persistence.EntityManager;
+import com.sun.mail.util.MailConnectException;
+import javax.mail.MessagingException;
+import javax.mail.internet.AddressException;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-public class PersistenceModuleTest {
+public class SmtpServiceTest {
 
-    // <editor-fold desc="STATIC SCOPE">
+    // <editor-fold desc="STATIC SCOPE" defaultstate="collapsed">
     // =========================================================================
-    private static class TestPersistenceService extends PersistenceService {
+    private static class TestSmtpService extends SmtpService {
         private boolean methodCalled = false;
 
         @Override
-        protected void onStart() {} // <-- does not init entity manager factory
-
-        @Override
-        protected EmFactory getEmFactory() {
-            return new EmFactory() {
-                @Override
-                public EntityManager getInstance() {
-                    methodCalled = true;
-                    return null;
-                }
-            };
+        public void sendMessage(Message message) throws MessagingException {
+            methodCalled = true;
+            super.sendMessage(message);
         }
-
-        @Override
-        protected void onStop() {}
+        
     }
     // =========================================================================
     // </editor-fold>
 
-    private TestPersistenceService service;
+    private TestSmtpService service;
+    private AbstractApplication app;
+    private final Message testMessage;
+    
+
+    public SmtpServiceTest() throws AddressException {
+        this.testMessage = new MessageBuilder("sender@localhost", "recipient@localhost").build();
+    }
 
     @Before
     public void before() {
-        service = new TestPersistenceService();
+        service = new TestSmtpService();
+    }
+    
+    @After
+    public void after() {
+        if (app != null && app.isRunning())
+            app.stop();
     }
 
-    @Test
-    public void sanityCheck() {
-        Assert.assertFalse(service.methodCalled);
-        Assert.assertFalse(service.isRunning());
+    @Test(expected = IllegalArgumentException.class)
+    public void sendNullMessage() throws MessagingException {
+        service.sendMessage(null);
     }
 
     @Test(expected = IllegalStateException.class)
-    public void testGetEntityManagerWhileNotRunning() {
-        service.getEntityManager();
+    public void sendMessageWhileNotRunning() throws MessagingException {
+        Assert.assertFalse(service.isRunning());
+        service.sendMessage(testMessage);
     }
 
     @Test
-    public void testGetEntityManagerWhileRunning() {
-        MockedWebApplication app = new MockedWebApplication() {
+    public void sendMessageWhileRunning() throws MessagingException {
+        app = new MockedWebApplication() {
             @Override
             protected void beforeStart() {
                 super.beforeStart();
@@ -80,7 +87,9 @@ public class PersistenceModuleTest {
             }
         };
         app.start();
-        Assert.assertNull(app.getService(PersistenceService.class).getEntityManager());
+        try {
+            app.getServiceOnDemand(SmtpService.class).sendMessage(testMessage);
+        } catch (MailConnectException ignored) {}
         Assert.assertTrue(service.methodCalled);
         app.stop();
         Assert.assertNull(AbstractApplication.getRunningInstance());

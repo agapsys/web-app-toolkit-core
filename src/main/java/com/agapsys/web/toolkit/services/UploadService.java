@@ -132,7 +132,7 @@ public class UploadService extends Service {
      */
     public List<ReceivedFile> getSessionFiles(HttpServletRequest req, HttpServletResponse resp) {
         __int();
-        
+
         List<ReceivedFile> sessionFiles = (List<ReceivedFile>) req.getSession().getAttribute(ATTR_SESSION_FILES);
 
         if (sessionFiles == null) {
@@ -248,28 +248,22 @@ public class UploadService extends Service {
         }
     }
 
-    /**
-     * Process a request to receive files.
-     * 
-     * This is a convenience method for receiveFiles(req, resp, null).
-     * 
-     * @param req HTTP request.
-     * @param resp HTTP response.
-     * @throws IllegalArgumentException if given request if not multipart/form-data.
-     * @return a list of received file by given request.
-     */
+    /** This is a convenience method for receiveFiles(req, resp, persistReceivedFiles, null). */
     public final List<ReceivedFile> receiveFiles(HttpServletRequest req, HttpServletResponse resp, boolean persistReceivedFiles) throws IllegalArgumentException {
         return receiveFiles(req, resp, persistReceivedFiles, null);
     }
     
+    /** This is a convenience method for receiveFiles(req, resp, true, null). */
     public final List<ReceivedFile> receiveFiles(HttpServletRequest req, HttpServletResponse resp) {
         return receiveFiles(req, resp, true, null);
     }
     
+    /** This is a convenience method for receiveFiles(req, null, false). */
     public final List<ReceivedFile> receiveFiles(HttpServletRequest req) {
         return receiveFiles(req, null, false);
     }
     
+    /** This is a convenience method for return receiveFiles(req). */
     public final List<ReceivedFile> receiveFiles(HttpServletRequest req, OnFormFieldListener listener) {
         return receiveFiles(req);
     }

@@ -70,17 +70,19 @@ public class AttributeService extends Service {
         return attributeMap;
     }
 
-    public final Object getAttribute(String name) {
+    public Object getAttribute(String name) {
         if (name == null || name.trim().isEmpty())
             throw new IllegalArgumentException("Null/Empty name");
 
         Attribute attribute = __getAttributeMap().get(name);
         return attribute != null ? attribute.getObject() : null;
     }
+    
     public final void setAttribute(String name, Object attribute) {
         setAttribute(name, attribute, null);
     }
-    public final <T> void setAttribute(String name, T attribute, DestroyListener<T> destroyListener) {
+    
+    public <T> void setAttribute(String name, T attribute, DestroyListener<T> destroyListener) {
         if (name == null || name.trim().isEmpty())
             throw new IllegalArgumentException("Null/Empty name");
 

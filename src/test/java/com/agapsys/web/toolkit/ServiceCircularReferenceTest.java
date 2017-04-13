@@ -15,6 +15,7 @@
  */
 package com.agapsys.web.toolkit;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -26,7 +27,7 @@ public class ServiceCircularReferenceTest {
         @Override
         protected void onStart() {
             super.onStart();
-            getService(Service2.class);
+            getOnDemandService(Service2.class);
             loaded = true;
         }
 
@@ -38,7 +39,7 @@ public class ServiceCircularReferenceTest {
         @Override
         protected void onStart() {
             super.onStart();
-            getService(Service3.class);
+            getOnDemandService(Service3.class);
             loaded = true;
         }
 
@@ -60,7 +61,7 @@ public class ServiceCircularReferenceTest {
         protected void onStart() {
             super.onStart();
             if (enableCircularReference) {
-                getService(Service4.class);
+                getOnDemandService(Service4.class);
             }
             loaded = true;
         }
@@ -73,12 +74,20 @@ public class ServiceCircularReferenceTest {
         @Override
         protected void onStart() {
             super.onStart();
-            getService(Service1.class);
+            getOnDemandService(Service1.class);
             loaded = true;
         }
 
     }
 
+    private AbstractApplication app;
+    
+    @After
+    public void after() {
+        if (app != null && app.isRunning())
+            app.stop();
+    }
+    
     @Test
     public void testNonCircularReference1() {
         final Service1 service1 = new Service1();
@@ -86,7 +95,7 @@ public class ServiceCircularReferenceTest {
         final Service3 service3 = new Service3();
         final Service4 service4 = new Service4();
 
-        AbstractApplication app = new MockedWebApplication() {
+        app = new MockedWebApplication() {
             @Override
             public String getRootName() {
                 return "non-circular-ref";
@@ -113,14 +122,14 @@ public class ServiceCircularReferenceTest {
         Assert.assertFalse(service3.loaded);
         Assert.assertFalse(service4.loaded);
 
-        app.getService(Service1.class); // <-- dependency path: service1 --> service2 --> service3
+        app.getServiceOnDemand(Service1.class); // <-- dependency path: service1 --> service2 --> service3
 
         Assert.assertTrue(service1.loaded);
         Assert.assertTrue(service2.loaded);
         Assert.assertTrue(service3.loaded);
         Assert.assertFalse(service4.loaded);
 
-        app.getService(Service4.class); // <-- dependency path: service4 --> service1
+        app.getServiceOnDemand(Service4.class); // <-- dependency path: service4 --> service1
         Assert.assertTrue(service1.loaded);
         Assert.assertTrue(service2.loaded);
         Assert.assertTrue(service3.loaded);
@@ -136,7 +145,7 @@ public class ServiceCircularReferenceTest {
         final Service3 service3 = new Service3(true);
         final Service4 service4 = new Service4();
 
-        AbstractApplication app = new MockedWebApplication() {
+        app = new MockedWebApplication() {
 
             @Override
             public String getRootName() {
@@ -165,7 +174,7 @@ public class ServiceCircularReferenceTest {
 
         Throwable t = null;
         try {
-            app.getService(Service1.class); // <-- dependency path: service1 --> service2 --> service3 --> service4 --> service1
+            app.getServiceOnDemand(Service1.class); // <-- dependency path: service1 --> service2 --> service3 --> service4 --> service1
         } catch (RuntimeException ex) {
             t = ex;
         }

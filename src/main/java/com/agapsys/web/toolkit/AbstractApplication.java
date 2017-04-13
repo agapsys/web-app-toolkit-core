@@ -31,6 +31,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Properties;
 
 /**
@@ -169,9 +170,18 @@ public abstract class AbstractApplication {
     protected static final String PROPERTIES_FILENAME = "application.properties";
     protected static final String LOG_DIR             = "log";
 
-    private static AbstractApplication singleton = null;
+    private static AbstractApplication runningInstance = null;
+    
+    private static void __setRunningInstance(AbstractApplication app) {
+        synchronized(AbstractApplication.class) {
+            runningInstance = app;
+        }
+    }
+    
     public static AbstractApplication getRunningInstance() {
-        return singleton;
+        synchronized(AbstractApplication.class) {
+            return runningInstance;
+        }
     }
     // =========================================================================
     // </editor-fold>
@@ -183,7 +193,7 @@ public abstract class AbstractApplication {
 
     private File             appDirectory;
     private volatile boolean running;
-
+    
     /** Resets instance. */
     private synchronized void __reset() {
         properties.clear();
@@ -223,7 +233,7 @@ public abstract class AbstractApplication {
 
     /** Always returns a non-null instance. */
     private synchronized Properties __getDefaultProperties() {
-        Properties mProperties = getDefaultSettings();
+        Properties mProperties = getDefaultProperties();
 
         if (mProperties == null)
             mProperties = new Properties();
@@ -231,6 +241,12 @@ public abstract class AbstractApplication {
         return mProperties;
     }
 
+    /** 
+     * Loads application properties.
+     * 
+     * @param createFile define if a default properties file should be created when there is default properties.
+     * @throws IOException if there was an I/O error while reading/creating properties file.
+     */
     private synchronized void __loadProperties(boolean createFile) throws IOException {
         properties.clear();
 
@@ -254,13 +270,26 @@ public abstract class AbstractApplication {
 
         if (!propertiesFile.exists() && !properties.isEmpty() && createFile)
             saveProperties();
-
-        onSettingsLoaded();
     }
 
+    
     public AbstractApplication() {
         __reset();
     }
+    
+    /**
+     * Returns application name.
+     * 
+     * @return application name.
+     */
+    public abstract String getName();
+    
+    /**
+     * Returns application version.
+     * 
+     * @return application version.
+     */
+    public abstract String getVersion();
 
     /**
      * Logs application messages.
@@ -271,8 +300,11 @@ public abstract class AbstractApplication {
      * @param message message to be logged.
      * @param msgArgs message parameters (see {@linkplain String#format(String, Object...)}).
      */
-    public final void log(Date timestamp, LogType logType, String message, Object...msgArgs) {
+    public void log(Date timestamp, LogType logType, String message, Object...msgArgs) {
         synchronized (this) {
+            if (!isRunning())
+                throw new IllegalStateException("Application is not running");
+            
             LogService logService = getService(LogService.class, false);
 
             if (logService != null)
@@ -290,23 +322,9 @@ public abstract class AbstractApplication {
      *
      * @return a boolean indicating if application is running.
      */
-    public final boolean isRunning() {
+    public boolean isRunning() {
         return running;
     }
-
-    /**
-     * Returns application name.
-     *
-     * @return the application name.
-     */
-    public abstract String getName();
-
-    /**
-     * Returns application version.
-     *
-     * @return the application version.
-     */
-    public abstract String getVersion();
 
     /**
      * Returns a file representing application directory.
@@ -356,10 +374,10 @@ public abstract class AbstractApplication {
      * @param service service instance to be registered.
      * @param overrideClassHierarchy defines if class hierarchy should be overridden.
      */
-    public final void registerService(Service service, boolean overrideClassHierarchy) {
+    public void registerService(Service service, boolean overrideClassHierarchy) {
         synchronized(this) {
             if (isRunning())
-                throw new RuntimeException("Cannot register a service with a running application");
+                throw new IllegalStateException("Cannot register a service with a running application");
 
             serviceManager.registerInstance(service, overrideClassHierarchy);
         }
@@ -378,10 +396,10 @@ public abstract class AbstractApplication {
      * @param autoRegistration defines if service instance should be registered. An attempt to get a service which is not registered will return null.
      * @return service instance.
      */
-    public final <S extends Service> S getService(Class<S> serviceClass, boolean autoRegistration) {
+    public <S extends Service> S getService(Class<S> serviceClass, boolean autoRegistration) {
         synchronized(this) {
             if (!isRunning())
-                throw new RuntimeException("Application is not running");
+                throw new IllegalStateException("Application is not running");
 
             S service = serviceManager.getInstance(serviceClass, autoRegistration, false);
 
@@ -398,9 +416,17 @@ public abstract class AbstractApplication {
             return service;
         }
     }
-
-    /** This is a convenience method for getService(serviceClass, true). */
-    public final <S extends Service> S getService(Class<S> serviceClass) {
+    
+    public final <S extends Service> S getRegisteredService(Class<S> serviceClass) throws NoSuchElementException {
+        S service = getService(serviceClass, false);
+        
+        if (service == null)
+            throw new NoSuchElementException(serviceClass.getName());
+        
+        return service;
+    }
+    
+    public final <S extends Service> S getServiceOnDemand(Class<S> serviceClass) {
         return getService(serviceClass, true);
     }
 
@@ -412,10 +438,10 @@ public abstract class AbstractApplication {
      * @param defaultValue property default value.
      * @return property value.
      */
-    public final <T> T getProperty(Class<T> targetClass, String key, T defaultValue) {
+    public <T> T getProperty(Class<T> targetClass, String key, T defaultValue) {
         synchronized(this) {
             if (!isRunning())
-                throw new RuntimeException("Application is not running");
+                throw new IllegalStateException("Application is not running");
 
             StringConverter<T> converter = STRING_CONVERTER_MAP.get(targetClass);
             if (converter == null)
@@ -430,18 +456,16 @@ public abstract class AbstractApplication {
         return getProperty(String.class, key, defaultValue);
     }
 
-    public final <T> T getMandatoryProperty(Class<T> targetClass, String key) {
-        synchronized(this) {
-            T value = getProperty(targetClass, key, null);
+    public final <T> T getMandatoryProperty(Class<T> targetClass, String key) throws NoSuchElementException {
+        T value = getProperty(targetClass, key, null);
 
-            if (value == null || ((value instanceof String) && ((String)value).trim().isEmpty()))
-                throw new IllegalArgumentException("No such property: " + key);
+        if (value == null || ((value instanceof String) && ((String)value).trim().isEmpty()))
+            throw new NoSuchElementException("No such property: " + key);
 
-            return value;
-        }
+        return value;
     }
 
-    public final String getMandatoryProperty(String key) {
+    public final String getMandatoryProperty(String key) throws NoSuchElementException {
         return getMandatoryProperty(String.class, key);
     }
 
@@ -452,10 +476,10 @@ public abstract class AbstractApplication {
      * @param value property value.
      * @param overrideExisting defines if existing properties should be overridden.
      */
-    public final void setProperty(String key, String value, boolean overrideExisting) {
+    public void setProperty(String key, String value, boolean overrideExisting) {
         synchronized(this) {
             if (!isRunning())
-                throw new RuntimeException("Application is not running");
+                throw new IllegalStateException("Application is not running");
 
             if (overrideExisting || !properties.containsKey(key)) {
                 properties.setProperty(key, value);
@@ -480,7 +504,7 @@ public abstract class AbstractApplication {
      *
      * @throws IOException if an error happened during process.
      */
-    public final void loadProperties() throws IOException {
+    public void loadProperties() throws IOException {
         __loadProperties(false);
     }
 
@@ -489,7 +513,7 @@ public abstract class AbstractApplication {
      *
      * @throws IOException If an error happened during the process.
      */
-    public final void saveProperties() throws IOException {
+    public void saveProperties() throws IOException {
         synchronized(this) {
             File propertiesFile = new File(getDirectory(), PROPERTIES_FILENAME);
 
@@ -504,25 +528,18 @@ public abstract class AbstractApplication {
      *
      * @return application default properties. Default implementation returns null.
      */
-    protected Properties getDefaultSettings() {
+    protected Properties getDefaultProperties() {
         return null;
     }
-
-    /**
-     * Called after application settings were loaded.
-     *
-     * Default implementation does nothing.
-     */
-    protected void onSettingsLoaded() {}
 
     /** Starts this application. */
     public void start() {
         synchronized(this) {
             if (isRunning())
-                throw new RuntimeException("Application is already running");
+                throw new IllegalStateException("Application is already running");
 
-            if (singleton != null)
-                throw new IllegalStateException(String.format("Another application instance is already running (class: %s, name: %s)", singleton.getClass().getName(), singleton.getName()));
+            if (runningInstance != null)
+                throw new IllegalStateException(String.format("Another application instance is already running (class: %s, name: %s, version: %s)", runningInstance.getClass().getName(), runningInstance.getName(), runningInstance.getVersion()));
 
             try {
                 String name = getName();
@@ -531,10 +548,10 @@ public abstract class AbstractApplication {
                     name = name.trim();
 
                 if (name == null || name.isEmpty())
-                    throw new IllegalStateException("Missing application name");
+                    throw new RuntimeException("Missing application name");
 
                 if (!name.matches(APP_NAME_PATTERN))
-                    throw new IllegalArgumentException("Invalid application name: " + name);
+                    throw new RuntimeException("Invalid application name: " + name);
 
                 String version = getVersion();
 
@@ -542,7 +559,7 @@ public abstract class AbstractApplication {
                     version = version.trim();
 
                 if (version == null || version.isEmpty())
-                    throw new IllegalStateException("Missing application version");
+                    throw new RuntimeException("Missing application version");
 
                 __reset();
 
@@ -551,12 +568,12 @@ public abstract class AbstractApplication {
                 beforeStart();
 
                 running = true; // <-- from this point, services can be started.
-                singleton = this;
+                __setRunningInstance(this);
                 log(LogType.INFO, "Starting application (%s - v. %s)", name, version);
                 onStart();
                 log(LogType.INFO, "Application is ready: (%s - v. %s)", name, version);
             } catch (Throwable ex) {
-                singleton = null;
+                __setRunningInstance(null);
                 running = true;
 
                 onStartError(ex);
@@ -597,11 +614,11 @@ public abstract class AbstractApplication {
                 beforeStop();
                 onStop();
                 __stopServices();
-                singleton = null;
+                __setRunningInstance(null);
                 running = false;
                 afterStop();
             } catch (Throwable ex) {
-                singleton = null;
+                __setRunningInstance(null);
                 running = false;
                 onStopError(ex);
                 throw ex;
