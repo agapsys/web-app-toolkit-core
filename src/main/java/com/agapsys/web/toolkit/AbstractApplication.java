@@ -171,13 +171,13 @@ public abstract class AbstractApplication {
     protected static final String LOG_DIR             = "log";
 
     private static AbstractApplication runningInstance = null;
-    
+
     private static void __setRunningInstance(AbstractApplication app) {
         synchronized(AbstractApplication.class) {
             runningInstance = app;
         }
     }
-    
+
     public static AbstractApplication getRunningInstance() {
         synchronized(AbstractApplication.class) {
             return runningInstance;
@@ -193,7 +193,7 @@ public abstract class AbstractApplication {
 
     private File             appDirectory;
     private volatile boolean running;
-    
+
     /** Resets instance. */
     private synchronized void __reset() {
         properties.clear();
@@ -241,9 +241,9 @@ public abstract class AbstractApplication {
         return mProperties;
     }
 
-    /** 
+    /**
      * Loads application properties.
-     * 
+     *
      * @param createFile define if a default properties file should be created when there is default properties.
      * @throws IOException if there was an I/O error while reading/creating properties file.
      */
@@ -272,21 +272,21 @@ public abstract class AbstractApplication {
             saveProperties();
     }
 
-    
+
     public AbstractApplication() {
         __reset();
     }
-    
+
     /**
      * Returns application name.
-     * 
+     *
      * @return application name.
      */
     public abstract String getName();
-    
+
     /**
      * Returns application version.
-     * 
+     *
      * @return application version.
      */
     public abstract String getVersion();
@@ -304,7 +304,7 @@ public abstract class AbstractApplication {
         synchronized (this) {
             if (!isRunning())
                 throw new IllegalStateException("Application is not running");
-            
+
             LogService logService = getService(LogService.class, false);
 
             if (logService != null)
@@ -367,12 +367,8 @@ public abstract class AbstractApplication {
     /**
      * Register a service instance.
      *
-     * Usually, services do not need to be registered, since they are
-     * automatically registered on demand. Use this method to replace a
-     * service instance by a customized one.
-     *
      * @param service service instance to be registered.
-     * @param overrideClassHierarchy defines if class hierarchy should be overridden.
+     * @param overrideClassHierarchy defines if class hierarchy should be overridden during registration.
      */
     public void registerService(Service service, boolean overrideClassHierarchy) {
         synchronized(this) {
@@ -416,16 +412,16 @@ public abstract class AbstractApplication {
             return service;
         }
     }
-    
+
     public final <S extends Service> S getRegisteredService(Class<S> serviceClass) throws NoSuchElementException {
         S service = getService(serviceClass, false);
-        
+
         if (service == null)
             throw new NoSuchElementException(serviceClass.getName());
-        
+
         return service;
     }
-    
+
     public final <S extends Service> S getServiceOnDemand(Class<S> serviceClass) {
         return getService(serviceClass, true);
     }
