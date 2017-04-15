@@ -191,6 +191,7 @@ public abstract class AbstractApplication {
     private final List<Class<? extends Service>>  serviceCircularRefCheckList = new LinkedList<>();
     private final Properties                      properties                  = new Properties();
 
+    private volatile boolean settingsLoaded;
     private File             appDirectory;
     private volatile boolean running;
 
@@ -201,8 +202,9 @@ public abstract class AbstractApplication {
         initializedServiceList.clear();
         serviceCircularRefCheckList.clear();
 
-        appDirectory = null;
-        running      = false;
+        appDirectory   = null;
+        running        = false;
+        settingsLoaded = false;
     }
 
     /** Returns the circular reference path ending in given class. */
@@ -248,6 +250,8 @@ public abstract class AbstractApplication {
      * @throws IOException if there was an I/O error while reading/creating properties file.
      */
     private synchronized void __loadProperties(boolean createFile) throws IOException {
+        settingsLoaded = false;
+
         properties.clear();
 
         File propertiesFile = new File(getDirectory(), PROPERTIES_FILENAME);
@@ -270,6 +274,8 @@ public abstract class AbstractApplication {
 
         if (!propertiesFile.exists() && !properties.isEmpty() && createFile)
             saveProperties();
+
+        settingsLoaded = true;
     }
 
 
@@ -433,8 +439,8 @@ public abstract class AbstractApplication {
      */
     public <T> T getProperty(Class<T> targetClass, String key, T defaultValue) {
         synchronized(this) {
-            if (!isRunning())
-                throw new IllegalStateException("Application is not running");
+            if (!settingsLoaded)
+                throw new IllegalStateException("Settings were not loaded yet");
 
             StringConverter<T> converter = STRING_CONVERTER_MAP.get(targetClass);
             if (converter == null)
