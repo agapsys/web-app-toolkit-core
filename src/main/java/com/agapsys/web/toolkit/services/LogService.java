@@ -31,33 +31,33 @@ import java.util.Set;
 
 public final class LogService extends Service {
     // STATIC SCOPE ============================================================
-    
+
     /** Logger interface. */
     public static interface Logger {
         /**
          * Starts the logger.
-         * 
+         *
          * @param application associated application.
          */
         public void start(AbstractApplication application);
 
         /**
          * Stops the logger.
-         * 
+         *
          * @param application associated application.
          */
         public void stop();
 
         /**
          * Logs a message.
-         * 
+         *
          * @param timestamp message timestamp.
          * @param logType log message type.
          * @param message log message.
          */
         public void log(Date timestamp, LogType logType, String message);
     }
-    
+
     /** Logger adapter. */
     public static class LoggerAdapter implements Logger {
         private AbstractApplication app;
@@ -65,13 +65,13 @@ public final class LogService extends Service {
         public final AbstractApplication getApplication() {
             return app;
         }
-        
+
         @Override
         public final void start(AbstractApplication application) {
             this.app = application;
             onStart();
         }
-        
+
         protected void onStart() {}
 
         @Override
@@ -79,28 +79,61 @@ public final class LogService extends Service {
             onStop();
             this.app = null;
         }
-        
+
         protected void onStop() {}
 
         @Override
         public void log(Date timestamp, LogType logType, String message) {}
-        
+
     }
-    
+
     /** Logger which prints messages into console. */
     public static class ConsoleLogger extends LoggerAdapter {
+        private final boolean useLogTypeColors;
 
-        public ConsoleLogger() {}
+        public ConsoleLogger() {
+            this(false);
+        }
+
+        public ConsoleLogger(boolean useLogTypeColors) {
+            this.useLogTypeColors = useLogTypeColors;
+        }
+
+        public final boolean usesLogTypeColors() {
+            return useLogTypeColors;
+        }
+
+        protected Integer getFgColor(LogType logType) {
+            switch(logType) {
+                case ERROR:
+                    return 31;
+
+                case WARNING:
+                    return 33;
+
+                case INFO:
+                    return 32;
+
+                default:
+                    return null;
+            }
+        }
+
+        private String __getColoredLogType(int color, LogType logType) {
+            return String.format("\u001B[%sm%s\u001B[0m", getFgColor(logType), logType.name());
+        }
 
         protected String getMessage(Date timestamp, LogType logType, String message) {
-            return String.format("%s [%s] %s", DateUtils.getIso8601Date(), logType.name(), message);
+            String logTypeStr = usesLogTypeColors() ? __getColoredLogType(0, logType) : logType.name();
+
+            return String.format("%s [%s] %s", DateUtils.getIso8601Date(),logTypeStr, message);
         }
 
         @Override
         public void log(Date timestamp, LogType logType, String message) {
             System.out.println(getMessage(timestamp, logType, message));
         }
-        
+
     }
 
     /** Logger which prints messages in a daily log file. */
@@ -172,7 +205,7 @@ public final class LogService extends Service {
         @Override
         protected void onStart() {
             super.onStart();
-            
+
              try {
                 currentPs = new PrintStream(new FileOutputStream(currentFile, true));
             } catch (FileNotFoundException ex) {
@@ -208,7 +241,7 @@ public final class LogService extends Service {
         synchronized(this) {
             if (isRunning())
                 throw new IllegalStateException("Cannot remove a logger from a running service");
-            
+
             loggers.clear();
         }
     }
@@ -217,7 +250,7 @@ public final class LogService extends Service {
         synchronized(this) {
             if (logger == null)
                 throw new IllegalArgumentException("Logger cannot be null");
-            
+
             if (isRunning())
                 throw new IllegalStateException("Cannot add a logger to a running service");
 
@@ -230,7 +263,7 @@ public final class LogService extends Service {
         synchronized(this) {
             if (isRunning())
                 throw new IllegalStateException("Cannot remove a logger from a running service");
-            
+
             loggers.remove(logger);
         }
     }
@@ -257,7 +290,7 @@ public final class LogService extends Service {
         }
 
     }
-    
+
     /** Convenience method for log(new Date(), logType, message, msgArgs). */
     public final void log(LogType logType, String message, Object...msgArgs) {
         log(new Date(), logType, message, msgArgs);
