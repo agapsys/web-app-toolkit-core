@@ -372,9 +372,6 @@ public abstract class AbstractApplication {
      */
     public void registerService(Service service, boolean overrideClassHierarchy) {
         synchronized(this) {
-            if (isRunning())
-                throw new IllegalStateException("Cannot register a service with a running application");
-
             serviceManager.registerInstance(service, overrideClassHierarchy);
         }
     }
