@@ -164,7 +164,7 @@ public class ExceptionReporterService extends Service {
         @Override
         protected void onStart() {
             super.onStart();
-            
+
             AbstractApplication app = getApplication();
             msgSubject = app.getProperty(KEY_MSG_SUBJECT, DEFAULT_MSG_SUBJECT);
             recipients = __getRecipientsFromString(app.getProperty(KEY_MSG_RECIPIENTS, DEFAULT_MSG_RECIPIENTS), ",");
@@ -218,7 +218,7 @@ public class ExceptionReporterService extends Service {
     }
     // =========================================================================
     // </editor-fold>
-    
+
     private final List<String> stackTraceHistory = new LinkedList<>();
 
     private final Set<ExceptionReporter> reporters = new LinkedHashSet<>();
@@ -242,8 +242,6 @@ public class ExceptionReporterService extends Service {
         nodeName = DEFAULT_NODE_NAME;
         stackTraceHistorySize = DEFAULT_STACK_TRACE_HISTORY_SIZE;
         enabled = DEFAULT_SERVICE_ENABLED;
-
-        reporters.clear();
         stackTraceHistory.clear();
     }
 
@@ -257,7 +255,7 @@ public class ExceptionReporterService extends Service {
         synchronized (this) {
             if (isRunning())
                 throw new IllegalStateException("Cannot remove a reporter from a running service");
-            
+
             // Reporters don't need to be stopped since service is not running.
 
             reporters.clear();
@@ -290,7 +288,7 @@ public class ExceptionReporterService extends Service {
     @Override
     protected void onStart() {
         super.onStart();
-        
+
         synchronized(this) {
             __reset();
 
