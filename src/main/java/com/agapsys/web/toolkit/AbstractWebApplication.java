@@ -28,17 +28,22 @@ public abstract class AbstractWebApplication extends AbstractApplication impleme
     @Override
     public final String getName() {
         String rootName = getRootName();
-        
+
         if (contextPath == null || contextPath.equals("/") || contextPath.isEmpty()) {
             return rootName;
         } else {
-            return rootName + "-" + contextPath.substring(1);
-}
+            String contextName = contextPath.substring(1);
+            if (contextName.equals(rootName)) {
+                return rootName;
+            } else {
+                return rootName + "-" + contextPath.substring(1);
+            }
+        }
     }
-    
+
     /**
      * Returns the name of the application when used in root context.
-     * 
+     *
      * @return the name of the application when used in root context.
      */
     public abstract String getRootName();
@@ -60,7 +65,7 @@ public abstract class AbstractWebApplication extends AbstractApplication impleme
     @Override
     public final void contextInitialized(ServletContextEvent sce) {
         this.contextPath = sce == null ? null : sce.getServletContext().getContextPath();
-        
+
         start();
         onContextInitialized(sce);
     }
