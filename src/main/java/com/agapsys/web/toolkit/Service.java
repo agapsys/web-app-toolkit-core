@@ -112,20 +112,26 @@ public abstract class Service {
     public <S extends Service> S getService(Class<S> serviceClass, boolean autoRegistration) {
         if (app == null)
             throw new IllegalStateException("Service is not associated with an application");
-        
+
         return app.getService(serviceClass, autoRegistration);
     }
 
     public final <S extends Service> S getRegisteredService(Class<S> serviceClass) throws NoSuchElementException {
         S service = getService(serviceClass, false);
-        
+
         if (service == null)
             throw new NoSuchElementException(serviceClass.getName());
-        
+
         return service;
     }
-    
+
+    /** Consider using {@linkplain Service#getServiceOnDemand(java.lang.Class)}. */
+    @Deprecated
     public final <S extends Service> S getOnDemandService(Class<S> serviceClass) {
+        return getServiceOnDemand(serviceClass);
+    }
+
+    public final <S extends Service> S getServiceOnDemand(Class<S> serviceClass) {
         return getService(serviceClass, true);
     }
 

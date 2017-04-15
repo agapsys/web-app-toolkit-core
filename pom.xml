@@ -21,7 +21,7 @@ limitations under the License.
 
 	<groupId>com.agapsys</groupId>
 	<artifactId>web-app-toolkit-core</artifactId>
-	<version>0.1.0-20170415</version>
+	<version>0.1.0-20170416</version>
 	<packaging>jar</packaging>
 
 	<properties>
