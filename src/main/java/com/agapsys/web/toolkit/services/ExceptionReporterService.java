@@ -84,7 +84,7 @@ public class ExceptionReporterService extends Service {
 
         protected String getReportMessage(Throwable throwable, HttpServletRequest req, String nodeName) {
             StringBuilder sb = new StringBuilder("Application error").append("\n")
-                    .append("---------------------------")
+                    .append("---------------------------\n")
                     .append("URI: ").append(req.getRequestURI()).append("\n")
                     .append("Node: ").append(nodeName).append("\n")
                     .append("Stacktrace:").append("\n")
