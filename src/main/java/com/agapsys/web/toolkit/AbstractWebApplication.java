@@ -15,8 +15,13 @@
  */
 package com.agapsys.web.toolkit;
 
+import com.agapsys.web.toolkit.filters.AttributeServiceFilter;
+import com.agapsys.web.toolkit.filters.ExceptionReporterFilter;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
+import javax.servlet.ServletException;
 
 /**
  * Represents a web application
@@ -62,6 +67,40 @@ public abstract class AbstractWebApplication extends AbstractApplication impleme
      */
     protected void onContextDestroyed(ServletContextEvent sce) {}
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+        
+        try {
+
+            AttributeServiceFilter attributeServiceFilter = AttributeServiceFilter.getInstance();
+            ExceptionReporterFilter exceptionReporterFilter = ExceptionReporterFilter.getInstance();
+            
+            if (attributeServiceFilter != null)
+                attributeServiceFilter.init(null);
+            
+            if (exceptionReporterFilter != null)
+                exceptionReporterFilter.init(null);
+                        
+        } catch (ServletException ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        
+        AttributeServiceFilter attributeServiceFilter = AttributeServiceFilter.getInstance();
+        ExceptionReporterFilter exceptionReporterFilter = ExceptionReporterFilter.getInstance();
+
+        if (attributeServiceFilter != null)
+            attributeServiceFilter.destroy();
+
+        if (exceptionReporterFilter != null)
+            exceptionReporterFilter.destroy();
+    }
+    
     @Override
     public final void contextInitialized(ServletContextEvent sce) {
         this.contextPath = sce == null ? null : sce.getServletContext().getContextPath();

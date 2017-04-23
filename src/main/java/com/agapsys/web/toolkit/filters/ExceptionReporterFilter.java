@@ -29,11 +29,29 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 
 public class ExceptionReporterFilter implements Filter {
-
+    
+    // <editor-fold desc="STATIC SCOPE" defaultstate="collapsed">
+    private static ExceptionReporterFilter singleton = null;
+    
+    private static void __setInstance(ExceptionReporterFilter instance) {
+        synchronized(ExceptionReporterFilter.class) {
+            singleton = instance;
+        }
+    }
+    
+    public static ExceptionReporterFilter getInstance() {
+        synchronized(ExceptionReporterFilter.class) {
+            return singleton;
+        }
+    }
+    // </editor-fold>
+    
     private ExceptionReporterService exceptionReporterService;
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
+        __setInstance(this);
+        
         AbstractApplication app = (AbstractWebApplication) AbstractApplication.getRunningInstance();
         
         if (app != null) {
@@ -53,6 +71,8 @@ public class ExceptionReporterFilter implements Filter {
     }
 
     @Override
-    public void destroy() {}
+    public void destroy() {
+        __setInstance(null);
+    }
 
 }

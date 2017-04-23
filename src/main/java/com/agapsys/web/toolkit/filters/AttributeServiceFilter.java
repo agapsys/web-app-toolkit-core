@@ -28,11 +28,29 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 
 public class AttributeServiceFilter implements Filter {
-
+    
+    // <editor-fold desc="STATIC SCOPE" defaultstate="collapsed">
+    private static AttributeServiceFilter singleton = null;
+    
+    private static void __setInstance(AttributeServiceFilter instance) {
+        synchronized(AttributeServiceFilter.class) {
+            singleton = instance;
+        }
+    }
+    
+    public static AttributeServiceFilter getInstance() {
+        synchronized(AttributeServiceFilter.class) {
+            return singleton;
+        }
+    }
+    // </editor-fold>
+    
     private AttributeService attributeService;
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
+        __setInstance(this);
+        
         AbstractApplication app = (AbstractWebApplication) AbstractApplication.getRunningInstance();
         
         if (app != null) {
@@ -52,6 +70,8 @@ public class AttributeServiceFilter implements Filter {
     }
 
     @Override
-    public void destroy() {}
+    public void destroy() {
+        __setInstance(null);
+    }
 
 }
