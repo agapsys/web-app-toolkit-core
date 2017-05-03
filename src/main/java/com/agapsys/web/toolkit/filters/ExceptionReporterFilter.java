@@ -40,7 +40,7 @@ public class ExceptionReporterFilter implements Filter {
             chain.doFilter(request, response);
         } catch(RuntimeException ex) {
 
-            AbstractApplication app = (AbstractApplication) AbstractApplication.getRunningInstance();
+            AbstractApplication app = AbstractApplication.getRunningInstance();
             ExceptionReporterService exceptionReporterService = (app != null ? app.getService(ExceptionReporterService.class, false) : null);
 
             if (exceptionReporterService != null) {

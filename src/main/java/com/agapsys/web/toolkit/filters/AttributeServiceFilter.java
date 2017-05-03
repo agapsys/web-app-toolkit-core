@@ -37,7 +37,7 @@ public class AttributeServiceFilter implements Filter {
             chain.doFilter(request, response);
         } finally {
 
-            AbstractApplication app = (AbstractApplication) AbstractApplication.getRunningInstance();
+            AbstractApplication app = AbstractApplication.getRunningInstance();
             AttributeService attributeService = (app != null ? app.getService(AttributeService.class, false) : null);
 
             if (attributeService != null) {
