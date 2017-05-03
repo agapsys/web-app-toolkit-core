@@ -156,6 +156,14 @@ public final class LogService extends Service {
             if (logDir == null)
                 throw new IllegalArgumentException("Log directory cannot be null");
 
+            if (!logDir.exists()) {
+                if (logDir.mkdirs())
+                    throw new RuntimeException("Cannot create log directory: " + logDir.getAbsolutePath());
+            } else {
+                if (!logDir.isDirectory())
+                    throw new RuntimeException("Log directory path already exists and is a file: " + logDir.getAbsolutePath());
+            }
+
             this.logDir = logDir;
 
             if (filenamePattern == null || filenamePattern.trim().isEmpty())
