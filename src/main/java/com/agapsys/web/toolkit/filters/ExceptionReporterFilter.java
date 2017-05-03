@@ -27,6 +27,7 @@ import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 public class ExceptionReporterFilter implements Filter {
 
@@ -66,9 +67,12 @@ public class ExceptionReporterFilter implements Filter {
         } catch(RuntimeException ex) {
             if (exceptionReporterService != null) {
                 exceptionReporterService.reportException(ex, (HttpServletRequest) request);
+                HttpServletResponse resp = (HttpServletResponse) response;
+                resp.setStatus(500);
+                resp.getWriter().print("An uncaught error was detected (this error was reported)");
+            } else {
+                throw ex;
             }
-
-            throw ex;
         }
     }
 
