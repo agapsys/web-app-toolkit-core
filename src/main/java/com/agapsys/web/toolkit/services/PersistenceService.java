@@ -37,8 +37,6 @@ public class PersistenceService extends Service {
     // =========================================================================
     public static final String PROPERTIES_FILE = "persistence.properties";
 
-    public static final String KEY_JDBC_PASSWORD = "javax.persistence.jdbc.password";
-
     public static final String DEFAULT_PERSISTENCE_UNIT_NAME = "default";
 
     public static interface EmFactory {
@@ -98,10 +96,10 @@ public class PersistenceService extends Service {
     protected File getPropertiesFile() {
         return new File(getApplication().getDirectory(), PROPERTIES_FILE);
     }
-    
-    /** 
+
+    /**
      * Returns default entity manager factory properties.
-     * 
+     *
      * @return Default entity manager factory properties. Default implementation returns null.
      */
     protected Properties getDefaultEmfProperties() {
@@ -142,10 +140,6 @@ public class PersistenceService extends Service {
             for (Map.Entry entry : properties.entrySet()) {
                 String key = (String) entry.getKey();
                 Object value = entry.getValue();
-
-                if (key.equals(KEY_JDBC_PASSWORD)) {
-                    value = ((String) value).toCharArray();
-                }
 
                 emfProperties.put(key, value);
             }
