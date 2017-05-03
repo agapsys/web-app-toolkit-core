@@ -17,7 +17,6 @@
 package com.agapsys.web.toolkit.filters;
 
 import com.agapsys.web.toolkit.AbstractApplication;
-import com.agapsys.web.toolkit.AbstractWebApplication;
 import com.agapsys.web.toolkit.services.ExceptionReporterService;
 import java.io.IOException;
 import javax.servlet.Filter;
@@ -31,40 +30,19 @@ import javax.servlet.http.HttpServletResponse;
 
 public class ExceptionReporterFilter implements Filter {
 
-    // <editor-fold desc="STATIC SCOPE" defaultstate="collapsed">
-    private static ExceptionReporterFilter singleton = null;
-
-    private static void __setInstance(ExceptionReporterFilter instance) {
-        synchronized(ExceptionReporterFilter.class) {
-            singleton = instance;
-        }
-    }
-
-    public static ExceptionReporterFilter getInstance() {
-        synchronized(ExceptionReporterFilter.class) {
-            return singleton;
-        }
-    }
-    // </editor-fold>
-
-    private ExceptionReporterService exceptionReporterService;
 
     @Override
-    public void init(FilterConfig filterConfig) throws ServletException {
-        __setInstance(this);
-
-        AbstractApplication app = (AbstractWebApplication) AbstractApplication.getRunningInstance();
-
-        if (app != null) {
-            exceptionReporterService = app.getService(ExceptionReporterService.class, false);
-        }
-    }
+    public void init(FilterConfig filterConfig) throws ServletException {}
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
         try {
             chain.doFilter(request, response);
         } catch(RuntimeException ex) {
+
+            AbstractApplication app = (AbstractApplication) AbstractApplication.getRunningInstance();
+            ExceptionReporterService exceptionReporterService = (app != null ? app.getService(ExceptionReporterService.class, false) : null);
+
             if (exceptionReporterService != null) {
                 exceptionReporterService.reportException(ex, (HttpServletRequest) request);
                 HttpServletResponse resp = (HttpServletResponse) response;
@@ -77,8 +55,6 @@ public class ExceptionReporterFilter implements Filter {
     }
 
     @Override
-    public void destroy() {
-        __setInstance(null);
-    }
+    public void destroy() {}
 
 }
