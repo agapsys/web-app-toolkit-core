@@ -615,6 +615,7 @@ public abstract class AbstractApplication {
                 __stopServices();
                 __setRunningInstance(null);
                 running = false;
+                __reset();
                 afterStop();
             } catch (Throwable ex) {
                 __setRunningInstance(null);
