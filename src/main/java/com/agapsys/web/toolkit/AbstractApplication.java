@@ -475,25 +475,43 @@ public abstract class AbstractApplication {
      * @param value property value.
      * @param overrideExisting defines if existing properties should be overridden.
      */
-    public void setProperty(String key, String value, boolean overrideExisting) {
+    public void setProperty(String key, Object value, boolean overrideExisting) {
         synchronized(this) {
             if (!isRunning())
                 throw new IllegalStateException("Application is not running");
 
+            StringConverter converter = (value == null ? STRING_CONVERTER_MAP.get(String.class) : STRING_CONVERTER_MAP.get(value.getClass()));
+
+            if (converter == null)
+                throw new UnsupportedOperationException("No converter for " + value.getClass().getName());
+
+            String strValue = converter.toString(value);
+
             if (overrideExisting || !properties.containsKey(key)) {
-                properties.setProperty(key, value);
+                properties.setProperty(key, strValue);
             }
         }
     }
 
     /** Convenience method for setProperty(key, value, true). */
-    public final void setProperty(String key, String value) {
+    public final void setProperty(String key, Object value) {
         setProperty(key, value, true);
     }
 
     /** Convenience method for setProperty(key, value, false). */
     public final void setPropertyIfAbsent(String key, String value) {
         setProperty(key, value, false);
+    }
+
+    /**
+     * Removes an application property.
+     *
+     * @param key property key to be removed. If it is not present, nothing happens.
+     */
+    public final void removeProperty(String key) {
+        synchronized(this) {
+            properties.remove(key);
+        }
     }
 
     /**
