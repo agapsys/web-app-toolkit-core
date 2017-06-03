@@ -201,9 +201,6 @@ public abstract class AbstractApplication {
         serviceManager.clear();
         initializedServiceList.clear();
         serviceCircularRefCheckList.clear();
-
-        appDirectory   = null;
-        running        = false;
         settingsLoaded = false;
     }
 
@@ -635,6 +632,7 @@ public abstract class AbstractApplication {
                 running = false;
                 __reset();
                 afterStop();
+                appDirectory   = null;
             } catch (Throwable ex) {
                 __setRunningInstance(null);
                 running = false;
